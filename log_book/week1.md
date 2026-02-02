@@ -1,6 +1,9 @@
 # Week 1
 
 ## Refactoring
+We used 2to3, to determine what exactly was deprecated or changed between the versioning.
+
+Among multible other things, we found that the functionality of the `werkzeug` package had been moved to `werkzeug.security` instead, so we updated this.
 
 
 ## `minitwit_tests.py`
@@ -18,3 +21,14 @@ assert 'The username is already taken' in rv.get_data(as_text=True)
 Where `rv.get_data(as_text=True)`, then returns a string instead of bytes, and therefore this works. 
 
 (Another fix could have been to change the strings to change the string to bytes, instead, however we went with this other way.)
+
+## change in control.sh
+We ran 
+```cmd
+shellcheck control.sh
+```
+
+Which added "quotation marks" around $ to prevent word splitting and globbing.
+
+
+In addition to this we added which shell to target. We chose to target `#!/bin/sh` . 
