@@ -1,4 +1,4 @@
-# Week 1
+# Week 1 30/01 - 06/02
 
 ## Refactoring
 We used 2to3, to determine what exactly was deprecated or changed between the versioning.
