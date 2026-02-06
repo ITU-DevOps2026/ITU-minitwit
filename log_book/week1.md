@@ -31,4 +31,4 @@ shellcheck control.sh
 Which added "quotation marks" around $ to prevent word splitting and globbing.
 
 
-In addition to this we added which shell to target. We chose to target `#!/bin/sh` . 
+In addition to this we added which shell to target. We chose to target `#!/bin/sh`. We decided on this with a focus on portability, as the current control.sh does not have any specific bash syntax (bash-isms). We note that further changes to the control script might cause us to target a different shell.
