@@ -1,11 +1,3 @@
-# Title: Summary, imperative, start upper case, don't end with a period
-# No more than 50 chars. #### 50 chars is here:  #
-
-# Remember blank line between title and body.
-
-# At the end: Include Co-authored-by for all contributors. 
-
-# Include at least one empty line before it. Format: 
 # Co-authored-by: Mads Christian Nørklit Jensen <macj@itu.dk>
 # Co-authored-by: Max Brix Koch <mbko@itu.dk>
 # Co-authored-by: Carmen Alberte Nielsen <alcn@itu.dk>
