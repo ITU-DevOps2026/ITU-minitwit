@@ -1,0 +1,30 @@
+@page "/public"
+@model TimelineModel
+
+@{
+  Layout = "Shared/_Layout";
+}
+
+
+<h2>Public Timeline</h2>
+
+<ul class="messages">
+@foreach (var message in Model.Messages)
+{
+  <li>
+    <p>
+      <strong>@message["username"]</strong>
+      @message["text"]
+      <br />
+      <small>
+        — @message["pub_date"]
+      </small>
+    </p>
+  </li>
+}
+</ul>
+
+@if (!Model.Messages.Any())
+{
+  <p><em>There's no message so far.</em></p>
+}
