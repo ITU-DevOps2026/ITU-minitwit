@@ -1,0 +1,27 @@
+@page "/{username}"
+@model UserTimelineModel
+@{
+  var routeName = HttpContext.GetRouteValue("username");
+}
+
+<h2>@routeName's Timeline</h2>
+
+<ul class="messages">
+@foreach (Dictionary<string, object> message in Model.Messages)
+{
+  <li>
+    <p>
+      <strong><a href="/@message["username"]">@message["username"]</a></strong>
+      @message["text"]
+      <small>
+        — @message["pub_date"]
+      </small>
+    </p>
+  </li>
+}
+</ul>
+
+@if (!Model.Messages.Any())
+{
+  <p><em>There's no message so far.</em></p>
+}
