@@ -14,7 +14,7 @@ var res = miniTwit.Query_db_Read("SELECT * FROM message WHERE message_id < 5", [
 foreach (Dictionary<string, object> dict in res) {
   foreach (KeyValuePair<string, object> kvp in dict)
   {
-      Console.WriteLine("Key = {0}, Value = {1}", kvp.Key, kvp.Value);
+    Console.WriteLine("Key = {0}, Value = {1}", kvp.Key, kvp.Value);
   }
 }
 
