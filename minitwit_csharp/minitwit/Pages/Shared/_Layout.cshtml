@@ -12,15 +12,15 @@
         <div class="navigation">
             @if(User.Identity != null && User.Identity.IsAuthenticated)
             {
-                <a asp-page="/Index">my timeline</a> @:|
-                <a asp-page="/public" >public timeline</a> @:|
-                <a asp-page="/logout">sign out [@User.Identity.Name]</a>
+                <a href="/Index">my timeline</a> @:|
+                <a href="/public" >public timeline</a> @:|
+                <a href="/logout">sign out [@User.Identity.Name]</a>
             }
             else
             {
-                <a asp-page="/public">public timeline</a> @:|
-                <a asp-page="/register">sign up</a> @:|
-                <a asp-page="/login">sign in</a>
+                <a href="/public">public timeline</a> @:|
+                <a href="/register">sign up</a> @:|
+                <a href="/login">sign in</a>
             }
         </div>
         @if (TempData["Flash"] !=null)
