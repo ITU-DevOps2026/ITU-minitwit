@@ -9,6 +9,7 @@ miniTwit.Connect_db();
 //var param = new SqliteParameter("@Id", 1);
 //var res = miniTwit.Query_db("SELECT * FROM message WHERE message_id = @Id", [param]);
 var res = miniTwit.Query_db_Read("SELECT * FROM message WHERE message_id < 5", []);
+// var res = miniTwit.Get_public_timeline();
 
 foreach (Dictionary<string, object> dict in res) {
   foreach (KeyValuePair<string, object> kvp in dict)
@@ -59,6 +60,7 @@ namespace MiniTwitns
     // Configuration
     string DATABASE = "./minitwit.db";
     SqliteConnection connection;
+    private int PER_PAGE = 30;
 
     public SqliteConnection Connect_db()
     {
@@ -109,5 +111,19 @@ namespace MiniTwitns
 
       return results;
     }
+
+    public List<Dictionary<string, object>> Get_public_timeline()
+    {
+      string query = """
+        Select message.*, user.* 
+        from message, user
+        where message.flagged = 0 and message.author_id = user.user_id
+        order by message.pub_date desc limit @per_page
+      """;
+      SqliteParameter pp_param = new SqliteParameter("@per_page", PER_PAGE);
+      List<Dictionary<string, object>> messages = Query_db_Read(query, [pp_param]);
+
+      return messages;
+    } 
   }
 }
