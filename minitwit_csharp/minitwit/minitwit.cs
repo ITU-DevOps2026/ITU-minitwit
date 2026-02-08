@@ -1,5 +1,5 @@
 using Microsoft.Data.Sqlite;
-using MiniTwitns;
+using minitwit;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -53,9 +53,9 @@ app.MapRazorPages()
 
 app.Run();
 
-namespace MiniTwitns
+namespace minitwit
 {
-  class MiniTwit
+  public class MiniTwit
   {
     // Configuration
     string DATABASE = "./minitwit.db";
