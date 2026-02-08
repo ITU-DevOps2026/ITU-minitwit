@@ -1,11 +1,10 @@
 @page "/public"
 @model PublicTimelineModel
 
-
 <h2>Public Timeline</h2>
 
 <ul class="messages">
-@foreach (var message in Model.Messages)
+@foreach (Dictionary<string, object> message in Model.Messages)
 {
   <li>
     <p>
