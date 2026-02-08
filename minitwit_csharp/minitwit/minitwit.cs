@@ -8,7 +8,7 @@ MiniTwit miniTwit = new MiniTwit();
 miniTwit.Connect_db();
 //var param = new SqliteParameter("@Id", 1);
 //var res = miniTwit.Query_db("SELECT * FROM message WHERE message_id = @Id", [param]);
-var res = miniTwit.Query_db("SELECT * FROM message WHERE message_id < 5", []);
+var res = miniTwit.Query_db_Read("SELECT * FROM message WHERE message_id < 5", []);
 
 foreach (Dictionary<string, object> dict in res) {
   foreach (KeyValuePair<string, object> kvp in dict)
@@ -16,6 +16,16 @@ foreach (Dictionary<string, object> dict in res) {
       Console.WriteLine("Key = {0}, Value = {1}", kvp.Key, kvp.Value);
   }
 }
+
+/*var msid = new SqliteParameter("@Message_id", SqliteType.Integer) { Value = 11325 };
+var auid = new SqliteParameter("@Author_id", SqliteType.Integer) { Value = 1 };
+var text = new SqliteParameter("@Text", SqliteType.Text) { Value = "Vi skriver SQL" };
+var pub  = new SqliteParameter("@Pub_date", SqliteType.Integer) { Value = 1769777843 };
+var flag = new SqliteParameter("@Flagged", SqliteType.Integer) { Value = 0 };
+
+var insert = miniTwit.Query_db_Insert("INSERT INTO message (message_id, author_id, text, pub_date, flagged) VALUES (@Message_id, @Author_id, @Text, @Pub_date, @Flagged)", [msid, auid, text, pub, flag]);
+
+Console.WriteLine(insert);*/
 
 // Add services to the container.
 builder.Services.AddRazorPages();
@@ -57,13 +67,28 @@ namespace MiniTwitns
       return connection;
     }
 
-    public List<Dictionary<string, object>> Query_db(string query, SqliteParameter[] args, bool one=false)
+    public List<Dictionary<string, object>> Query_db_Read(string query, SqliteParameter[] args, bool one=false)
+    {
+      return (List<Dictionary<string, object>>) Query_db(query, args, false, one);
+    }
+
+    public int Query_db_Insert(string query, SqliteParameter[] args, bool one=false)
+    {
+      return (int) Query_db(query, args, true, one);
+    }
+
+    public object Query_db(string query, SqliteParameter[] args, bool nonQuery, bool one=false)
     {
       SqliteCommand command = connection.CreateCommand();
       command.CommandText = query;
       foreach (SqliteParameter param in args)
       {
         command.Parameters.Add(param);
+      }
+
+      if (nonQuery)
+      {
+        return command.ExecuteNonQuery();
       }
 
       SqliteDataReader reader = command.ExecuteReader();
