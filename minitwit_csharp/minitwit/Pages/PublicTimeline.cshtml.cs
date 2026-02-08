@@ -4,12 +4,10 @@ using minitwit;
 
 namespace minitwit.Pages;
 
-public class TimelineModel : PageModel
-{
+public class PublicTimelineModel : PageModel
+{ 
   public List<Dictionary<string, object>> Messages { get; private set; }
-  
-
-  public void OnGet()
+  public override void OnGet()
   {
     MiniTwit minitwit = new MiniTwit();
     minitwit.Connect_db();
