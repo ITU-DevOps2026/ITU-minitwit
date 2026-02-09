@@ -1,0 +1,18 @@
+@page
+@model RegisterModel
+
+<h2>Sign Up</h2>
+<div asp-validation-summary="All" class="error"></div>
+<form action="" method=post>
+  <dl>
+    <dt>Username:
+      <dd><input asp-for="Username" size=30>
+    <dt>E-Mail:
+      <dd><input asp-for="Email" size=30>
+    <dt>Password:
+      <dd><input asp-for="Password" size=30 type="password">
+    <dt>Password <small>(repeat)</small>:
+      <dd><input asp-for="Password2" size=30 type="password">
+  </dl>
+<div class=actions><input type=submit value="Sign Up"></div>
+</form>

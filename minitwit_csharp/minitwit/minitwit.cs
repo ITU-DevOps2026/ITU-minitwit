@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+using System.Text;
 using Microsoft.Data.Sqlite;
 using minitwit;
 
@@ -124,6 +126,46 @@ namespace minitwit
       List<Dictionary<string, object>> messages = Query_db_Read(query, [pp_param]);
 
       return messages;
+    }
+
+    public void Register(string username, string email, string password)
+    {
+      string query = """
+        INSERT INTO user (username, email, pw_hash) values (@username, @email, @pw_hash)
+      """;
+      SqliteParameter username_param = new SqliteParameter("@username", username);
+      SqliteParameter email_param = new SqliteParameter("@email", email);
+      SqliteParameter pw_hash_param = new SqliteParameter("@pw_hash", Generate_password_hash(password));
+      Query_db_Insert(query, [username_param, email_param, pw_hash_param]);
     } 
+
+
+    // Code inspired by https://code-maze.com/csharp-hashing-salting-passwords-best-practices/
+    public string Generate_password_hash(string password)
+    {
+      const int keySize = 32;
+      const int iterations = 50000;
+
+      HashAlgorithmName hashAlgorithm = HashAlgorithmName.SHA256;
+
+      byte[] salt = RandomNumberGenerator.GetBytes(keySize);
+      var hash = Rfc2898DeriveBytes.Pbkdf2(Encoding.UTF8.GetBytes(password), salt, iterations, hashAlgorithm, keySize);
+
+      return Convert.ToHexString(hash);
+    }
+
+    public int? Get_user_id(string username)
+    {
+      string query = """
+        SELECT user_id FROM user WHERE username = @username
+      """;
+      SqliteParameter username_param = new SqliteParameter("@username", username);
+      var result = Query_db_Read(query, [username_param], true);
+      if (result != null && result.Count > 0)
+      {
+        return Convert.ToInt32(result[0]["user_id"]);
+      }
+      return null;
+    }
   }
 }

@@ -176,3 +176,7 @@ div.error {
     padding: 4px;
     font-size: 13px;
 }
+
+.validation-summary-valid {
+    display: none;
+}
