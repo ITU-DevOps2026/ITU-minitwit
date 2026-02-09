@@ -33,6 +33,15 @@ Console.WriteLine(insert);*/
 // Add services to the container.
 builder.Services.AddRazorPages();
 
+builder.Services.AddDistributedMemoryCache();
+
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(15);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -49,6 +58,8 @@ app.UseRouting();
 
 app.UseAuthorization();
 
+app.UseSession();
+
 app.MapStaticAssets();
 app.MapRazorPages()
    .WithStaticAssets();
@@ -63,6 +74,11 @@ namespace minitwit
     string DATABASE = "./minitwit.db";
     SqliteConnection connection;
     private int PER_PAGE = 30;
+
+    // Password hashing configurations
+    const int keySize = 32;
+    const int iterations = 50000;
+    HashAlgorithmName hashAlgorithm = HashAlgorithmName.SHA256;
 
     public SqliteConnection Connect_db()
     {
@@ -143,15 +159,36 @@ namespace minitwit
     // Code inspired by https://code-maze.com/csharp-hashing-salting-passwords-best-practices/
     public string Generate_password_hash(string password)
     {
-      const int keySize = 32;
-      const int iterations = 50000;
-
-      HashAlgorithmName hashAlgorithm = HashAlgorithmName.SHA256;
-
       byte[] salt = RandomNumberGenerator.GetBytes(keySize);
       var hash = Rfc2898DeriveBytes.Pbkdf2(Encoding.UTF8.GetBytes(password), salt, iterations, hashAlgorithm, keySize);
 
-      return Convert.ToHexString(hash);
+      // Format the string to match the format of passwords from python application
+      // Saving the salt in the DB is usually bad practice, but we do it because the original application does it :)
+      return "pbkdf2:sha256:50000$"+Convert.ToHexString(salt)+"$"+Convert.ToHexString(hash);
+    }
+
+    public bool Check_password_hash(string username, string input_password)
+    {
+      string query = """
+        SELECT * FROM user WHERE username = @username
+      """;
+      SqliteParameter username_param = new SqliteParameter("@username", username);
+      var result = Query_db_Read(query, [username_param], true);
+      if (result != null && result.Count > 0)
+      {
+        // Split pw_hash from DB into hashing algorithm, salt, and password hash
+        string[] res = ((string) result[0]["pw_hash"]).Split('$');
+        var salt_from_DB = Convert.FromHexString(res[1]);
+        var pwd_hash_from_DB = res[2];
+
+        // Calculate hash with the input password 
+        var hash = Rfc2898DeriveBytes.Pbkdf2(Encoding.UTF8.GetBytes(input_password), salt_from_DB, iterations, hashAlgorithm, keySize);
+        var pwd_hash_from_input = Convert.ToHexString(hash);
+
+        // Compare hash from DB with the hashed input password
+        return pwd_hash_from_DB == pwd_hash_from_input;
+      }
+      return false;
     }
 
     public int? Get_user_id(string username)

@@ -4,46 +4,37 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace minitwit.Pages;
 
-public class RegisterModel : PageModel
+public class LoginModel : PageModel
 {
   [BindProperty]
   [Required(ErrorMessage ="You have to enter a username")]
   public required string Username {get; set;}
 
   [BindProperty]
-  [Required(ErrorMessage ="You have to enter a valid email address")]
-  [EmailAddress]
-  public required string Email {get; set;}
-
-  [BindProperty]
   [Required(ErrorMessage ="You have to enter a password")]
   public required string Password {get; set;}
-
-  [BindProperty]
-  [Compare("Password", ErrorMessage = "The two passwords do not match")]
-  public string? Password2 {get; set;}
-
-  [TempData]
-  public string SignUpResult { get; set; }
 
   public async Task<IActionResult> OnPostAsync()
   {
     MiniTwit minitwit = new MiniTwit();
     minitwit.Connect_db();
     
-    if (minitwit.Get_user_id(Username) != null)
+    if (minitwit.Get_user_id(Username) == null)
     {
-        ModelState.AddModelError("Username", "The username is already taken");
+        ModelState.AddModelError("Username", "Invalid username");
+    }
+    if (!minitwit.Check_password_hash(Username, Password))
+    {
+        ModelState.AddModelError("Password", "Invalid password");
     }
     
     if (!ModelState.IsValid)
     {
       return Page();
     }
-    
-    minitwit.Register(Username, Email, Password);
 
-    SignUpResult = "You were successfully registered and can login now";
+    // Save the logged in user's username in the browser session 
+    HttpContext.Session.SetString("Logged_In_Username", Username);
 
     return RedirectToPage("./login");
   }

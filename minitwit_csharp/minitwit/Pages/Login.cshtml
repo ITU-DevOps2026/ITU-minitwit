@@ -1,0 +1,21 @@
+@page
+@model LoginModel
+
+<h2>Log In</h2>
+@if (@TempData["SignUpResult"]!=null) {
+  <ul class=flashes>
+  <li>
+    @TempData["SignUpResult"]
+  </li>
+</ul>
+}
+<div asp-validation-summary="All" class="error"></div>
+<form action="" method=post>
+  <dl>
+    <dt>Username:
+      <dd><input asp-for="Username" size=30>
+    <dt>Password:
+      <dd><input asp-for="Password" size=30 type="password">
+  </dl>
+<div class=actions><input type=submit value="Log In"></div>
+</form>
