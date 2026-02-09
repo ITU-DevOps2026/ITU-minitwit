@@ -36,6 +36,7 @@ public class LoginModel : PageModel
     // Save the logged in user's username in the browser session 
     HttpContext.Session.SetString("Logged_In_Username", Username);
 
+    // Add redirection to user's own timeline here!
     return RedirectToPage("./login");
   }
 }
