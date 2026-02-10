@@ -4,7 +4,40 @@
     ViewData["Title"] = "Home page";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+@if (@TempData["LogInResult"]!=null) {
+  <ul class=flashes>
+  <li>
+    @TempData["LogInResult"]
+  </li>
+</ul>
+}
+<h2>My Timeline</h2>
+@if(HttpContext.Session.GetString("Logged_In_Username") != null)
+{
+  <div class=twitbox>
+        <h3>What's on your mind @HttpContext.Session.GetString("Logged_In_Username")?</h3>
+        <form action="/add_message" method="post">
+          <p><input type="text" name="Text" size=60><!--
+          --><input type=submit value="Share">
+        </form>
+      </div>
+}
+<ul class="messages">
+@if(Model.Messages.Any()) {
+    @foreach (Dictionary<string, object> message in Model.Messages)
+    {
+    <li>
+        <p>
+        <strong><a href="/@message["username"]">@message["username"]</a></strong>
+        @message["text"]
+        <small>
+            — @message["pub_date"]
+        </small>
+        </p>
+    </li>
+    }
+}
+else {
+    <li><em>There's no message so far.</em></li>
+}
+</ul>

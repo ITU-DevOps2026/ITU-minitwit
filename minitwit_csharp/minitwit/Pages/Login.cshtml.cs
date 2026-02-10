@@ -14,6 +14,9 @@ public class LoginModel : PageModel
   [Required(ErrorMessage ="You have to enter a password")]
   public required string Password {get; set;}
 
+  [TempData]
+  public string LogInResult { get; set; }
+
   public async Task<IActionResult> OnPostAsync()
   {
     MiniTwit minitwit = new MiniTwit();
@@ -36,7 +39,8 @@ public class LoginModel : PageModel
     // Save the logged in user's username in the browser session 
     HttpContext.Session.SetString("Logged_In_Username", Username);
 
-    // Add redirection to user's own timeline here!
-    return RedirectToPage("./login");
+    LogInResult = "You were logged in";
+
+    return RedirectToPage("Index");
   }
 }

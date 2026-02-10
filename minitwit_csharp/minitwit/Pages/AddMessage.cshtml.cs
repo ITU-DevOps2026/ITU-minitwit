@@ -22,6 +22,6 @@ public class AddMessageModel : PageModel
             Console.WriteLine("Message '" + Text + "' from " + username + " added to database!");
         }
 
-        return RedirectToPage("./PublicTimeline");
+        return RedirectToPage("Index");
     }
 }
