@@ -339,7 +339,6 @@ namespace minitwit
       {
         throw new Exception("Something went wrong, when trying to follow");
       }
-      // Missing: flash('You are now following "%s"' % username)
     }
 
 
@@ -367,8 +366,6 @@ namespace minitwit
       {
         throw new Exception("Something went wrong, when trying to follow");
       }
-
-      // Missing:flash('You are no longer following "%s"' % username)
     }
   }
 }

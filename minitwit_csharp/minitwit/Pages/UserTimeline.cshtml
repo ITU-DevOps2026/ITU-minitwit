@@ -4,6 +4,13 @@
   var routeName = HttpContext.GetRouteValue("username");
 }
 
+@if (@TempData["FollowResult"]!=null) {
+  <ul class=flashes>
+  <li>
+    @TempData["FollowResult"]
+  </li>
+</ul>
+}
 <h2>@routeName's Timeline</h2>
 @if(HttpContext.Session.GetString("Logged_In_Username") != null)
 {
