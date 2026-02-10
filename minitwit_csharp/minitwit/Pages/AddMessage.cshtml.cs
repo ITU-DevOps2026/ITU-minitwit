@@ -6,10 +6,8 @@ namespace minitwit.Pages;
 [IgnoreAntiforgeryToken]
 public class AddMessageModel : PageModel
 {
-    // private string AuthorID; Found via cookie
     [BindProperty]
     public required string Text {get;set;}
-    // Time of some kind
 
     public async Task<IActionResult> OnPostAsync()
     {
