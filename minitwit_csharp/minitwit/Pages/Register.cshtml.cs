@@ -25,9 +25,6 @@ public class RegisterModel : PageModel
   [Compare("Password", ErrorMessage = "The two passwords do not match")]
   public required string Password2 {get; set;}
 
-  [TempData]
-  public string SignUpResult { get; set; }
-
   public async Task<IActionResult> OnPostAsync()
   {
     MiniTwit minitwit = new MiniTwit();
@@ -45,7 +42,7 @@ public class RegisterModel : PageModel
 
     minitwit.Register(Username, Email, Password);
 
-    SignUpResult = "You were successfully registered and can login now";
+    TempData["Flash"] = "You were successfully registered and can login now";
 
     return RedirectToPage("./login");
   }
