@@ -132,6 +132,11 @@ namespace minitwit
       return results;
     }
 
+    public static string Format_datetime(int timestamp)
+    {
+      return DateTimeOffset.FromUnixTimeSeconds(timestamp).ToString("yyyy-MM-dd @ HH:mm");
+    }
+
     public List<Dictionary<string, object>> Get_public_timeline()
     {
       string query = """
