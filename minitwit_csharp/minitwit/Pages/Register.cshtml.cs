@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace minitwit.Pages;
 
+[IgnoreAntiforgeryToken]
 public class RegisterModel : PageModel
 {
   [BindProperty]
@@ -31,17 +32,17 @@ public class RegisterModel : PageModel
   {
     MiniTwit minitwit = new MiniTwit();
     minitwit.Connect_db();
+
+    if (Username != null && minitwit.Get_user_id(Username) != null)
+    {
+        ModelState.AddModelError("Username", "The username is already taken"); 
+    }
     
     if (!ModelState.IsValid)
     {
       return Page();
     }
 
-    if (minitwit.Get_user_id(Username) != null)
-    {
-        ModelState.AddModelError("Username", "The username is already taken");
-    }
-    
     minitwit.Register(Username, Email, Password);
 
     SignUpResult = "You were successfully registered and can login now";
