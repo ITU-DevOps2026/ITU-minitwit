@@ -1,0 +1,56 @@
+@page "/{username}"
+@model UserTimelineModel
+@{
+  var routeName = HttpContext.GetRouteValue("username");
+}
+
+@if (@TempData["FollowResult"]!=null) {
+  <ul class=flashes>
+  <li>
+    @TempData["FollowResult"]
+  </li>
+</ul>
+}
+<h2>@routeName's Timeline</h2>
+@if(HttpContext.Session.GetString("Logged_In_Username") != null)
+{
+  @if(HttpContext.Session.GetString("Logged_In_Username").Equals(@routeName)){
+    <div class=followstatus>
+      This is you!
+    </div>
+  } 
+  else if(Model.Followed)
+  {
+    <div class="followstatus">
+      You are currently following this user.
+      <a href="/@routeName/unfollow" class="unfollow">Unfollow user</a>.
+    </div>
+  }
+  else
+  {
+    <div class="followstatus">
+      You are not yet following this user.
+      <a href="/@routeName/follow" class="follow">Follow user</a>.
+    </div>
+  }
+}
+<ul class="messages">
+@foreach (Dictionary<string, object> message in Model.Messages)
+{
+  <li>
+    <img src="@MiniTwit.Get_Gravatar_Url((string)@message["email"], 48)" />
+    <p>
+      <strong><a href="/@message["username"]">@message["username"]</a></strong>
+      @message["text"]
+      <small>
+        — @MiniTwit.Format_datetime(Convert.ToInt32(@message["pub_date"]))
+      </small>
+    </p>
+  </li>
+}
+</ul>
+
+@if (!Model.Messages.Any())
+{
+  <p><em>There's no message so far.</em></p>
+}
