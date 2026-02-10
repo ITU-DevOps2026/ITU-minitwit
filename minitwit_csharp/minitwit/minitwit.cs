@@ -139,11 +139,11 @@ namespace minitwit
 
     public static string Get_Gravatar_Url(string email, int size = 80)
     {
-        byte[] inputBytes = Encoding.UTF8.GetBytes(email.Trim().ToLower());
-        byte[] hashBytes = MD5.HashData(inputBytes);
-        string hashString = Convert.ToHexString(hashBytes).ToLower();
+      byte[] inputBytes = Encoding.UTF8.GetBytes(email.Trim().ToLower());
+      byte[] hashBytes = MD5.HashData(inputBytes);
+      string hashString = Convert.ToHexString(hashBytes).ToLower();
 
-        return $"https://www.gravatar.com/avatar/{hashString}?d=identicon&s={size}";
+      return $"https://www.gravatar.com/avatar/{hashString}?d=identicon&s={size}";
     }
 
     public List<Dictionary<string, object>> Get_public_timeline()
@@ -315,5 +315,60 @@ namespace minitwit
       }
     }
 
+    public void Follow_user(string active_username, string username_to_follow)
+    {
+      int? active_user_id = Get_user_id(active_username);
+      if (active_user_id == null)
+      {
+        throw new Exception("Active user doesn't exist");
+      }
+
+      int? profile_user_id = Get_user_id(username_to_follow);
+      if (profile_user_id == null)
+      {
+        throw new Exception("User doesn't exist");
+      }
+
+      string query = """
+        insert into follower (who_id, whom_id) values (@active_id, @other_id)
+      """;
+      SqliteParameter active_id_param = new SqliteParameter("@active_id", active_user_id);
+      SqliteParameter other_id_param = new SqliteParameter("@other_id", profile_user_id);
+      int followed = Query_db_Insert(query, [active_id_param, other_id_param], true);
+      if (followed != 1)
+      {
+        throw new Exception("Something went wrong, when trying to follow");
+      }
+      // Missing: flash('You are now following "%s"' % username)
+    }
+
+
+    public void Unfollow_user(string active_username, string username_to_follow)
+    {
+      int? active_user_id = Get_user_id(active_username);
+      if (active_user_id == null)
+      {
+        throw new Exception("Active user doesn't exist");
+      }
+
+      int? profile_user_id = Get_user_id(username_to_follow);
+      if (profile_user_id == null)
+      {
+        throw new Exception("User doesn't exist");
+      }
+
+      string query = """
+        delete from follower where who_id=@active_id and whom_id=@other_id
+      """;
+      SqliteParameter active_id_param = new SqliteParameter("@active_id", active_user_id);
+      SqliteParameter other_id_param = new SqliteParameter("@other_id", profile_user_id);
+      int unfollowed = Query_db_Insert(query, [active_id_param, other_id_param], true);
+      if (unfollowed != 1)
+      {
+        throw new Exception("Something went wrong, when trying to follow");
+      }
+
+      // Missing:flash('You are no longer following "%s"' % username)
+    }
   }
 }
