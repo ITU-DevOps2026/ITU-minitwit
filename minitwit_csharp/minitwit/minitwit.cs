@@ -174,7 +174,7 @@ namespace minitwit
       return messages;
     }
 
-    public Boolean Is_following(string active_username, string other_username)
+    public bool Is_following(string active_username, string other_username)
     {
       int? active_user_id = Get_user_id(active_username);
       if (active_user_id == null)
