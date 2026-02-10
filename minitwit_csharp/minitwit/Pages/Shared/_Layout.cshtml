@@ -1,4 +1,5 @@
-﻿<!DOCTYPE html>
+﻿@using Microsoft.AspNetCore.Http
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -10,11 +11,11 @@
     <div class="page">
         <h1>MiniTwit</h1>
         <div class="navigation">
-            @if(User.Identity != null && User.Identity.IsAuthenticated)
+            @if(Context.Session.GetString("Logged_In_Username") != null)
             {
                 <a href="/Index">my timeline</a> @:|
                 <a href="/public" >public timeline</a> @:|
-                <a href="/logout">sign out [@User.Identity.Name]</a>
+                <a href="/logout">sign out [@Context.Session.GetString("Logged_In_Username")]</a>
             }
             else
             {
