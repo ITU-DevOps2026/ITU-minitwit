@@ -7,13 +7,16 @@ public class UserTimelineModel : PageModel
 { 
   public List<Dictionary<string, object>> Messages { get; private set; }
   public bool Followed { get; set; }
-  public void OnGet(string username)
+  public IActionResult OnGet(string username)
   {
-
-    // if logged in show users own timeline
-    // if not logged in, redirect to public
     string? logged_in_username = HttpContext.Session.GetString("Logged_In_Username");
-    
+
+    // if username is logged in user, then show own timeline.
+    if (logged_in_username == username)
+    {
+      return RedirectToPage("./Index");
+    }
+
     // fetch messages 
     MiniTwit minitwit = new MiniTwit();
     minitwit.Connect_db();
@@ -23,5 +26,6 @@ public class UserTimelineModel : PageModel
     {
       Followed = minitwit.Is_following(logged_in_username, username);
     }
+    return Page();
   }
 }

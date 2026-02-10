@@ -19,7 +19,7 @@ public class IndexModel : PageModel
             minitwit.Connect_db();
 
             Messages = minitwit.Get_my_timeline(username);
-           return Page();
+            return Page();
         }
 
         return RedirectToPage("./PublicTimeline");
