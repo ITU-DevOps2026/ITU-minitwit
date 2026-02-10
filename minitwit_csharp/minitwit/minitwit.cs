@@ -134,7 +134,16 @@ namespace minitwit
 
     public static string Format_datetime(int timestamp)
     {
-      return DateTimeOffset.FromUnixTimeSeconds(timestamp).ToString("yyyy-MM-dd @ HH:mm");
+      return DateTimeOffset.FromUnixTimeSeconds(timestamp).ToLocalTime().ToString("yyyy-MM-dd @ HH:mm");
+    }
+
+    public static string Get_Gravatar_Url(string email, int size = 80)
+    {
+        byte[] inputBytes = Encoding.UTF8.GetBytes(email.Trim().ToLower());
+        byte[] hashBytes = MD5.HashData(inputBytes);
+        string hashString = Convert.ToHexString(hashBytes).ToLower();
+
+        return $"https://www.gravatar.com/avatar/{hashString}?d=identicon&s={size}";
     }
 
     public List<Dictionary<string, object>> Get_public_timeline()
