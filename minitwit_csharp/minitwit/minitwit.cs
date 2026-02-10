@@ -146,6 +146,29 @@ namespace minitwit
       return messages;
     }
 
+    public List<Dictionary<string, object>> Get_my_timeline(string username)
+    {
+      int? u_ID = Get_user_id(username);
+
+      if (u_ID != null) //Checking that the user exists
+      {
+        string query = """
+          select message.*, user.* from message, user
+          where message.flagged = 0 and message.author_id = user.user_id and (
+              user.user_id = @user_id or
+              user.user_id in (select whom_id from follower
+                                      where who_id = @user_id))
+          order by message.pub_date desc limit @per_page
+        """;
+        SqliteParameter user_id_param = new SqliteParameter("@user_id", u_ID);
+        SqliteParameter pp_param = new SqliteParameter("@per_page", PER_PAGE);
+        List<Dictionary<string, object>> messages = Query_db_Read(query, [user_id_param, pp_param]);
+
+        return messages;
+      }
+      return new List<Dictionary<string, object>>();
+    }
+
     public void Register(string username, string email, string password)
     {
       string query = """

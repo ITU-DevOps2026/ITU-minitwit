@@ -1,21 +1,7 @@
 @page "/public"
 @model PublicTimelineModel
 
-@using Microsoft.AspNetCore.Http
-
 <h2>Public Timeline</h2>
-
-@if(HttpContext.Session.GetString("Logged_In_Username") != null)
-{
-  <div class=twitbox>
-        <h3>What's on your mind @HttpContext.Session.GetString("Logged_In_Username")?</h3>
-        <form action="/add_message" method="post">
-          <p><input type="text" name="Text" size=60><!--
-          --><input type=submit value="Share">
-        </form>
-      </div>
-}
-
 <ul class="messages">
 @foreach (Dictionary<string, object> message in Model.Messages)
 {
