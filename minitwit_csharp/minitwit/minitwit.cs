@@ -126,6 +126,8 @@ namespace minitwit
 
         if (one) break;
       }
+      
+      reader.Close();
 
       return results;
     }
@@ -204,5 +206,24 @@ namespace minitwit
       }
       return null;
     }
+
+    public void Add_Message(string username, string text)
+    {
+      int? u_ID = Get_user_id(username);
+
+      if (u_ID != null) //Checking that the user exists
+      {
+        int time = (int) DateTimeOffset.UtcNow.ToUnixTimeSeconds(); //Gets current time
+        string query = """
+          INSERT INTO message (author_id, text, pub_date, flagged) values (@author_id, @text, @pub_date, @flagged)
+        """;
+        SqliteParameter author_param = new SqliteParameter("@author_id", u_ID);
+        SqliteParameter text_param = new SqliteParameter("@text", text);
+        SqliteParameter pub_date_param = new SqliteParameter("@pub_date", time);
+        SqliteParameter flag_param = new SqliteParameter("@flagged", SqliteType.Integer) { Value = 0 };
+        Query_db_Insert(query, [author_param, text_param, pub_date_param, flag_param]);
+      }
+    }
+
   }
 }
