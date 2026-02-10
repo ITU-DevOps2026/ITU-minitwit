@@ -20,8 +20,9 @@ public class RegisterModel : PageModel
   public required string Password {get; set;}
 
   [BindProperty]
+  [Required(ErrorMessage = "Please repeat your password")]
   [Compare("Password", ErrorMessage = "The two passwords do not match")]
-  public string? Password2 {get; set;}
+  public required string Password2 {get; set;}
 
   [TempData]
   public string SignUpResult { get; set; }
@@ -31,14 +32,14 @@ public class RegisterModel : PageModel
     MiniTwit minitwit = new MiniTwit();
     minitwit.Connect_db();
     
-    if (minitwit.Get_user_id(Username) != null)
-    {
-        ModelState.AddModelError("Username", "The username is already taken");
-    }
-    
     if (!ModelState.IsValid)
     {
       return Page();
+    }
+
+    if (minitwit.Get_user_id(Username) != null)
+    {
+        ModelState.AddModelError("Username", "The username is already taken");
     }
     
     minitwit.Register(Username, Email, Password);
