@@ -12,10 +12,10 @@ public class UserTimelineModel : PageModel
     string? logged_in_username = HttpContext.Session.GetString("Logged_In_Username");
 
     // if username is logged in user, then show own timeline.
-    if (logged_in_username == username)
+    /*if (logged_in_username == username)
     {
       return RedirectToPage("./Index");
-    }
+    }*/
 
     // fetch messages 
     MiniTwit minitwit = new MiniTwit();

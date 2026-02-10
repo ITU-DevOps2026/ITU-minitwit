@@ -1,0 +1,5 @@
+@page "/{username}/follow"
+@model FollowModel
+@{
+  var routeName = HttpContext.GetRouteValue("username");
+}
