@@ -20,25 +20,31 @@ public class RegisterModel : PageModel
   public required string Password {get; set;}
 
   [BindProperty]
+  [Required(ErrorMessage = "Please repeat your password")]
   [Compare("Password", ErrorMessage = "The two passwords do not match")]
-  public string? Password2 {get; set;}
+  public required string Password2 {get; set;}
+
+  [TempData]
+  public string SignUpResult { get; set; }
 
   public async Task<IActionResult> OnPostAsync()
   {
     MiniTwit minitwit = new MiniTwit();
     minitwit.Connect_db();
     
+    if (!ModelState.IsValid)
+    {
+      return Page();
+    }
+
     if (minitwit.Get_user_id(Username) != null)
     {
         ModelState.AddModelError("Username", "The username is already taken");
     }
     
-    if (!ModelState.IsValid)
-    {
-      return Page();
-    }
-    
     minitwit.Register(Username, Email, Password);
+
+    SignUpResult = "You were successfully registered and can login now";
 
     return RedirectToPage("./login");
   }
