@@ -1,36 +1,5 @@
-/*using Microsoft.AspNetCore.Mvc.Testing;
-using Xunit;
-
-public class BasicTests 
-    : IClassFixture<CustomWebApplicationFactory<Program>>
-{
-    private readonly CustomWebApplicationFactory<Program> _factory;
-
-    public BasicTests(CustomWebApplicationFactory<Program> factory)
-    {
-        _factory = factory;
-    }
-
-    [Theory]
-    [InlineData("/")]
-    public async Task Get_EndpointsReturnSuccessAndCorrectContentType(string url)
-    {
-        // Arrange
-        var client = _factory.CreateClient();
-
-        // Act
-        var response = await client.GetAsync(url);
-
-        // Assert
-        response.EnsureSuccessStatusCode(); // Status Code 200-299
-        Assert.Equal("text/html; charset=utf-8", 
-            response.Content.Headers.ContentType.ToString());
-    }
-}*/
 using System.Net;
-using System.Collections.Generic;
-using System.Net.Http;
-using System.Threading.Tasks;
+
 using Xunit;
 
 /* Set tests to run sequentially as they will fail if run in parallel. 
@@ -141,15 +110,6 @@ namespace tests
       r = await Login("user2", "wrongpassword");
       Assert.Contains("Invalid username", await r.Content.ReadAsStringAsync());
     }
-
-/*     def test_message_recording():
-    """Check if adding messages works"""
-    _, http_session = register_and_login('foo', 'default')
-    add_message(http_session, 'test message 1')
-    add_message(http_session, '<test message 2>')
-    r = requests.get(f'{BASE_URL}/')
-    assert 'test message 1' in r.text
-    assert '&lt;test message 2&gt;' in r.text */
 
     [Fact]
     public async Task TestMessageRecording()
