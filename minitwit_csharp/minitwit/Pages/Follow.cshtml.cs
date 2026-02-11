@@ -6,10 +6,6 @@ namespace minitwit.Pages;
 [IgnoreAntiforgeryToken]
 public class FollowModel : PageModel
 {
-  [TempData]
-  public string? FollowResult { get; set; }
-
-
   public IActionResult OnGet(string username)
   {
     MiniTwit minitwit = new MiniTwit();
@@ -20,7 +16,7 @@ public class FollowModel : PageModel
     if(logged_in_username != null)
     {
       minitwit.Follow_user(logged_in_username, username);
-      FollowResult = $"You are now following \"{username}\"";
+      TempData["Flash"] = $"You are now following \"{username}\"";
       Console.WriteLine(logged_in_username + " now following " + username);
     }
 

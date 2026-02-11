@@ -20,6 +20,7 @@ public class AddMessageModel : PageModel
         {
             minitwit.Add_Message(username, Text);
             Console.WriteLine("Message '" + Text + "' from " + username + " added to database!");
+            TempData["Flash"] = "Your message was recorded";
         }
 
         return RedirectToPage("Index");

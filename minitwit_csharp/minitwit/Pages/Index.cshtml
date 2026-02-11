@@ -4,13 +4,6 @@
     ViewData["Title"] = "Home page";
 }
 
-@if (@TempData["LogInResult"]!=null) {
-  <ul class=flashes>
-  <li>
-    @TempData["LogInResult"]
-  </li>
-</ul>
-}
 <h2>My Timeline</h2>
 @if(HttpContext.Session.GetString("Logged_In_Username") != null)
 {

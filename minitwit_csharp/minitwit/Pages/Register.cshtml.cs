@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace minitwit.Pages;
 
+[IgnoreAntiforgeryToken]
 public class RegisterModel : PageModel
 {
   [BindProperty]
@@ -24,27 +25,24 @@ public class RegisterModel : PageModel
   [Compare("Password", ErrorMessage = "The two passwords do not match")]
   public required string Password2 {get; set;}
 
-  [TempData]
-  public string SignUpResult { get; set; }
-
   public async Task<IActionResult> OnPostAsync()
   {
     MiniTwit minitwit = new MiniTwit();
     minitwit.Connect_db();
+
+    if (Username != null && minitwit.Get_user_id(Username) != null)
+    {
+        ModelState.AddModelError("Username", "The username is already taken"); 
+    }
     
     if (!ModelState.IsValid)
     {
       return Page();
     }
 
-    if (minitwit.Get_user_id(Username) != null)
-    {
-        ModelState.AddModelError("Username", "The username is already taken");
-    }
-    
     minitwit.Register(Username, Email, Password);
 
-    SignUpResult = "You were successfully registered and can login now";
+    TempData["Flash"] = "You were successfully registered and can login now";
 
     return RedirectToPage("./login");
   }

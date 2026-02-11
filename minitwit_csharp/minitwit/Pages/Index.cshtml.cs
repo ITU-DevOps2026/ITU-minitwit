@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace minitwit.Pages;
 
+[IgnoreAntiforgeryToken]
 public class IndexModel : PageModel
 {
   public List<Dictionary<string, object>> Messages { get; private set; }
