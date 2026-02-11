@@ -4,13 +4,6 @@
     ViewData["Title"] = "Home page";
 }
 
-@if (@TempData["LogInResult"]!=null) {
-  <ul class=flashes>
-  <li>
-    @TempData["LogInResult"]
-  </li>
-</ul>
-}
 <h2>My Timeline</h2>
 @if(HttpContext.Session.GetString("Logged_In_Username") != null)
 {
@@ -27,11 +20,12 @@
     @foreach (Dictionary<string, object> message in Model.Messages)
     {
     <li>
+      <img src="@MiniTwit.Get_Gravatar_Url((string)@message["email"], 48)" />
         <p>
         <strong><a href="/@message["username"]">@message["username"]</a></strong>
         @message["text"]
         <small>
-            — @message["pub_date"]
+            — @MiniTwit.Format_datetime(Convert.ToInt32(@message["pub_date"]))
         </small>
         </p>
     </li>

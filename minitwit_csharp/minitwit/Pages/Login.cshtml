@@ -2,13 +2,6 @@
 @model LoginModel
 
 <h2>Log In</h2>
-@if (@TempData["SignUpResult"]!=null) {
-  <ul class=flashes>
-  <li>
-    @TempData["SignUpResult"]
-  </li>
-</ul>
-}
 <div asp-validation-summary="All" class="error"></div>
 <form action="" method=post>
   <dl>

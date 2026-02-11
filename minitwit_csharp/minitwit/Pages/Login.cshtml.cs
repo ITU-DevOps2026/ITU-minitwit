@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace minitwit.Pages;
 
+[IgnoreAntiforgeryToken]
 public class LoginModel : PageModel
 {
   [BindProperty]
@@ -14,9 +15,6 @@ public class LoginModel : PageModel
   [Required(ErrorMessage ="You have to enter a password")]
   public required string Password {get; set;}
 
-  [TempData]
-  public string LogInResult { get; set; }
-
   public async Task<IActionResult> OnPostAsync()
   {
     MiniTwit minitwit = new MiniTwit();
@@ -24,11 +22,11 @@ public class LoginModel : PageModel
     
     if (minitwit.Get_user_id(Username) == null)
     {
-        ModelState.AddModelError("Username", "Invalid username");
+      ModelState.AddModelError("Username", "Invalid username");
     }
     if (!minitwit.Check_password_hash(Username, Password))
     {
-        ModelState.AddModelError("Password", "Invalid password");
+      ModelState.AddModelError("Password", "Invalid password");
     }
     
     if (!ModelState.IsValid)
@@ -39,7 +37,7 @@ public class LoginModel : PageModel
     // Save the logged in user's username in the browser session 
     HttpContext.Session.SetString("Logged_In_Username", Username);
 
-    LogInResult = "You were logged in";
+    TempData["Flash"] = "You were logged in";
 
     return RedirectToPage("Index");
   }

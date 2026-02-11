@@ -153,6 +153,20 @@ namespace minitwit
       command.CommandText = schemaSql;
       command.ExecuteNonQuery();
     }
+    
+    public static string Format_datetime(int timestamp)
+    {
+      return DateTimeOffset.FromUnixTimeSeconds(timestamp).ToLocalTime().ToString("yyyy-MM-dd @ HH:mm");
+    }
+
+    public static string Get_Gravatar_Url(string email, int size = 80)
+    {
+      byte[] inputBytes = Encoding.UTF8.GetBytes(email.Trim().ToLower());
+      byte[] hashBytes = MD5.HashData(inputBytes);
+      string hashString = Convert.ToHexString(hashBytes).ToLower();
+
+      return $"https://www.gravatar.com/avatar/{hashString}?d=identicon&s={size}";
+    }
 
     public List<Dictionary<string, object>> Get_public_timeline()
     {
@@ -166,6 +180,59 @@ namespace minitwit
       List<Dictionary<string, object>> messages = Query_db_Read(query, [pp_param]);
 
       return messages;
+    }
+
+    public List<Dictionary<string, object>> Get_user_timeline(string username)
+    {
+      int? profile_user_id = Get_user_id(username);
+      if (profile_user_id == null)
+      {
+        throw new Exception("User doesn't exist");
+      }
+
+      string query = """
+        select message.*, user.*
+        from message, user where
+        user.user_id = message.author_id and user.user_id = @user_id
+        order by message.pub_date desc limit @per_page
+      """;
+      SqliteParameter user_id_param = new SqliteParameter("@user_id", SqliteType.Integer)
+      {
+        Value = profile_user_id
+      };
+
+      SqliteParameter pp_param = new SqliteParameter("@per_page", SqliteType.Integer)
+      {
+        Value = PER_PAGE
+      };
+      List<Dictionary<string, object>> messages = Query_db_Read(query, [user_id_param, pp_param]);
+
+      return messages;
+    }
+
+    public bool Is_following(string active_username, string other_username)
+    {
+      int? active_user_id = Get_user_id(active_username);
+      if (active_user_id == null)
+      {
+        throw new Exception("Active user doesn't exist");
+      }
+
+      int? profile_user_id = Get_user_id(other_username);
+      if (profile_user_id == null)
+      {
+        throw new Exception("User doesn't exist");
+      }
+
+      string query = """
+        select 1
+        from follower 
+        where follower.who_id = @active_id and follower.whom_id = @other_id
+      """;
+      SqliteParameter active_id_param = new SqliteParameter("@active_id", active_user_id);
+      SqliteParameter other_id_param = new SqliteParameter("@other_id", profile_user_id);
+      List<Dictionary<string, object>> followed = Query_db_Read(query, [active_id_param, other_id_param], true);
+      return followed.Count > 0;
     }
 
     public List<Dictionary<string, object>> Get_my_timeline(string username)
@@ -270,5 +337,57 @@ namespace minitwit
       }
     }
 
+    public void Follow_user(string active_username, string username_to_follow)
+    {
+      int? active_user_id = Get_user_id(active_username);
+      if (active_user_id == null)
+      {
+        throw new Exception("Active user doesn't exist");
+      }
+
+      int? profile_user_id = Get_user_id(username_to_follow);
+      if (profile_user_id == null)
+      {
+        throw new Exception("User doesn't exist");
+      }
+
+      string query = """
+        insert into follower (who_id, whom_id) values (@active_id, @other_id)
+      """;
+      SqliteParameter active_id_param = new SqliteParameter("@active_id", active_user_id);
+      SqliteParameter other_id_param = new SqliteParameter("@other_id", profile_user_id);
+      int followed = Query_db_Insert(query, [active_id_param, other_id_param], true);
+      if (followed != 1)
+      {
+        throw new Exception("Something went wrong, when trying to follow");
+      }
+    }
+
+
+    public void Unfollow_user(string active_username, string username_to_follow)
+    {
+      int? active_user_id = Get_user_id(active_username);
+      if (active_user_id == null)
+      {
+        throw new Exception("Active user doesn't exist");
+      }
+
+      int? profile_user_id = Get_user_id(username_to_follow);
+      if (profile_user_id == null)
+      {
+        throw new Exception("User doesn't exist");
+      }
+
+      string query = """
+        delete from follower where who_id=@active_id and whom_id=@other_id
+      """;
+      SqliteParameter active_id_param = new SqliteParameter("@active_id", active_user_id);
+      SqliteParameter other_id_param = new SqliteParameter("@other_id", profile_user_id);
+      int unfollowed = Query_db_Insert(query, [active_id_param, other_id_param], true);
+      if (unfollowed != 1)
+      {
+        throw new Exception("Something went wrong, when trying to follow");
+      }
+    }
   }
 }
