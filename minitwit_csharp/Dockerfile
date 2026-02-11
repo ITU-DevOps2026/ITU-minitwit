@@ -16,7 +16,7 @@ FROM --platform=$BUILDPLATFORM dhi.io/dotnet:10-sdk AS build
 
 COPY . /source
 
-WORKDIR /source
+WORKDIR /source/minitwit
 
 # This is the architecture you’re building for, which is passed in by the builder.
 # Placing it here allows the previous steps to be cached across architectures.
