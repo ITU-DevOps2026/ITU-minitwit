@@ -56,7 +56,7 @@ The script can be run with different arguments from the root folder of the repos
 ```sh
 ./control.sh init
 ```
-With init the script will check if there is database in the same root as the script, if there is it exits, if not it runs runs dotnet run init, which will trigger the Init_db() function, using the schema.sql file to drop any user, follower, and message table and then create them.
+With init the script will check if there is a database in the same root as the script, if there is it exits, if not it runs dotnet run init, which will trigger the Init_db() function, using the schema.sql file to drop any user, follower, and message table and then create them.
 
 ### Startprod
 ```sh
