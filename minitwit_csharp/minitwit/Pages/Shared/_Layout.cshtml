@@ -1,0 +1,42 @@
+﻿@using Microsoft.AspNetCore.Http
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Minitwit</title>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    <div class="page">
+        <h1>MiniTwit</h1>
+        <div class="navigation">
+            @if(Context.Session.GetString("Logged_In_Username") != null)
+            {
+                <a href="/Index">my timeline</a> @:|
+                <a href="/public" >public timeline</a> @:|
+                <a href="/logout">sign out [@Context.Session.GetString("Logged_In_Username")]</a>
+            }
+            else
+            {
+                <a href="/public">public timeline</a> @:|
+                <a href="/register">sign up</a> @:|
+                <a href="/login">sign in</a>
+            }
+        </div>
+        @if (TempData["Flash"] !=null)
+        {
+            <ul class=flashes>
+                <li>@TempData["Flash"]</li>
+            </ul>
+        }
+
+        <div class="body">
+            @RenderBody()
+        </div>
+        <div class=footer>
+            MiniTwit &mdash; A C# Application
+        </div>
+    </div>
+</body>
+</html>
