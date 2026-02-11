@@ -14,6 +14,16 @@ dotnet run
 ```
 This will start the minitwit application. You can access it by opening a web browser and going to `http://localhost:5035`. You should see the minitwit homepage where you
 
+### How to run minitwit c# tests
+In one terminal, run the minitwit application by navigating to the `minitwit-csharp/minitwit` folder and running the following command:
+```bash
+dotnet run
+```
+Then in another terminal, run the following command to execute the tests:
+```bash
+pytest -v refactored_minitwit_tests.py
+```
+You should see all tests passing successfully! 🥇
 
 
 ## SOMETHING SOMETHING
