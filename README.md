@@ -2,6 +2,11 @@
 **Group**: *Pat Myaz*  \
 **Members:**  *Carmen Alberte Nielsen, Casper Storm Frøding, Mads Christian Nørklit Jensen, Max Brix Koch, Mathilde Julie Gonzalez-Knudsen*
 
+## Git commit message template
+To tell Git to use gitmessage as commit template file, run the following command in your terminal while being in the root directory of your Git repository:
+```bash
+git config --local commit.template .gitmessage
+```
 ## MiniTwit C# Application 
 ### Requirements to run locally
 - dotnet 10.0
@@ -43,13 +48,6 @@ dotnet test
 You should see all tests passing successfully! 🥇
 
 (Do note that the tests modifies the database, so you have to remove the changes between each run, otherwise they will fail)
-
-## Git commit message template
-To tell Git to use gitmessage as commit template file, run the following command in your terminal while being in the root directory of your Git repository:
-
-```bash
-git config --local commit.template .gitmessage
-```
 
 ## Running the control.sh script in the C# application
 The script can be run with different arguments from the root folder of the repository.
@@ -167,4 +165,3 @@ dotnet test
 All tests will not pass as quotation marks are interpreted differently by C# and Python.
 
 (Do note that the tests modifies the database, so you have to remove the changes between each run, otherwise they will fail)
-
