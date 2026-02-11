@@ -5,20 +5,20 @@ using minitwit;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Hardcoded test to query database for first tweet to verify connection works.
-MiniTwit miniTwit = new MiniTwit();
-miniTwit.Connect_db();
-//var param = new SqliteParameter("@Id", 1);
-//var res = miniTwit.Query_db("SELECT * FROM message WHERE message_id = @Id", [param]);
-var res = miniTwit.Query_db_Read("SELECT * FROM message WHERE message_id < 5", []);
-// var res = miniTwit.Get_public_timeline();
+// // Hardcoded test to query database for first tweet to verify connection works.
+// MiniTwit miniTwit = new MiniTwit();
+// miniTwit.Connect_db();
+// //var param = new SqliteParameter("@Id", 1);
+// //var res = miniTwit.Query_db("SELECT * FROM message WHERE message_id = @Id", [param]);
+// var res = miniTwit.Query_db_Read("SELECT * FROM message WHERE message_id < 5", []);
+// // var res = miniTwit.Get_public_timeline();
 
-foreach (Dictionary<string, object> dict in res) {
-  foreach (KeyValuePair<string, object> kvp in dict)
-  {
-    Console.WriteLine("Key = {0}, Value = {1}", kvp.Key, kvp.Value);
-  }
-}
+// foreach (Dictionary<string, object> dict in res) {
+//   foreach (KeyValuePair<string, object> kvp in dict)
+//   {
+//     Console.WriteLine("Key = {0}, Value = {1}", kvp.Key, kvp.Value);
+//   }
+// }
 
 /*var msid = new SqliteParameter("@Message_id", SqliteType.Integer) { Value = 11325 };
 var auid = new SqliteParameter("@Author_id", SqliteType.Integer) { Value = 1 };
@@ -64,6 +64,18 @@ app.MapStaticAssets();
 app.MapRazorPages()
    .WithStaticAssets();
 
+// This function is necessary because while the script in python can specifically target and run a function
+// this does not seem to be achievable in .NET, but this function helps by looking at the argument given to
+// when starting the program, ensuring that if init is an argument, we don't actually start the web app, but just
+// call init_db() and exit.
+if (args.Contains("init"))
+{
+    var mt = new MiniTwit();
+    mt.Init_db();
+    // Prevent the program from actually starting
+    Environment.Exit(0); 
+}
+
 app.Run();
 
 namespace minitwit
@@ -71,6 +83,7 @@ namespace minitwit
   public class MiniTwit
   {
     // Configuration
+    // string DATABASE = "/tmp/minitwit.db";
     string DATABASE = "./minitwit.db";
     SqliteConnection connection;
     private int PER_PAGE = 30;
@@ -132,6 +145,15 @@ namespace minitwit
       return results;
     }
 
+    public void Init_db()
+    {
+      using SqliteConnection connection = Connect_db();
+      string schemaSql = File.ReadAllText("schema.sql");
+      using SqliteCommand command = connection.CreateCommand();
+      command.CommandText = schemaSql;
+      command.ExecuteNonQuery();
+    }
+    
     public static string Format_datetime(int timestamp)
     {
       return DateTimeOffset.FromUnixTimeSeconds(timestamp).ToLocalTime().ToString("yyyy-MM-dd @ HH:mm");
