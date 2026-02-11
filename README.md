@@ -17,3 +17,10 @@ This will start the minitwit application. You can access it by opening a web bro
 
 
 ## SOMETHING SOMETHING
+
+## Git commit message template
+To tell Git to use gitmessage as commit template file, run the following command in your terminal while being in the root directory of your Git repository:
+
+```bash
+git config --local commit.template .gitmessage
+```
