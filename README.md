@@ -3,19 +3,23 @@
 **Members:**  *Carmen Alberte Nielsen, Casper Storm Frøding, Mads Christian Nørklit Jensen, Max Brix Koch, Mathilde Julie Gonzalez-Knudsen*
 
 ## MiniTwit C# Application 
-### Requirements
+### Requirements to run locally
 - dotnet 10.0
-- TBD
+- A terminal capable of running sh if you want to run the control.sh script
 
-### How to run minitwit c# application
-Navigate to the `minitwit-csharp/minitwit` folder and run the following command in the terminal:
+### How to run in Container
+See [Docker readme](/minitwit_csharp/minitwit/README.Docker.md)
+
+### How to run minitwit C# application
+Navigate to the `minitwit_csharp/minitwit` folder and run the following command in the terminal:
 ```bash
 dotnet run
 ```
-This will start the minitwit application. You can access it by opening a web browser and going to `http://localhost:5035`. You should see the minitwit homepage where you
+This will start the minitwit application. You can access it by opening a web browser and going to `http://localhost:5035`. 
+You should see the minitwit homepage where you can see the public timeline, with options to sign up and sign in.
 
-### How to run minitwit c# tests
-In one terminal, run the minitwit application by navigating to the `minitwit-csharp/minitwit` folder and running the following command:
+### How to run python tests against C# minitwit
+In one terminal, run the minitwit application by navigating to the `minitwit_csharp/minitwit` folder and running the following command:
 ```bash
 dotnet run
 ```
@@ -24,6 +28,21 @@ Then in another terminal, run the following command to execute the tests:
 pytest -v refactored_minitwit_tests.py
 ```
 You should see all tests passing successfully! 🥇
+
+(Do note that the tests modifies the database, so you have to remove the changes between each run, otherwise they will fail)
+
+### How to run C# tests against C# minitwit
+In one terminal, run the minitwit application by navigating to the `minitwit_csharp/minitwit` folder and running the following command:
+```bash
+dotnet run
+```
+Then in another terminal, run the test suite by navigating to the `minitwit_csharp/tests` folder and running the following command:
+```bash
+dotnet test
+```
+You should see all tests passing successfully! 🥇
+
+(Do note that the tests modifies the database, so you have to remove the changes between each run, otherwise they will fail)
 
 ## Git commit message template
 To tell Git to use gitmessage as commit template file, run the following command in your terminal while being in the root directory of your Git repository:
@@ -100,3 +119,52 @@ With flag as the argument the following line is executed
 - Shift ensures that the script ignores the first word (flag) and captures everything from the second position onwards.
 - So if we call ./control.sh flag 500 501 the script runs ./flag_tool 500 501.
 - If the flag_tool is called with several arguments it executes and update query, where it looks for the message id, and sets flagged=1 for that message id (there is a column in the database for messages which is called flag).
+
+
+## MiniTwit Python/Flask Application
+### Requirements to run locally
+- Python >=3.12
+- Flask >= version 3.0.0
+- Werkzeug >= version 3.0.0
+- Jinja2 >= version 3.0.0
+
+### How to run locally
+Navigate to the `minitwit_python` folder and run the following command in the terminal:
+```bash
+python minitwit.py
+```
+This will start the minitwit application. You can access it by opening a web browser and going to `http://localhost:5000`. 
+You should see the minitwit homepage where you can see the public timeline, with options to sign up and sign in.
+
+### How to run python tests against Python minitwit
+In one terminal, run the minitwit application by navigating to the `minitwit_python` folder and running the following command:
+```bash
+python minitwit.py
+```
+Then in another terminal, run the following command to execute the tests:
+```bash
+python minitwit_tests.py
+```
+or
+```bash
+pytest -v minitwit_tests.py
+```
+You should see all tests passing successfully! 🥇
+
+(Do note that the tests modifies the database, so you have to remove the changes between each run, otherwise they will fail)
+
+### How to run C# tests against Python minitwit
+In the `minitwit_csharp/tests/tests.cs` remember to change the port to match what the python program runs on (5000)
+
+In one terminal, run the minitwit application by navigating to the `minitwit_python` folder and running the following command:
+```bash
+python minitwit.py
+```
+Then in another terminal, navigate to the `minitwit_csharp/tests` folder and run the following command to execute the tests:
+```bash
+dotnet test
+```
+All tests will not pass as quotation marks are interpreted differently by C# and Python.
+
+(Do note that the tests modifies the database, so you have to remove the changes between each run, otherwise they will fail)
+

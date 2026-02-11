@@ -5,31 +5,6 @@ using minitwit;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// // Hardcoded test to query database for first tweet to verify connection works.
-// MiniTwit miniTwit = new MiniTwit();
-// miniTwit.Connect_db();
-// //var param = new SqliteParameter("@Id", 1);
-// //var res = miniTwit.Query_db("SELECT * FROM message WHERE message_id = @Id", [param]);
-// var res = miniTwit.Query_db_Read("SELECT * FROM message WHERE message_id < 5", []);
-// // var res = miniTwit.Get_public_timeline();
-
-// foreach (Dictionary<string, object> dict in res) {
-//   foreach (KeyValuePair<string, object> kvp in dict)
-//   {
-//     Console.WriteLine("Key = {0}, Value = {1}", kvp.Key, kvp.Value);
-//   }
-// }
-
-/*var msid = new SqliteParameter("@Message_id", SqliteType.Integer) { Value = 11325 };
-var auid = new SqliteParameter("@Author_id", SqliteType.Integer) { Value = 1 };
-var text = new SqliteParameter("@Text", SqliteType.Text) { Value = "Vi skriver SQL" };
-var pub  = new SqliteParameter("@Pub_date", SqliteType.Integer) { Value = 1769777843 };
-var flag = new SqliteParameter("@Flagged", SqliteType.Integer) { Value = 0 };
-
-var insert = miniTwit.Query_db_Insert("INSERT INTO message (message_id, author_id, text, pub_date, flagged) VALUES (@Message_id, @Author_id, @Text, @Pub_date, @Flagged)", [msid, auid, text, pub, flag]);
-
-Console.WriteLine(insert);*/
-
 // Add services to the container.
 builder.Services.AddRazorPages();
 
@@ -85,7 +60,7 @@ namespace minitwit
     // Configuration
     // string DATABASE = "/tmp/minitwit.db";
     string DATABASE = "./minitwit.db";
-    SqliteConnection connection;
+    SqliteConnection? connection;
     private int PER_PAGE = 30;
 
     // Password hashing configurations
@@ -112,6 +87,8 @@ namespace minitwit
 
     public object Query_db(string query, SqliteParameter[] args, bool nonQuery, bool one=false)
     {
+      if (connection == null) throw new Exception("Connection is null");
+      
       SqliteCommand command = connection.CreateCommand();
       command.CommandText = query;
       foreach (SqliteParameter param in args)
@@ -362,7 +339,6 @@ namespace minitwit
         throw new Exception("Something went wrong, when trying to follow");
       }
     }
-
 
     public void Unfollow_user(string active_username, string username_to_follow)
     {
