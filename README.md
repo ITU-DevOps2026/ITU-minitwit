@@ -13,7 +13,7 @@ git config --local commit.template .gitmessage
 - A terminal capable of running sh if you want to run the control.sh script
 
 ### How to run in Container
-See [Docker readme](/minitwit_csharp/minitwit/README.Docker.md)
+See [Docker readme](/minitwit_csharp/README.Docker.md)
 
 ### How to run minitwit C# application
 Navigate to the `minitwit_csharp/minitwit` folder and run the following command in the terminal:
