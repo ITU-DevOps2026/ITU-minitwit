@@ -110,7 +110,7 @@ namespace Org.OpenAPITools.Controllers
         /// <response code="200">Success</response>
         /// <response code="403">Unauthorized - Must include correct Authorization header</response>
         [HttpGet]
-        [Route("/msgs")]
+        [Route("msgs")]
         [ValidateModelState]
         [EndpointSummary("GetMessages")]
         [ProducesResponseType(statusCode: 200, type: typeof(List<Message>), Description= "Success")]
@@ -122,15 +122,24 @@ namespace Org.OpenAPITools.Controllers
             // return StatusCode(200, default);
             //TODO: Uncomment the next line to return response 403 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
             // return StatusCode(403, default);
-            string exampleJson = null;
-            exampleJson = "[ {\n  \"pub_date\" : \"2019-12-01 12:00:00\",\n  \"user\" : \"Helge\",\n  \"content\" : \"Hello, World!\"\n}, {\n  \"pub_date\" : \"2019-12-01 12:00:00\",\n  \"user\" : \"Helge\",\n  \"content\" : \"Hello, World!\"\n} ]";
-            exampleJson = "{\n  \"error_msg\" : \"You are not authorized to use this resource!\",\n  \"status\" : 403\n}";
             
-            var example = exampleJson != null
-            ? JsonSerializer.Deserialize<List<Message>>(exampleJson)
-            : default;
-            //TODO: Change the data returned
-            return new ObjectResult(example);
+            MiniTwit minitwit = new MiniTwit();
+            minitwit.Connect_db();
+
+            var messages = minitwit.Get_public_timeline();
+            string messagesJSON = JsonSerializer.Serialize(messages);
+
+            return new ObjectResult(messagesJSON);
+
+            // string exampleJson = null;
+            // exampleJson = "[ {\n  \"pub_date\" : \"2019-12-01 12:00:00\",\n  \"user\" : \"Helge\",\n  \"content\" : \"Hello, World!\"\n}, {\n  \"pub_date\" : \"2019-12-01 12:00:00\",\n  \"user\" : \"Helge\",\n  \"content\" : \"Hello, World!\"\n} ]";
+            // exampleJson = "{\n  \"error_msg\" : \"You are not authorized to use this resource!\",\n  \"status\" : 403\n}";
+            
+            // var example = exampleJson != null
+            // ? JsonSerializer.Deserialize<List<Message>>(exampleJson)
+            // : default;
+            // //TODO: Change the data returned
+            // return new ObjectResult(example);
         }
 
         /// <summary>
@@ -145,7 +154,7 @@ namespace Org.OpenAPITools.Controllers
         /// <response code="403">Unauthorized - Must include correct Authorization header</response>
         /// <response code="404">User not found (no response body)</response>
         [HttpGet]
-        [Route("/msgs/{username}")]
+        [Route("msgs/{username}")]
         [ValidateModelState]
         [EndpointSummary("GetMessagesPerUser")]
         [ProducesResponseType(statusCode: 200, type: typeof(List<Message>), Description= "Success")]
@@ -159,15 +168,22 @@ namespace Org.OpenAPITools.Controllers
             // return StatusCode(403, default);
             //TODO: Uncomment the next line to return response 404 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
             // return StatusCode(404);
-            string exampleJson = null;
-            exampleJson = "[ {\n  \"pub_date\" : \"2019-12-01 12:00:00\",\n  \"user\" : \"Helge\",\n  \"content\" : \"Hello, World!\"\n}, {\n  \"pub_date\" : \"2019-12-01 12:00:00\",\n  \"user\" : \"Helge\",\n  \"content\" : \"Hello, World!\"\n} ]";
-            exampleJson = "{\n  \"error_msg\" : \"You are not authorized to use this resource!\",\n  \"status\" : 403\n}";
+            // string exampleJson = null;
+            // exampleJson = "[ {\n  \"pub_date\" : \"2019-12-01 12:00:00\",\n  \"user\" : \"Helge\",\n  \"content\" : \"Hello, World!\"\n}, {\n  \"pub_date\" : \"2019-12-01 12:00:00\",\n  \"user\" : \"Helge\",\n  \"content\" : \"Hello, World!\"\n} ]";
+            // exampleJson = "{\n  \"error_msg\" : \"You are not authorized to use this resource!\",\n  \"status\" : 403\n}";
             
-            var example = exampleJson != null
-            ? JsonSerializer.Deserialize<List<Message>>(exampleJson)
-            : default;
-            //TODO: Change the data returned
-            return new ObjectResult(example);
+            // var example = exampleJson != null
+            // ? JsonSerializer.Deserialize<List<Message>>(exampleJson)
+            // : default;
+            // //TODO: Change the data returned
+            // return new ObjectResult(example);
+            MiniTwit minitwit = new MiniTwit();
+            minitwit.Connect_db();
+
+            var usermessages = minitwit.Get_user_timeline(username);
+            string usermessagesJSON = JsonSerializer.Serialize(usermessages);
+
+            return new ObjectResult(usermessagesJSON);
         }
 
         /// <summary>
