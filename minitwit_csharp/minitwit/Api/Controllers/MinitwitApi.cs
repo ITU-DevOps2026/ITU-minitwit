@@ -139,20 +139,21 @@ namespace Org.OpenAPITools.Controllers
 
             var messages = _mt.Get_public_timeline();
 
-            List<Message> messagesList = new List<Message>();
+            List<Dictionary<string, object>> messagesList = new List<Dictionary<string, object>>();
             foreach (var msg in messages)            {
                 if (msg["flagged"].ToString() == "0")
                 {
-                    string content = msg["text"].ToString() ?? string.Empty;
-                    string pubDate = msg["pub_date"].ToString() ?? string.Empty;
-                    string user = msg["username"].ToString() ?? string.Empty;
-                    var message = new Message { Content = content, PubDate = pubDate, User = user };
+                    var message = new Dictionary<string, object>
+                    {
+                        ["content"] = msg["text"],
+                        ["pub_date"] = msg["pub_date"],
+                        ["user"] = msg["username"]
+                    };
                     messagesList.Add(message);
                 }
             }
 
             string messagesJSON = JsonSerializer.Serialize(messagesList);
-
             return StatusCode(200, messagesJSON);
 
             // string exampleJson = null;
