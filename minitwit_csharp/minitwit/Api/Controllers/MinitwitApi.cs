@@ -90,24 +90,9 @@ namespace Org.OpenAPITools.Controllers
         [ProducesResponseType(statusCode: 500, type: typeof(ErrorResponse), Description= "Internal Server Error")]
         public virtual IActionResult GetLatestValue()
         {
+          int latestValue = _mt.GetLatest();
 
-            //TODO: Uncomment the next line to return response 200 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(200, default);
-            //TODO: Uncomment the next line to return response 500 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(500, default);
-/*             string exampleJson = null;
-            exampleJson = "{\n  \"latest\" : 0\n}";
-            exampleJson = "{\n  \"error_msg\" : \"You are not authorized to use this resource!\",\n  \"status\" : 403\n}";
-            
-            var example = exampleJson != null
-            ? JsonSerializer.Deserialize<LatestValue>(exampleJson)
-            : default;
-            //TODO: Change the data returned
-            return new ObjectResult(example); */
-
-            int latestValue = _mt.GetLatest();
-
-            return Ok(new {latest = latestValue});
+          return Ok(new LatestValue{Latest = latestValue});
         }
 
         /// <summary>

@@ -21,7 +21,7 @@ builder.Services.AddSession(options =>
 
 builder.Services.AddOpenApi();
 
-builder.Services.AddScoped<minitwit.MiniTwit>();
+builder.Services.AddScoped<MiniTwit>();
 
 /* builder.Services.AddControllers().AddJsonOptions(options =>
 {
