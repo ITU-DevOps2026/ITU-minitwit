@@ -11,12 +11,13 @@
 using System;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Runtime.Serialization;
-using Newtonsoft.Json;
-using Org.OpenAPITools.Converters;
+/* using Newtonsoft.Json;
+using Org.OpenAPITools.Converters; */
 
 namespace Org.OpenAPITools.Models
 { 
@@ -54,7 +55,7 @@ namespace Org.OpenAPITools.Models
         /// <returns>JSON string presentation of the object</returns>
         public string ToJson()
         {
-            return JsonConvert.SerializeObject(this, Formatting.Indented);
+            return JsonSerializer.Serialize(this, new JsonSerializerOptions{WriteIndented = true});
         }
 
         /// <summary>
