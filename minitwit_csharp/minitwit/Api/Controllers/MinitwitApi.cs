@@ -133,6 +133,11 @@ namespace Org.OpenAPITools.Controllers
             //TODO: Uncomment the next line to return response 403 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
             // return StatusCode(403, default);
 
+            if (string.IsNullOrEmpty(authorization) || !authorization.Substring("Basic ".Length).Equals(Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes("simulator:super_safe!"))))
+            {
+                return BadRequest(new { status = 403, error_msg = "Unauthorized - Must include correct Authorization header" });
+            }
+
             _mt.UpdateLatest(latest);
 
             _mt.Connect_db();
@@ -202,6 +207,12 @@ namespace Org.OpenAPITools.Controllers
             // : default;
             // //TODO: Change the data returned
             // return new ObjectResult(example);
+
+            if (string.IsNullOrEmpty(authorization) || !authorization.Substring("Basic ".Length).Equals(Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes("simulator:super_safe!"))))
+            {
+                return BadRequest(new { status = 403, error_msg = "Unauthorized - Must include correct Authorization header" });
+            }
+
             _mt.UpdateLatest(latest);
 
             _mt.Connect_db();
@@ -285,14 +296,14 @@ namespace Org.OpenAPITools.Controllers
             //TODO: Uncomment the next line to return response 403 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
             // return StatusCode(403, default);
 
+            if (string.IsNullOrEmpty(authorization) || !authorization.Substring("Basic ".Length).Equals(Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes("simulator:super_safe!"))))
+            {
+                return BadRequest(new { status = 403, error_msg = "Unauthorized - Must include correct Authorization header" });
+            }
+
             _mt.UpdateLatest(latest);
 
             _mt.Connect_db();
-
-            if (string.IsNullOrEmpty(authorization) || !authorization.StartsWith("Basic "))
-            {
-                return BadRequest(new { status = 403, error_msg = "You are not authorized to use this resource!" });
-            }
 
             if (string.IsNullOrEmpty(payload.Content))
             {
