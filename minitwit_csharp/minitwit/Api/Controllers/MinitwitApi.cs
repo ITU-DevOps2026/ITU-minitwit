@@ -217,6 +217,11 @@ namespace Org.OpenAPITools.Controllers
 
             _mt.Connect_db();
 
+            if (_mt.Get_user_id(username) == null)
+            {
+                return NotFound("User not found");
+            }
+
             var usermessages = _mt.Get_user_timeline(username);
 
             //Make the messages from the Get_user_timeline function into a list of messages of the form 
