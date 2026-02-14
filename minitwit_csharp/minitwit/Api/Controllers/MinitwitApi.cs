@@ -132,13 +132,28 @@ namespace Org.OpenAPITools.Controllers
             // return StatusCode(200, default);
             //TODO: Uncomment the next line to return response 403 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
             // return StatusCode(403, default);
-            
+
+            _mt.UpdateLatest(latest);
+
             _mt.Connect_db();
 
             var messages = _mt.Get_public_timeline();
-            string messagesJSON = JsonSerializer.Serialize(messages);
 
-            return new ObjectResult(messagesJSON);
+            List<Message> messagesList = new List<Message>();
+            foreach (var msg in messages)            {
+                if (msg["flagged"].ToString() == "0")
+                {
+                    string content = msg["text"].ToString() ?? string.Empty;
+                    string pubDate = msg["pub_date"].ToString() ?? string.Empty;
+                    string user = msg["username"].ToString() ?? string.Empty;
+                    var message = new Message { Content = content, PubDate = pubDate, User = user };
+                    messagesList.Add(message);
+                }
+            }
+
+            string messagesJSON = JsonSerializer.Serialize(messagesList);
+
+            return StatusCode(200, messagesJSON);
 
             // string exampleJson = null;
             // exampleJson = "[ {\n  \"pub_date\" : \"2019-12-01 12:00:00\",\n  \"user\" : \"Helge\",\n  \"content\" : \"Hello, World!\"\n}, {\n  \"pub_date\" : \"2019-12-01 12:00:00\",\n  \"user\" : \"Helge\",\n  \"content\" : \"Hello, World!\"\n} ]";
@@ -186,12 +201,31 @@ namespace Org.OpenAPITools.Controllers
             // : default;
             // //TODO: Change the data returned
             // return new ObjectResult(example);
+            _mt.UpdateLatest(latest);
+
             _mt.Connect_db();
 
             var usermessages = _mt.Get_user_timeline(username);
-            string usermessagesJSON = JsonSerializer.Serialize(usermessages);
 
-            return new ObjectResult(usermessagesJSON);
+            //Make the messages from the Get_user_timeline function into a list of messages of the form 
+            // Message { PubDate = "2019-12-01 12:00:00", User = "Helge", Content = "Hello, World!" }
+            // Instead of the form we get from the funcion (Where we get all kinds of other information we don't need) and then serialize it to JSON
+
+            var messagesList = new List<Message>();
+            foreach (var msg in usermessages)
+            {
+                if (msg["flagged"].ToString() == "0")
+                {
+                    string content = msg["text"].ToString() ?? string.Empty;
+                    string pubDate = msg["pub_date"].ToString() ?? string.Empty;
+                    string user = msg["username"].ToString() ?? string.Empty;
+                    var message = new Message { Content = content, PubDate = pubDate, User = user };
+                    messagesList.Add(message);
+                }
+            }
+            string messagesJSON = JsonSerializer.Serialize(messagesList);
+
+            return StatusCode(200, messagesJSON);
         }
 
         /// <summary>
