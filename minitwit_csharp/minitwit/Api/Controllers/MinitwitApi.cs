@@ -14,8 +14,6 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
-// using Swashbuckle.AspNetCore.Annotations;
-// using Swashbuckle.AspNetCore.SwaggerGen;
 using System.Text.Json;
 using Org.OpenAPITools.Attributes;
 using Org.OpenAPITools.Models;
