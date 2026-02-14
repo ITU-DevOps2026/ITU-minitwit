@@ -18,7 +18,6 @@ using System.ComponentModel.DataAnnotations;
 using System.Runtime.Serialization;
 /* using Newtonsoft.Json;
 using Org.OpenAPITools.Converters; */
-using System.Text.Json;
 
 namespace Org.OpenAPITools.Models
 { 

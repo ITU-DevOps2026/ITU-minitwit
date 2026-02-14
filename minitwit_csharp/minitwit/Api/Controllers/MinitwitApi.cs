@@ -19,11 +19,13 @@ using Microsoft.AspNetCore.Http;
 using System.Text.Json;
 using Org.OpenAPITools.Attributes;
 using Org.OpenAPITools.Models;
+using minitwit;
 namespace Org.OpenAPITools.Controllers
 { 
     /// <summary>
     /// 
     /// </summary>
+    [Route("api")]
     [ApiController]
     public class MinitwitApiController : ControllerBase
     { 
@@ -39,7 +41,7 @@ namespace Org.OpenAPITools.Controllers
         /// <response code="403">Unauthorized - Must include correct Authorization header</response>
         /// <response code="404">User not found (no response body)</response>
         [HttpGet]
-        [Route("/fllws/{username}")]
+        [Route("fllws/{username}")]
         [ValidateModelState]
         // [SwaggerOperation("GetFollow")]
         [EndpointSummary("GetFollow")]
@@ -180,7 +182,7 @@ namespace Org.OpenAPITools.Controllers
         /// <response code="403">Unauthorized - Must include correct Authorization header</response>
         /// <response code="404">User not found (no response body)</response>
         [HttpPost]
-        [Route("/fllws/{username}")]
+        [Route("fllws/{username}")]
         [Consumes("application/json")]
         [ValidateModelState]
         [EndpointSummary("PostFollow")]
@@ -234,7 +236,7 @@ namespace Org.OpenAPITools.Controllers
         /// <response code="204">No Content</response>
         /// <response code="400">Bad Request | Possible reasons:  - missing username  - invalid email  - password missing  - username already taken</response>
         [HttpPost]
-        [Route("/register")]
+        [Route("register")]
         [Consumes("application/json")]
         [ValidateModelState]
         [EndpointSummary("PostRegister")]
@@ -242,12 +244,37 @@ namespace Org.OpenAPITools.Controllers
         public virtual IActionResult PostRegister([FromBody]RegisterRequest payload, [FromQuery (Name = "latest")]int? latest)
         {
 
-            //TODO: Uncomment the next line to return response 204 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(204);
-            //TODO: Uncomment the next line to return response 400 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(400, default);
+          //TODO: Uncomment the next line to return response 204 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
+          // return StatusCode(204);
+          //TODO: Uncomment the next line to return response 400 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
+          // return StatusCode(400, default);
 
-            throw new NotImplementedException();
+          MiniTwit minitwit = new MiniTwit();
+          minitwit.Connect_db();
+
+          if (string.IsNullOrEmpty(payload.Username))
+          {
+            return BadRequest(new { status = 400, error_msg = "You have to enter a username"});
+          }
+
+          if (string.IsNullOrEmpty(payload.Email) || !payload.Email.Contains('@'))
+          {
+            return BadRequest(new { status = 400, error_msg = "You have to enter a valid email"});
+          }
+
+          if (string.IsNullOrEmpty(payload.Pwd))
+          {
+            return BadRequest(new { status = 400, error_msg = "You have to enter a password"});
+          }
+
+          if (minitwit.Get_user_id(payload.Username) != null)
+          {
+            return BadRequest(new { status = 400, error_msg = "The username is already taken"});
+          }
+
+          minitwit.Register(payload.Username, payload.Email, payload.Pwd);
+
+          return StatusCode(204);
         }
     }
 }
