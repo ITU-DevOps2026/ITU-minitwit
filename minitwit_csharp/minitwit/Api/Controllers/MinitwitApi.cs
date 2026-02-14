@@ -133,10 +133,9 @@ namespace Org.OpenAPITools.Controllers
             //TODO: Uncomment the next line to return response 403 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
             // return StatusCode(403, default);
             
-            MiniTwit minitwit = new MiniTwit();
-            minitwit.Connect_db();
+            _mt.Connect_db();
 
-            var messages = minitwit.Get_public_timeline();
+            var messages = _mt.Get_public_timeline();
             string messagesJSON = JsonSerializer.Serialize(messages);
 
             return new ObjectResult(messagesJSON);
@@ -187,10 +186,9 @@ namespace Org.OpenAPITools.Controllers
             // : default;
             // //TODO: Change the data returned
             // return new ObjectResult(example);
-            MiniTwit minitwit = new MiniTwit();
-            minitwit.Connect_db();
+            _mt.Connect_db();
 
-            var usermessages = minitwit.Get_user_timeline(username);
+            var usermessages = _mt.Get_user_timeline(username);
             string usermessagesJSON = JsonSerializer.Serialize(usermessages);
 
             return new ObjectResult(usermessagesJSON);
