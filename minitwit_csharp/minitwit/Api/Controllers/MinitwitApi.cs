@@ -235,7 +235,7 @@ namespace Org.OpenAPITools.Controllers
         /// <response code="204">No Content</response>
         /// <response code="403">Unauthorized - Must include correct Authorization header</response>
         [HttpPost]
-        [Route("/msgs/{username}")]
+        [Route("msgs/{username}")]
         [Consumes("application/json")]
         [ValidateModelState]
         [EndpointSummary("PostMessagesPerUser")]
@@ -248,7 +248,22 @@ namespace Org.OpenAPITools.Controllers
             //TODO: Uncomment the next line to return response 403 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
             // return StatusCode(403, default);
 
-            throw new NotImplementedException();
+            _mt.UpdateLatest(latest);
+
+            _mt.Connect_db();
+
+            if (string.IsNullOrEmpty(authorization) || !authorization.StartsWith("Basic "))
+            {
+                return BadRequest(new { status = 403, error_msg = "You are not authorized to use this resource!" });
+            }
+
+            if (string.IsNullOrEmpty(payload.Content))
+            {
+                return BadRequest(new { status = 400, error_msg = "You have to enter a message"});
+            }
+            
+            _mt.Add_Message(username, payload.Content);
+            return StatusCode(204);
         }
 
         /// <summary>
