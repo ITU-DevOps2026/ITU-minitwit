@@ -1,7 +1,9 @@
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.Data.Sqlite;
+using Microsoft.AspNetCore.OpenApi;
 using minitwit;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,10 +14,12 @@ builder.Services.AddDistributedMemoryCache();
 
 builder.Services.AddSession(options =>
 {
-    options.IdleTimeout = TimeSpan.FromMinutes(15);
-    options.Cookie.HttpOnly = true;
-    options.Cookie.IsEssential = true;
+  options.IdleTimeout = TimeSpan.FromMinutes(15);
+  options.Cookie.HttpOnly = true;
+  options.Cookie.IsEssential = true;
 });
+
+builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
@@ -39,16 +43,18 @@ app.MapStaticAssets();
 app.MapRazorPages()
    .WithStaticAssets();
 
+app.MapControllers();
+
 // This function is necessary because while the script in python can specifically target and run a function
 // this does not seem to be achievable in .NET, but this function helps by looking at the argument given to
 // when starting the program, ensuring that if init is an argument, we don't actually start the web app, but just
 // call init_db() and exit.
 if (args.Contains("init"))
 {
-    var mt = new MiniTwit();
-    mt.Init_db();
-    // Prevent the program from actually starting
-    Environment.Exit(0); 
+  var mt = new MiniTwit();
+  mt.Init_db();
+  // Prevent the program from actually starting
+  Environment.Exit(0);
 }
 
 app.Run();
@@ -75,20 +81,20 @@ namespace minitwit
       return connection;
     }
 
-    public List<Dictionary<string, object>> Query_db_Read(string query, SqliteParameter[] args, bool one=false)
+    public List<Dictionary<string, object>> Query_db_Read(string query, SqliteParameter[] args, bool one = false)
     {
-      return (List<Dictionary<string, object>>) Query_db(query, args, false, one);
+      return (List<Dictionary<string, object>>)Query_db(query, args, false, one);
     }
 
-    public int Query_db_Insert(string query, SqliteParameter[] args, bool one=false)
+    public int Query_db_Insert(string query, SqliteParameter[] args, bool one = false)
     {
-      return (int) Query_db(query, args, true, one);
+      return (int)Query_db(query, args, true, one);
     }
 
-    public object Query_db(string query, SqliteParameter[] args, bool nonQuery, bool one=false)
+    public object Query_db(string query, SqliteParameter[] args, bool nonQuery, bool one = false)
     {
       if (connection == null) throw new Exception("Connection is null");
-      
+
       SqliteCommand command = connection.CreateCommand();
       command.CommandText = query;
       foreach (SqliteParameter param in args)
@@ -116,7 +122,7 @@ namespace minitwit
 
         if (one) break;
       }
-      
+
       reader.Close();
 
       return results;
@@ -130,7 +136,7 @@ namespace minitwit
       command.CommandText = schemaSql;
       command.ExecuteNonQuery();
     }
-    
+
     public static string Format_datetime(int timestamp)
     {
       return DateTimeOffset.FromUnixTimeSeconds(timestamp).ToLocalTime().ToString("yyyy-MM-dd @ HH:mm");
@@ -244,7 +250,7 @@ namespace minitwit
       SqliteParameter email_param = new SqliteParameter("@email", email);
       SqliteParameter pw_hash_param = new SqliteParameter("@pw_hash", Generate_password_hash(password));
       Query_db_Insert(query, [username_param, email_param, pw_hash_param]);
-    } 
+    }
 
 
     // Code inspired by https://code-maze.com/csharp-hashing-salting-passwords-best-practices/
@@ -255,7 +261,7 @@ namespace minitwit
 
       // Format the string to match the format of passwords from python application
       // Saving the salt in the DB is usually bad practice, but we do it because the original application does it :)
-      return "pbkdf2:sha256:50000$"+Convert.ToHexString(salt)+"$"+Convert.ToHexString(hash);
+      return "pbkdf2:sha256:50000$" + Convert.ToHexString(salt) + "$" + Convert.ToHexString(hash);
     }
 
     public bool Check_password_hash(string username, string input_password)
@@ -268,7 +274,7 @@ namespace minitwit
       if (result != null && result.Count > 0)
       {
         // Split pw_hash from DB into hashing algorithm, salt, and password hash
-        string[] res = ((string) result[0]["pw_hash"]).Split('$');
+        string[] res = ((string)result[0]["pw_hash"]).Split('$');
         var salt_from_DB = Convert.FromHexString(res[1]);
         var pwd_hash_from_DB = res[2];
 
@@ -302,7 +308,7 @@ namespace minitwit
 
       if (u_ID != null) //Checking that the user exists
       {
-        int time = (int) DateTimeOffset.UtcNow.ToUnixTimeSeconds(); //Gets current time
+        int time = (int)DateTimeOffset.UtcNow.ToUnixTimeSeconds(); //Gets current time
         string query = """
           INSERT INTO message (author_id, text, pub_date, flagged) values (@author_id, @text, @pub_date, @flagged)
         """;
