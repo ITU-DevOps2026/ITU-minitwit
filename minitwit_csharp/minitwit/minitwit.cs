@@ -347,11 +347,7 @@ namespace minitwit
       """;
       SqliteParameter active_id_param = new SqliteParameter("@active_id", active_user_id);
       SqliteParameter other_id_param = new SqliteParameter("@other_id", profile_user_id);
-      int followed = Query_db_Insert(query, [active_id_param, other_id_param], true);
-      if (followed != 1)
-      {
-        throw new Exception("Something went wrong, when trying to follow");
-      }
+      Query_db_Insert(query, [active_id_param, other_id_param], true);
     }
 
     public void Unfollow_user(string active_username, string username_to_follow)
@@ -373,11 +369,7 @@ namespace minitwit
       """;
       SqliteParameter active_id_param = new SqliteParameter("@active_id", active_user_id);
       SqliteParameter other_id_param = new SqliteParameter("@other_id", profile_user_id);
-      int unfollowed = Query_db_Insert(query, [active_id_param, other_id_param], true);
-      if (unfollowed != 1)
-      {
-        throw new Exception("Something went wrong, when trying to follow");
-      }
+      Query_db_Insert(query, [active_id_param, other_id_param], true);
     }
 
     public void UpdateLatest(int? latest)
