@@ -3,22 +3,25 @@
 
 <h2>Public Timeline</h2>
 <ul class="messages">
-@foreach (Dictionary<string, object> message in Model.Messages)
-{
-  <li>
-    <img src="@MiniTwit.Get_Gravatar_Url((string)@message["email"], 48)" />
-    <p>
-      <strong><a href="/@message["username"]">@message["username"]</a></strong>
-      @message["text"]
-      <small>
-        — @MiniTwit.Format_datetime(Convert.ToInt32(@message["pub_date"]))
-      </small>
-    </p>
-  </li>
-}
-</ul>
 
-@if (!Model.Messages.Any())
+@if (Model?.Messages != null) {
+  @foreach (Dictionary<string, object> message in Model.Messages)
+  {
+    <li>
+      <img src="@MiniTwit.Get_Gravatar_Url((string)@message["email"], 48)" />
+      <p>
+        <strong><a href="/@message["username"]">@message["username"]</a></strong>
+        @message["text"]
+        <small>
+          — @MiniTwit.Format_datetime(Convert.ToInt32(@message["pub_date"]))
+        </small>
+      </p>
+    </li>
+  }
+
+}
+else 
 {
   <p><em>There's no message so far.</em></p>
 }
+</ul>

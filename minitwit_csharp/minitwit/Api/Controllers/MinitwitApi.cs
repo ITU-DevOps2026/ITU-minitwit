@@ -62,7 +62,7 @@ namespace Org.OpenAPITools.Controllers
             // return StatusCode(403, default);
             //TODO: Uncomment the next line to return response 404 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
             // return StatusCode(404);
-            string exampleJson = null;
+            string? exampleJson = null;
             exampleJson = "{\n  \"follows\" : [ \"Helge\", \"John\" ]\n}";
             exampleJson = "{\n  \"error_msg\" : \"You are not authorized to use this resource!\",\n  \"status\" : 403\n}";
             
