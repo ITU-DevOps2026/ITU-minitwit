@@ -62,7 +62,7 @@ namespace Org.OpenAPITools.Controllers
 
             _mt.UpdateLatest(latest);
 
-            _mt.Connect_db();
+            _mt.Connect_db("/tmp/minitwit.db");
 
             if (_mt.Get_user_id(username) == null)
             {
@@ -269,7 +269,7 @@ namespace Org.OpenAPITools.Controllers
             
             _mt.UpdateLatest(latest);
 
-            _mt.Connect_db();
+            _mt.Connect_db("/tmp/minitwit.db");;
 
             if (payload.Follow != null)
             {
