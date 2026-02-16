@@ -16,6 +16,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Runtime.Serialization;
+using System.Text.Json.Serialization;
 /* using Newtonsoft.Json;
 using Org.OpenAPITools.Converters; */
 
@@ -24,7 +25,7 @@ namespace Org.OpenAPITools.Models
     /// <summary>
     /// 
     /// </summary>
-    [DataContract]
+    //[DataContract]
     public partial class FollowsResponse : IEquatable<FollowsResponse>
     {
         /// <summary>
@@ -32,7 +33,8 @@ namespace Org.OpenAPITools.Models
         /// </summary>
         /// <value>List of usernames the user is following</value>
         /* <example>[&quot;Helge&quot;,&quot;John&quot;]</example> */
-        [DataMember(Name="follows", EmitDefaultValue=false)]
+        //[DataMember(Name="follows", EmitDefaultValue=false)]
+        [JsonPropertyName("follows")]
         public List<string>? Follows { get; set; }
 
         /// <summary>

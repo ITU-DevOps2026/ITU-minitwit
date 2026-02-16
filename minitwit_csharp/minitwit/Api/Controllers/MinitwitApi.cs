@@ -47,31 +47,43 @@ namespace Org.OpenAPITools.Controllers
         [HttpGet]
         [Route("fllws/{username}")]
         [ValidateModelState]
-        // [SwaggerOperation("GetFollow")]
         [EndpointSummary("GetFollow")]
-        // [SwaggerResponse(statusCode: 200, type: typeof(FollowsResponse), description: "Success")]
         [ProducesResponseType(statusCode: 200, type: typeof(FollowsResponse), Description = "Success")]
-        // [SwaggerResponse(statusCode: 403, type: typeof(ErrorResponse), description: "Unauthorized - Must include correct Authorization header")]
         [ProducesResponseType(statusCode: 403, type: typeof(ErrorResponse), Description = "Unauthorized - Must include correct Authorization header")]
+        [ProducesResponseType(statusCode: 404, type: typeof(ErrorResponse), Description = "User not found (no response body)")]
+
         public virtual IActionResult GetFollow([FromRoute (Name = "username")][Required]string username, [FromHeader (Name = "Authorization")][Required()]string authorization, [FromQuery (Name = "latest")]int? latest, [FromQuery (Name = "no")]int? no)
         {
 
-            //TODO: Uncomment the next line to return response 200 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(200, default);
-            //TODO: Uncomment the next line to return response 403 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(403, default);
-            //TODO: Uncomment the next line to return response 404 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(404);
-            string? exampleJson = null;
-            exampleJson = "{\n  \"follows\" : [ \"Helge\", \"John\" ]\n}";
-            exampleJson = "{\n  \"error_msg\" : \"You are not authorized to use this resource!\",\n  \"status\" : 403\n}";
+            if (string.IsNullOrEmpty(authorization) || !authorization.Substring("Basic ".Length).Equals(Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes("simulator:super_safe!"))))
+            {
+                return BadRequest(new { status = 403, error_msg = "Unauthorized - Must include correct Authorization header" });
+            }
+
+            _mt.UpdateLatest(latest);
+
+            _mt.Connect_db();
+
+            if (_mt.Get_user_id(username) == null)
+            {
+                return BadRequest(new { status = 404, error_msg = "User not found (no response body)" });
+            }
             
-            var example = exampleJson != null
-            // ? JsonConvert.DeserializeObject<FollowsResponse>(exampleJson)
-            ? JsonSerializer.Deserialize<FollowsResponse>(exampleJson)
-            : default;
-            //TODO: Change the data returned
-            return new ObjectResult(example);
+            var followed_users = _mt.Get_followed_users(username, no);
+
+            List<string> follows = [];
+            foreach (var user in followed_users)
+            {
+                follows.Add((string) user["username"]);
+            }
+
+            FollowsResponse followsResponse = new FollowsResponse
+            {
+                Follows = follows
+            };
+
+            string followsJSON = followsResponse.ToJson();
+            return StatusCode(200, followsJSON);
         }
 
         /// <summary>
@@ -250,14 +262,37 @@ namespace Org.OpenAPITools.Controllers
         public virtual IActionResult PostFollow([FromRoute (Name = "username")][Required]string username, [FromHeader (Name = "Authorization")][Required()]string authorization, [FromBody]FollowAction payload, [FromQuery (Name = "latest")]int? latest)
         {
 
-            //TODO: Uncomment the next line to return response 204 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(204);
-            //TODO: Uncomment the next line to return response 403 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(403, default);
-            //TODO: Uncomment the next line to return response 404 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(404);
+             if (string.IsNullOrEmpty(authorization) || !authorization.Substring("Basic ".Length).Equals(Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes("simulator:super_safe!"))))
+            {
+                return BadRequest(new { status = 403, error_msg = "Unauthorized - Must include correct Authorization header" });
+            }
+            
+            _mt.UpdateLatest(latest);
 
-            throw new NotImplementedException();
+            _mt.Connect_db();
+
+            if (payload.Follow != null)
+            {
+                if (_mt.Get_user_id(payload.Follow) != null)
+                {
+                    _mt.Follow_user(username, payload.Follow);
+                } else
+                {
+                    return BadRequest(new { status = 404, error_msg = "User not found" });
+                }
+            } else if (payload.Unfollow != null)
+            {
+                if (_mt.Get_user_id(payload.Unfollow) != null)
+                {
+                    _mt.Unfollow_user(username, payload.Unfollow);
+                } else
+                {
+                    return BadRequest(new { status = 404, error_msg = "User not found" });
+                }
+            }
+
+            return StatusCode(204);
+
         }
 
         /// <summary>

@@ -388,5 +388,26 @@ namespace minitwit
       }
     }
     public int GetLatest() => _latest;
+
+    public List<Dictionary<string, object>> Get_followed_users(string active_username, int? limit)
+    {
+      int? active_user_id = Get_user_id(active_username);
+      if (active_user_id == null)
+      {
+        throw new Exception("Active user doesn't exist");
+      }
+
+      string query = """
+          select user.* from user
+          where user.user_id in (select whom_id from follower
+                                      where who_id = @user_id)
+          limit @per_page
+        """;
+        SqliteParameter user_id_param = new SqliteParameter("@user_id", active_user_id);
+        SqliteParameter pp_param = new SqliteParameter("@per_page", limit ?? PER_PAGE);
+        List<Dictionary<string, object>> followed_users = Query_db_Read(query, [user_id_param, pp_param]);
+
+        return followed_users;
+      }
+    }
   }
-}
