@@ -123,7 +123,7 @@ namespace Org.OpenAPITools.Controllers
 
             _mt.UpdateLatest(latest);
 
-            _mt.Connect_db();
+            _mt.Connect_db("/tmp/minitwit.db");
 
             var messages = _mt.Get_public_timeline();
 
@@ -198,7 +198,7 @@ namespace Org.OpenAPITools.Controllers
 
             _mt.UpdateLatest(latest);
 
-            _mt.Connect_db();
+            _mt.Connect_db("/tmp/minitwit.db");
 
             if (_mt.Get_user_id(username) == null)
             {
@@ -291,7 +291,7 @@ namespace Org.OpenAPITools.Controllers
 
             _mt.UpdateLatest(latest);
 
-            _mt.Connect_db();
+            _mt.Connect_db("/tmp/minitwit.db");
 
             if (string.IsNullOrEmpty(payload.Content))
             {
@@ -326,7 +326,7 @@ namespace Org.OpenAPITools.Controllers
 
           _mt.UpdateLatest(latest);
 
-          _mt.Connect_db();
+          _mt.Connect_db("/tmp/minitwit.db");
 
           if (string.IsNullOrEmpty(payload.Username))
           {
