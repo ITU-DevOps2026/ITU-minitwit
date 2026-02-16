@@ -21,6 +21,8 @@ builder.Services.AddSession(options =>
 
 builder.Services.AddOpenApi();
 
+builder.Services.AddScoped<MiniTwit>();
+
 /* builder.Services.AddControllers().AddJsonOptions(options =>
 {
   options.JsonSerializerOptions.WriteIndented = true;
@@ -73,6 +75,7 @@ namespace minitwit
     string DATABASE = "./minitwit.db";
     SqliteConnection? connection;
     private int PER_PAGE = 30;
+    private static int _latest = -1;
 
     // Password hashing configurations
     const int keySize = 32;
@@ -376,5 +379,14 @@ namespace minitwit
         throw new Exception("Something went wrong, when trying to follow");
       }
     }
+
+    public void UpdateLatest(int? latest)
+    {
+      if (latest.HasValue)
+      {
+        _latest = latest.Value;
+      }
+    }
+    public int GetLatest() => _latest;
   }
 }

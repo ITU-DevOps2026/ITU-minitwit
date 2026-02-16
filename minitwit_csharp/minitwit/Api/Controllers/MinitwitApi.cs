@@ -14,8 +14,6 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
-// using Swashbuckle.AspNetCore.Annotations;
-// using Swashbuckle.AspNetCore.SwaggerGen;
 using System.Text.Json;
 using Org.OpenAPITools.Attributes;
 using Org.OpenAPITools.Models;
@@ -24,9 +22,17 @@ namespace Org.OpenAPITools.Controllers
     /// <summary>
     /// 
     /// </summary>
+    [Route("api")]
     [ApiController]
     public class MinitwitApiController : ControllerBase
-    { 
+    {
+      private readonly minitwit.MiniTwit _mt;
+
+      public MinitwitApiController(minitwit.MiniTwit mt)
+      {
+        _mt = mt;
+      }
+
         /// <summary>
         /// 
         /// </summary>
@@ -39,7 +45,7 @@ namespace Org.OpenAPITools.Controllers
         /// <response code="403">Unauthorized - Must include correct Authorization header</response>
         /// <response code="404">User not found (no response body)</response>
         [HttpGet]
-        [Route("/fllws/{username}")]
+        [Route("fllws/{username}")]
         [ValidateModelState]
         // [SwaggerOperation("GetFollow")]
         [EndpointSummary("GetFollow")]
@@ -75,27 +81,16 @@ namespace Org.OpenAPITools.Controllers
         /// <response code="200">Success</response>
         /// <response code="500">Internal Server Error</response>
         [HttpGet]
-        [Route("/latest")]
+        [Route("latest")]
         [ValidateModelState]
         [EndpointSummary("GetLatestValue")]
         [ProducesResponseType(statusCode: 200, type: typeof(LatestValue), Description ="Success")]
         [ProducesResponseType(statusCode: 500, type: typeof(ErrorResponse), Description= "Internal Server Error")]
         public virtual IActionResult GetLatestValue()
         {
+          int latestValue = _mt.GetLatest();
 
-            //TODO: Uncomment the next line to return response 200 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(200, default);
-            //TODO: Uncomment the next line to return response 500 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(500, default);
-            string exampleJson = null;
-            exampleJson = "{\n  \"latest\" : 0\n}";
-            exampleJson = "{\n  \"error_msg\" : \"You are not authorized to use this resource!\",\n  \"status\" : 403\n}";
-            
-            var example = exampleJson != null
-            ? JsonSerializer.Deserialize<LatestValue>(exampleJson)
-            : default;
-            //TODO: Change the data returned
-            return new ObjectResult(example);
+          return Ok(new LatestValue{Latest = latestValue});
         }
 
         /// <summary>
@@ -180,7 +175,7 @@ namespace Org.OpenAPITools.Controllers
         /// <response code="403">Unauthorized - Must include correct Authorization header</response>
         /// <response code="404">User not found (no response body)</response>
         [HttpPost]
-        [Route("/fllws/{username}")]
+        [Route("fllws/{username}")]
         [Consumes("application/json")]
         [ValidateModelState]
         [EndpointSummary("PostFollow")]
@@ -234,7 +229,7 @@ namespace Org.OpenAPITools.Controllers
         /// <response code="204">No Content</response>
         /// <response code="400">Bad Request | Possible reasons:  - missing username  - invalid email  - password missing  - username already taken</response>
         [HttpPost]
-        [Route("/register")]
+        [Route("register")]
         [Consumes("application/json")]
         [ValidateModelState]
         [EndpointSummary("PostRegister")]
@@ -242,12 +237,38 @@ namespace Org.OpenAPITools.Controllers
         public virtual IActionResult PostRegister([FromBody]RegisterRequest payload, [FromQuery (Name = "latest")]int? latest)
         {
 
-            //TODO: Uncomment the next line to return response 204 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(204);
-            //TODO: Uncomment the next line to return response 400 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(400, default);
+          //TODO: Uncomment the next line to return response 204 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
+          // return StatusCode(204);
+          //TODO: Uncomment the next line to return response 400 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
+          // return StatusCode(400, default);
 
-            throw new NotImplementedException();
+          _mt.UpdateLatest(latest);
+
+          _mt.Connect_db();
+
+          if (string.IsNullOrEmpty(payload.Username))
+          {
+            return BadRequest(new { status = 400, error_msg = "You have to enter a username"});
+          }
+
+          if (string.IsNullOrEmpty(payload.Email) || !payload.Email.Contains('@'))
+          {
+            return BadRequest(new { status = 400, error_msg = "You have to enter a valid email"});
+          }
+
+          if (string.IsNullOrEmpty(payload.Pwd))
+          {
+            return BadRequest(new { status = 400, error_msg = "You have to enter a password"});
+          }
+
+          if (_mt.Get_user_id(payload.Username) != null)
+          {
+            return BadRequest(new { status = 400, error_msg = "The username is already taken"});
+          }
+
+          _mt.Register(payload.Username, payload.Email, payload.Pwd);
+
+          return StatusCode(204);
         }
     }
 }
