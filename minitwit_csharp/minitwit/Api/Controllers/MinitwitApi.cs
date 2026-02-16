@@ -16,7 +16,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
 // using Swashbuckle.AspNetCore.Annotations;
 // using Swashbuckle.AspNetCore.SwaggerGen;
-
 using System.Text.Json;
 using Org.OpenAPITools.Attributes;
 using Org.OpenAPITools.Models;
@@ -78,9 +77,9 @@ namespace Org.OpenAPITools.Controllers
         [HttpGet]
         [Route("/latest")]
         [ValidateModelState]
-        [SwaggerOperation("GetLatestValue")]
-        [SwaggerResponse(statusCode: 200, type: typeof(LatestValue), description: "Success")]
-        [SwaggerResponse(statusCode: 500, type: typeof(ErrorResponse), description: "Internal Server Error")]
+        [EndpointSummary("GetLatestValue")]
+        [ProducesResponseType(statusCode: 200, type: typeof(LatestValue), Description ="Success")]
+        [ProducesResponseType(statusCode: 500, type: typeof(ErrorResponse), Description= "Internal Server Error")]
         public virtual IActionResult GetLatestValue()
         {
 
@@ -111,9 +110,9 @@ namespace Org.OpenAPITools.Controllers
         [HttpGet]
         [Route("/msgs")]
         [ValidateModelState]
-        [SwaggerOperation("GetMessages")]
-        [SwaggerResponse(statusCode: 200, type: typeof(List<Message>), description: "Success")]
-        [SwaggerResponse(statusCode: 403, type: typeof(ErrorResponse), description: "Unauthorized - Must include correct Authorization header")]
+        [EndpointSummary("GetMessages")]
+        [ProducesResponseType(statusCode: 200, type: typeof(List<Message>), Description= "Success")]
+        [ProducesResponseType(statusCode: 403, type: typeof(ErrorResponse), Description= "Unauthorized - Must include correct Authorization header")]
         public virtual IActionResult GetMessages([FromHeader (Name = "Authorization")][Required()]string authorization, [FromQuery (Name = "latest")]int? latest, [FromQuery (Name = "no")]int? no)
         {
 
@@ -146,9 +145,9 @@ namespace Org.OpenAPITools.Controllers
         [HttpGet]
         [Route("/msgs/{username}")]
         [ValidateModelState]
-        [SwaggerOperation("GetMessagesPerUser")]
-        [SwaggerResponse(statusCode: 200, type: typeof(List<Message>), description: "Success")]
-        [SwaggerResponse(statusCode: 403, type: typeof(ErrorResponse), description: "Unauthorized - Must include correct Authorization header")]
+        [EndpointSummary("GetMessagesPerUser")]
+        [ProducesResponseType(statusCode: 200, type: typeof(List<Message>), Description= "Success")]
+        [ProducesResponseType(statusCode: 403, type: typeof(ErrorResponse), Description= "Unauthorized - Must include correct Authorization header")]
         public virtual IActionResult GetMessagesPerUser([FromRoute (Name = "username")][Required]string username, [FromHeader (Name = "Authorization")][Required()]string authorization, [FromQuery (Name = "latest")]int? latest, [FromQuery (Name = "no")]int? no)
         {
 
@@ -184,8 +183,8 @@ namespace Org.OpenAPITools.Controllers
         [Route("/fllws/{username}")]
         [Consumes("application/json")]
         [ValidateModelState]
-        [SwaggerOperation("PostFollow")]
-        [SwaggerResponse(statusCode: 403, type: typeof(ErrorResponse), description: "Unauthorized - Must include correct Authorization header")]
+        [EndpointSummary("PostFollow")]
+        [ProducesResponseType(statusCode: 403, type: typeof(ErrorResponse), Description= "Unauthorized - Must include correct Authorization header")]
         public virtual IActionResult PostFollow([FromRoute (Name = "username")][Required]string username, [FromHeader (Name = "Authorization")][Required()]string authorization, [FromBody]FollowAction payload, [FromQuery (Name = "latest")]int? latest)
         {
 
@@ -213,8 +212,8 @@ namespace Org.OpenAPITools.Controllers
         [Route("/msgs/{username}")]
         [Consumes("application/json")]
         [ValidateModelState]
-        [SwaggerOperation("PostMessagesPerUser")]
-        [SwaggerResponse(statusCode: 403, type: typeof(ErrorResponse), description: "Unauthorized - Must include correct Authorization header")]
+        [EndpointSummary("PostMessagesPerUser")]
+        [ProducesResponseType(statusCode: 403, type: typeof(ErrorResponse), Description ="Unauthorized - Must include correct Authorization header")]
         public virtual IActionResult PostMessagesPerUser([FromRoute (Name = "username")][Required]string username, [FromHeader (Name = "Authorization")][Required()]string authorization, [FromBody]PostMessage payload, [FromQuery (Name = "latest")]int? latest)
         {
 
@@ -238,8 +237,8 @@ namespace Org.OpenAPITools.Controllers
         [Route("/register")]
         [Consumes("application/json")]
         [ValidateModelState]
-        [SwaggerOperation("PostRegister")]
-        [SwaggerResponse(statusCode: 400, type: typeof(ErrorResponse), description: "Bad Request | Possible reasons:  - missing username  - invalid email  - password missing  - username already taken")]
+        [EndpointSummary("PostRegister")]
+        [ProducesResponseType(statusCode: 400, type: typeof(ErrorResponse), Description ="Bad Request | Possible reasons:  - missing username  - invalid email  - password missing  - username already taken")]
         public virtual IActionResult PostRegister([FromBody]RegisterRequest payload, [FromQuery (Name = "latest")]int? latest)
         {
 
