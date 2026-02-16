@@ -72,7 +72,7 @@ namespace minitwit
   {
     // Configuration
     // string DATABASE = "/tmp/minitwit.db";
-    string DATABASE = "./minitwit.db";
+    private const string Default_Database = "./minitwit.db";
     SqliteConnection? connection;
     private int PER_PAGE = 30;
     private static int _latest = -1;
@@ -82,9 +82,9 @@ namespace minitwit
     const int iterations = 50000;
     HashAlgorithmName hashAlgorithm = HashAlgorithmName.SHA256;
 
-    public SqliteConnection Connect_db()
+    public SqliteConnection Connect_db(string db_string = Default_Database)
     {
-      connection = new SqliteConnection($"Data Source= {DATABASE}");
+      connection = new SqliteConnection($"Data Source= {db_string}");
       connection.Open();
       return connection;
     }
