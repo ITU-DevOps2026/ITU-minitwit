@@ -31,19 +31,24 @@ Vagrant.configure("2") do |config|
         #  echo 'export PATH=$PATH:$DOTNET_ROOT:$DOTNET_ROOT/tools' >> /home/vagrant/.bashrc # Add .NET tools to PATH in .bashrc
       #fi
 
-      # ADD SOME CODE HERE THAT INITIALIZES THE TMP DATABASE
-
       # Tell the terminal that this is the path where it can find dotnet 
       export DOTNET_ROOT=/home/vagrant/.dotnet
 
       # Navigate to all the project files
       cd /home/vagrant/vagrant_data/
 
+      # Run the control script with inittmpdb which creates a new empty db in tmp folder
+      chmod +x ./control.sh
+      ./control.sh inittmpdb
+
       # Dotnet run the application and use 'nohup' to ensure that the program runs in the background instead of keeping the terminal "alive"
       # Also we need to run it on 0.0.0.0 instead of localhost, because a localhost on a virtual box machine can only be accessed
       # from inside the VM and it cannot be accessed from the outside (from your own machine)
       # Gemini says: 0.0.0.0 tells the app to listen on all available network interfaces, including the one Vagrant 
       # uses to talk to your Mac
+      # Would be nice here if we could use the control script, but not sure if possible because Vagrant
+      # needs to know the specific path to dotnet (the DOTNET_ROOT) and we don't specify this in control.sh
+      # But maybe we should change control.sh like we did for the init tmp db script?
       sudo -u vagrant -E HOME=/home/vagrant nohup $DOTNET_ROOT/dotnet run --urls "http://0.0.0.0:5035" > /home/vagrant/app.log 2>&1 &
       echo "================================================================="
       echo "=                     MiniTwit is running!                      ="
