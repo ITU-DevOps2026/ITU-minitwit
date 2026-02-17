@@ -40,7 +40,7 @@ public class RegisterModel : PageModel
       return Page();
     }
 
-    minitwit.Register(Username, Email, Password);
+    minitwit.Register(Username!, Email, Password);
 
     TempData["Flash"] = "You were successfully registered and can login now";
 

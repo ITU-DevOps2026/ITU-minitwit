@@ -16,7 +16,10 @@
       </div>
 }
 <ul class="messages">
-@if(Model.Messages.Any()) {
+@if (Model.Messages != null)
+{
+  @if(Model.Messages.Any()) 
+  {
     @foreach (Dictionary<string, object> message in Model.Messages)
     {
     <li>
@@ -30,6 +33,7 @@
         </p>
     </li>
     }
+  }
 }
 else {
     <li><em>There's no message so far.</em></li>
