@@ -3,7 +3,9 @@
 
 Vagrant.configure("2") do |config|
   config.vm.box = "bento/ubuntu-22.04"
-  config.vm.network "forwarded_port", guest: 80, host: 8080
+  #config.vm.network "forwarded_port", guest: 80, host: 8080
+  # This means if i go to localhost:5035 on my own machine, it will forward me to 5035 on the virtual box machine 
+  config.vm.network "forwarded_port", guest: 5035, host: 5035
   config.vm.synced_folder ".", "/home/vagrant/vagrant_data", type: "rsync"
 
   config.vm.provider "virtualbox" do |vb|
@@ -17,14 +19,38 @@ Vagrant.configure("2") do |config|
       apt-get install -y wget curl libicu-dev # Install wget and curl for downloading the installer, and libicu-dev which is a common dependency for .NET on Linux (we might not need all of these, but it's good to have them just in case)
 
       # 2. Download and run installer as 'vagrant' user
-      sudo -u vagrant wget https://dot.net/v1/dotnet-install.sh -O /home/vagrant/dotnet-install.sh # Download the installer to the vagrant user's home directory
+      sudo -u vagrant wget https://builds.dotnet.microsoft.com/dotnet/scripts/v1/dotnet-install.sh -O /home/vagrant/dotnet-install.sh # Download the installer to the vagrant user's home directory
       chmod +x /home/vagrant/dotnet-install.sh # Make the installer executable
       sudo -u vagrant /home/vagrant/dotnet-install.sh --channel 10.0 # Run the installer as the vagrant user to ensure correct permissions
 
+      # I couldn't really make the following work, because it requires your terminal to be restarted before the changes to
+      # the .bashrc file can be seen by the terminal. I think we should delete this
       # 3. Make environment variables permanent for the vagrant user
-      if ! grep -q "DOTNET_ROOT" /home/vagrant/.bashrc; then # Check if DOTNET_ROOT is already set in .bashrc to avoid adding it multiple times (-q for quiet mode)
-          echo 'export DOTNET_ROOT=$HOME/.dotnet' >> /home/vagrant/.bashrc # Add DOTNET_ROOT to .bashrc 
-          echo 'export PATH=$PATH:$DOTNET_ROOT:$DOTNET_ROOT/tools' >> /home/vagrant/.bashrc # Add .NET tools to PATH in .bashrc
-      fi
+      #if ! grep -q "DOTNET_ROOT" /home/vagrant/.bashrc; then # Check if DOTNET_ROOT is already set in .bashrc to avoid adding it multiple times (-q for quiet mode)
+       #   echo 'export DOTNET_ROOT=$HOME/.dotnet' >> /home/vagrant/.bashrc # Add DOTNET_ROOT to .bashrc 
+        #  echo 'export PATH=$PATH:$DOTNET_ROOT:$DOTNET_ROOT/tools' >> /home/vagrant/.bashrc # Add .NET tools to PATH in .bashrc
+      #fi
+
+      # ADD SOME CODE HERE THAT INITIALIZES THE TMP DATABASE
+
+      # Tell the terminal that this is the path where it can find dotnet 
+      export DOTNET_ROOT=/home/vagrant/.dotnet
+
+      # Navigate to all the project files
+      cd /home/vagrant/vagrant_data/
+
+      # Dotnet run the application and use 'nohup' to ensure that the program runs in the background instead of keeping the terminal "alive"
+      # Also we need to run it on 0.0.0.0 instead of localhost, because a localhost on a virtual box machine can only be accessed
+      # from inside the VM and it cannot be accessed from the outside (from your own machine)
+      # Gemini says: 0.0.0.0 tells the app to listen on all available network interfaces, including the one Vagrant 
+      # uses to talk to your Mac
+      sudo -u vagrant -E HOME=/home/vagrant nohup $DOTNET_ROOT/dotnet run --urls "http://0.0.0.0:5035" > /home/vagrant/app.log 2>&1 &
+      echo "================================================================="
+      echo "=                     MiniTwit is running!                      ="
+      echo "================================================================="
+      echo "Navigate in your browser to:"
+      echo "http://localhost:5035"
+      # In your own browser, you can navigate to http://localhost:5035 and you will then be forwarded to http://0.0.0.0:5035 on the 
+      # virtual machine (but this happens behind the scenes).
   SHELL
 end
