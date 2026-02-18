@@ -15,7 +15,7 @@ using System.Text.Json;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
-using System.Runtime.Serialization;
+using System.Text.Json.Serialization;
 /* using Newtonsoft.Json;
 using Org.OpenAPITools.Converters; */
 
@@ -24,7 +24,6 @@ namespace Org.OpenAPITools.Models
     /// <summary>
     /// 
     /// </summary>
-    [DataContract]
     public partial class FollowAction : IEquatable<FollowAction>
     {
         /// <summary>
@@ -32,7 +31,7 @@ namespace Org.OpenAPITools.Models
         /// </summary>
         /// <value>Username to follow (optional, either this or \&quot;unfollow\&quot;)</value>
         /* <example>Helge</example> */
-        [DataMember(Name="follow", EmitDefaultValue=false)]
+        [JsonPropertyName("follow")]
         public string? Follow { get; set; }
 
         /// <summary>
@@ -40,7 +39,7 @@ namespace Org.OpenAPITools.Models
         /// </summary>
         /// <value>Username to unfollow (optional, either this or \&quot;follow\&quot;)</value>
         /* <example>Helge</example> */
-        [DataMember(Name="unfollow", EmitDefaultValue=false)]
+        [JsonPropertyName("unfollow")]
         public string? Unfollow { get; set; }
 
         /// <summary>

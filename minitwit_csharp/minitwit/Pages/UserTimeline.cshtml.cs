@@ -7,7 +7,7 @@ public class UserTimelineModel : PageModel
 { 
   public List<Dictionary<string, object>>? Messages { get; private set; }
   public bool Followed { get; set; }
-  public IActionResult OnGet(string username)
+  public async Task<IActionResult> OnGet(string username)
   {
     string? logged_in_username = HttpContext.Session.GetString("Logged_In_Username");
 
@@ -21,10 +21,10 @@ public class UserTimelineModel : PageModel
     MiniTwit minitwit = new MiniTwit();
     minitwit.Connect_db();
 
-    Messages = minitwit.Get_user_timeline(username);
+    Messages = await minitwit.Get_user_timeline(username);
     if(logged_in_username != null)
     {
-      Followed = minitwit.Is_following(logged_in_username, username);
+      Followed = await minitwit.Is_following(logged_in_username, username);
     }
     return Page();
   }

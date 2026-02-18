@@ -18,7 +18,7 @@ public class AddMessageModel : PageModel
         string? username = HttpContext.Session.GetString("Logged_In_Username");
         if(username != null)
         {
-            minitwit.Add_Message(username, Text);
+            await minitwit.Add_Message(username, Text);
             Console.WriteLine("Message '" + Text + "' from " + username + " added to database!");
             TempData["Flash"] = "Your message was recorded";
         }

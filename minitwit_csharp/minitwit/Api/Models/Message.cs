@@ -15,7 +15,7 @@ using System.Text.Json;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
-using System.Runtime.Serialization;
+using System.Text.Json.Serialization;
 /* using Newtonsoft.Json;
 using Org.OpenAPITools.Converters; */
 
@@ -24,7 +24,6 @@ namespace Org.OpenAPITools.Models
     /// <summary>
     /// 
     /// </summary>
-    [DataContract]
     public partial class Message : IEquatable<Message>
     {
         /// <summary>
@@ -32,7 +31,7 @@ namespace Org.OpenAPITools.Models
         /// </summary>
         /// <value>Text content of the message</value>
         /* <example>Hello, World!</example> */
-        [DataMember(Name="content", EmitDefaultValue=false)]
+        [JsonPropertyName("content")]
         public string? Content { get; set; }
 
         /// <summary>
@@ -40,7 +39,7 @@ namespace Org.OpenAPITools.Models
         /// </summary>
         /// <value>Publication date/time of the message</value>
         /* <example>2019-12-01 12:00:00</example> */
-        [DataMember(Name="pub_date", EmitDefaultValue=false)]
+        [JsonPropertyName("pub_date")]
         public string? PubDate { get; set; }
 
         /// <summary>
@@ -48,7 +47,7 @@ namespace Org.OpenAPITools.Models
         /// </summary>
         /// <value>Username of the message author</value>
         /* <example>Helge</example> */
-        [DataMember(Name="user", EmitDefaultValue=false)]
+        [JsonPropertyName("user")]
         public string? User { get; set; }
 
         /// <summary>

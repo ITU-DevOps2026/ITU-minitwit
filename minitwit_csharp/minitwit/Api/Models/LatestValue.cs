@@ -15,7 +15,7 @@ using System.Text.Json;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
-using System.Runtime.Serialization;
+using System.Text.Json.Serialization;
 /* using Newtonsoft.Json;
 using Org.OpenAPITools.Converters; */
 
@@ -24,14 +24,13 @@ namespace Org.OpenAPITools.Models
     /// <summary>
     /// 
     /// </summary>
-    [DataContract]
     public partial class LatestValue : IEquatable<LatestValue>
     {
         /// <summary>
         /// The latest global value
         /// </summary>
         /// <value>The latest global value</value>
-        [DataMember(Name="latest", EmitDefaultValue=true)]
+        [JsonPropertyName("latest")]
         public int? Latest { get; set; }
 
         /// <summary>

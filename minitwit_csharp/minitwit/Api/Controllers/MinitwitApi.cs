@@ -31,6 +31,7 @@ namespace Org.OpenAPITools.Controllers
       public MinitwitApiController(minitwit.MiniTwit mt)
       {
         _mt = mt;
+        _mt.DbPath = "/tmp/minitwit.db";
       }
 
         /// <summary>
@@ -52,7 +53,7 @@ namespace Org.OpenAPITools.Controllers
         [ProducesResponseType(statusCode: 403, type: typeof(ErrorResponse), Description = "Unauthorized - Must include correct Authorization header")]
         [ProducesResponseType(statusCode: 404, type: typeof(ErrorResponse), Description = "User not found (no response body)")]
 
-        public virtual IActionResult GetFollow([FromRoute (Name = "username")][Required]string username, [FromHeader (Name = "Authorization")][Required()]string authorization, [FromQuery (Name = "latest")]int? latest, [FromQuery (Name = "no")]int? no)
+        public virtual async Task<IActionResult> GetFollow([FromRoute (Name = "username")][Required]string username, [FromHeader (Name = "Authorization")][Required()]string authorization, [FromQuery (Name = "latest")]int? latest, [FromQuery (Name = "no")]int? no)
         {
 
             if (string.IsNullOrEmpty(authorization) || !authorization.Substring("Basic ".Length).Equals(Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes("simulator:super_safe!"))))
@@ -62,14 +63,12 @@ namespace Org.OpenAPITools.Controllers
 
             _mt.UpdateLatest(latest);
 
-            _mt.Connect_db("/tmp/minitwit.db");
-
-            if (_mt.Get_user_id(username) == null)
+            if (await _mt.Get_user_id(username) == null)
             {
                 return BadRequest(new { status = 404, error_msg = "User not found (no response body)" });
             }
             
-            var followed_users = _mt.Get_followed_users(username, no);
+            var followed_users = await _mt.Get_followed_users(username, no);
 
             List<string> follows = [];
             foreach (var user in followed_users)
@@ -120,7 +119,7 @@ namespace Org.OpenAPITools.Controllers
         [EndpointSummary("GetMessages")]
         [ProducesResponseType(statusCode: 200, type: typeof(List<Message>), Description= "Success")]
         [ProducesResponseType(statusCode: 403, type: typeof(ErrorResponse), Description= "Unauthorized - Must include correct Authorization header")]
-        public virtual IActionResult GetMessages([FromHeader (Name = "Authorization")][Required()]string authorization, [FromQuery (Name = "latest")]int? latest, [FromQuery (Name = "no")]int? no)
+        public virtual async Task<IActionResult> GetMessages([FromHeader (Name = "Authorization")][Required()]string authorization, [FromQuery (Name = "latest")]int? latest, [FromQuery (Name = "no")]int? no)
         {
 
             //TODO: Uncomment the next line to return response 200 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
@@ -135,9 +134,7 @@ namespace Org.OpenAPITools.Controllers
 
             _mt.UpdateLatest(latest);
 
-            _mt.Connect_db("/tmp/minitwit.db");
-
-            var messages = _mt.Get_public_timeline();
+            var messages = await _mt.Get_public_timeline();
 
             List<Dictionary<string, object>> messagesList = new List<Dictionary<string, object>>();
             foreach (var msg in messages)            {
@@ -184,7 +181,7 @@ namespace Org.OpenAPITools.Controllers
         [EndpointSummary("GetMessagesPerUser")]
         [ProducesResponseType(statusCode: 200, type: typeof(List<Message>), Description= "Success")]
         [ProducesResponseType(statusCode: 403, type: typeof(ErrorResponse), Description= "Unauthorized - Must include correct Authorization header")]
-        public virtual IActionResult GetMessagesPerUser([FromRoute (Name = "username")][Required]string username, [FromHeader (Name = "Authorization")][Required()]string authorization, [FromQuery (Name = "latest")]int? latest, [FromQuery (Name = "no")]int? no)
+        public virtual async Task<IActionResult> GetMessagesPerUser([FromRoute (Name = "username")][Required]string username, [FromHeader (Name = "Authorization")][Required()]string authorization, [FromQuery (Name = "latest")]int? latest, [FromQuery (Name = "no")]int? no)
         {
 
             //TODO: Uncomment the next line to return response 200 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
@@ -210,14 +207,12 @@ namespace Org.OpenAPITools.Controllers
 
             _mt.UpdateLatest(latest);
 
-            _mt.Connect_db("/tmp/minitwit.db");
-
-            if (_mt.Get_user_id(username) == null)
+            if (await _mt.Get_user_id(username) == null)
             {
                 return NotFound("User not found");
             }
 
-            var usermessages = _mt.Get_user_timeline(username);
+            var usermessages = await _mt.Get_user_timeline(username);
 
             //Make the messages from the Get_user_timeline function into a list of messages of the form 
             // Message { PubDate = "2019-12-01 12:00:00", User = "Helge", Content = "Hello, World!" }
@@ -259,7 +254,7 @@ namespace Org.OpenAPITools.Controllers
         [ValidateModelState]
         [EndpointSummary("PostFollow")]
         [ProducesResponseType(statusCode: 403, type: typeof(ErrorResponse), Description= "Unauthorized - Must include correct Authorization header")]
-        public virtual IActionResult PostFollow([FromRoute (Name = "username")][Required]string username, [FromHeader (Name = "Authorization")][Required()]string authorization, [FromBody]FollowAction payload, [FromQuery (Name = "latest")]int? latest)
+        public virtual async Task<IActionResult> PostFollow([FromRoute (Name = "username")][Required]string username, [FromHeader (Name = "Authorization")][Required()]string authorization, [FromBody]FollowAction payload, [FromQuery (Name = "latest")]int? latest)
         {
 
              if (string.IsNullOrEmpty(authorization) || !authorization.Substring("Basic ".Length).Equals(Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes("simulator:super_safe!"))))
@@ -269,22 +264,20 @@ namespace Org.OpenAPITools.Controllers
             
             _mt.UpdateLatest(latest);
 
-            _mt.Connect_db("/tmp/minitwit.db");;
-
             if (payload.Follow != null)
             {
-                if (_mt.Get_user_id(payload.Follow) != null)
+                if (await _mt.Get_user_id(payload.Follow) != null)
                 {
-                    _mt.Follow_user(username, payload.Follow);
+                    await _mt.Follow_user(username, payload.Follow);
                 } else
                 {
                     return BadRequest(new { status = 404, error_msg = "User not found" });
                 }
             } else if (payload.Unfollow != null)
             {
-                if (_mt.Get_user_id(payload.Unfollow) != null)
+                if (await _mt.Get_user_id(payload.Unfollow) != null)
                 {
-                    _mt.Unfollow_user(username, payload.Unfollow);
+                    await _mt.Unfollow_user(username, payload.Unfollow);
                 } else
                 {
                     return BadRequest(new { status = 404, error_msg = "User not found" });
@@ -311,7 +304,7 @@ namespace Org.OpenAPITools.Controllers
         [ValidateModelState]
         [EndpointSummary("PostMessagesPerUser")]
         [ProducesResponseType(statusCode: 403, type: typeof(ErrorResponse), Description ="Unauthorized - Must include correct Authorization header")]
-        public virtual IActionResult PostMessagesPerUser([FromRoute (Name = "username")][Required]string username, [FromHeader (Name = "Authorization")][Required()]string authorization, [FromBody]PostMessage payload, [FromQuery (Name = "latest")]int? latest)
+        public virtual async Task<IActionResult> PostMessagesPerUser([FromRoute (Name = "username")][Required]string username, [FromHeader (Name = "Authorization")][Required()]string authorization, [FromBody]PostMessage payload, [FromQuery (Name = "latest")]int? latest)
         {
 
             //TODO: Uncomment the next line to return response 204 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
@@ -326,14 +319,12 @@ namespace Org.OpenAPITools.Controllers
 
             _mt.UpdateLatest(latest);
 
-            _mt.Connect_db("/tmp/minitwit.db");
-
             if (string.IsNullOrEmpty(payload.Content))
             {
                 return BadRequest(new { status = 400, error_msg = "You have to enter a message"});
             }
             
-            _mt.Add_Message(username, payload.Content);
+            await _mt.Add_Message(username, payload.Content);
             return StatusCode(204);
         }
 
@@ -351,7 +342,7 @@ namespace Org.OpenAPITools.Controllers
         [ValidateModelState]
         [EndpointSummary("PostRegister")]
         [ProducesResponseType(statusCode: 400, type: typeof(ErrorResponse), Description ="Bad Request | Possible reasons:  - missing username  - invalid email  - password missing  - username already taken")]
-        public virtual IActionResult PostRegister([FromBody]RegisterRequest payload, [FromQuery (Name = "latest")]int? latest)
+        public virtual async Task <IActionResult> PostRegister([FromBody]RegisterRequest payload, [FromQuery (Name = "latest")]int? latest)
         {
 
           //TODO: Uncomment the next line to return response 204 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
@@ -360,8 +351,6 @@ namespace Org.OpenAPITools.Controllers
           // return StatusCode(400, default);
 
           _mt.UpdateLatest(latest);
-
-          _mt.Connect_db("/tmp/minitwit.db");
 
           if (string.IsNullOrEmpty(payload.Username))
           {
@@ -378,12 +367,12 @@ namespace Org.OpenAPITools.Controllers
             return BadRequest(new { status = 400, error_msg = "You have to enter a password"});
           }
 
-          if (_mt.Get_user_id(payload.Username) != null)
+          if (await _mt.Get_user_id(payload.Username) != null)
           {
             return BadRequest(new { status = 400, error_msg = "The username is already taken"});
           }
 
-          _mt.Register(payload.Username, payload.Email, payload.Pwd);
+          await _mt.Register(payload.Username, payload.Email, payload.Pwd);
 
           return StatusCode(204);
         }

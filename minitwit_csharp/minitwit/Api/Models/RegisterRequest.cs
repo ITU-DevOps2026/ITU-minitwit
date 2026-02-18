@@ -15,7 +15,7 @@ using System.Text.Json;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
-using System.Runtime.Serialization;
+using System.Text.Json.Serialization;
 /* using Newtonsoft.Json;
 using Org.OpenAPITools.Converters; */
 
@@ -24,7 +24,6 @@ namespace Org.OpenAPITools.Models
     /// <summary>
     /// 
     /// </summary>
-    [DataContract]
     public partial class RegisterRequest : IEquatable<RegisterRequest>
     {
         /// <summary>
@@ -32,7 +31,7 @@ namespace Org.OpenAPITools.Models
         /// </summary>
         /// <value>Username</value>
         [Required]
-        [DataMember(Name="username", EmitDefaultValue=false)]
+        [JsonPropertyName("username")]
         public string? Username { get; set; }
 
         /// <summary>
@@ -40,7 +39,7 @@ namespace Org.OpenAPITools.Models
         /// </summary>
         /// <value>Email address</value>
         [Required]
-        [DataMember(Name="email", EmitDefaultValue=false)]
+        [JsonPropertyName("email")]
         public string? Email { get; set; }
 
         /// <summary>
@@ -48,7 +47,7 @@ namespace Org.OpenAPITools.Models
         /// </summary>
         /// <value>Password</value>
         [Required]
-        [DataMember(Name="pwd", EmitDefaultValue=false)]
+        [JsonPropertyName("pwd")]
         public string? Pwd { get; set; }
 
         /// <summary>

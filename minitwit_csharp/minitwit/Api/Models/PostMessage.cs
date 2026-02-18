@@ -15,7 +15,7 @@ using System.Text.Json;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
-using System.Runtime.Serialization;
+using System.Text.Json.Serialization;
 /* using Newtonsoft.Json;
 using Org.OpenAPITools.Converters; */
 
@@ -24,7 +24,6 @@ namespace Org.OpenAPITools.Models
     /// <summary>
     /// 
     /// </summary>
-    [DataContract]
     public partial class PostMessage : IEquatable<PostMessage>
     {
         /// <summary>
@@ -33,7 +32,7 @@ namespace Org.OpenAPITools.Models
         /// <value>Text content of the message</value>
         /* <example>Hello, World!</example> */
         [Required]
-        [DataMember(Name="content", EmitDefaultValue=false)]
+        [JsonPropertyName("content")]
         public string? Content { get; set; }
 
         /// <summary>
