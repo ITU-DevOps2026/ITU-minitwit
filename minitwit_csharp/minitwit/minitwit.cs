@@ -85,7 +85,7 @@ namespace minitwit
 
     public SqliteConnection Connect_db()
     {
-      return new SqliteConnection($"Data Source={DbPath};Pooling=False");
+      return new SqliteConnection($"Data Source={DbPath};Pooling=False;");
     }
 
     public async Task<List<Dictionary<string, object>>> Query_db_Read(string query, SqliteParameter[] args, bool one = false)
@@ -105,6 +105,13 @@ namespace minitwit
         if (connection == null) throw new Exception("Connection is null");
 
         await connection.OpenAsync();
+
+        // ADD THIS BLOCK HERE:
+        using (var walCommand = connection.CreateCommand())
+        {
+            walCommand.CommandText = "PRAGMA journal_mode=WAL;";
+            await walCommand.ExecuteNonQueryAsync();
+        }
 
         using (SqliteCommand command = connection.CreateCommand())
         {
@@ -140,9 +147,17 @@ namespace minitwit
 
     public async Task Init_db(string db_string = Default_Database)
     {
-      using (SqliteConnection connection = new SqliteConnection($"Data Source={db_string}"))
+      using (SqliteConnection connection = new SqliteConnection($"Data Source={db_string};"))
       {
         await connection.OpenAsync();
+
+        // Set WAL mode before running the schema
+        using (var walCommand = connection.CreateCommand())
+        {
+            walCommand.CommandText = "PRAGMA journal_mode=WAL;";
+            await walCommand.ExecuteNonQueryAsync();
+        }
+
         string schemaSql = await File.ReadAllTextAsync("schema.sql");
         using (SqliteCommand command = connection.CreateCommand())
         {

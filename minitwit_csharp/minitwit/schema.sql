@@ -1,3 +1,6 @@
+-- Set the database to Write-Ahead Logging mode
+PRAGMA journal_mode=WAL;
+
 drop table if exists user;
 create table user (
   user_id integer primary key autoincrement,
