@@ -55,34 +55,41 @@ namespace Org.OpenAPITools.Controllers
 
         public virtual async Task<IActionResult> GetFollow([FromRoute (Name = "username")][Required]string username, [FromHeader (Name = "Authorization")][Required()]string authorization, [FromQuery (Name = "latest")]int? latest, [FromQuery (Name = "no")]int? no)
         {
-
-            if (string.IsNullOrEmpty(authorization) || !authorization.Substring("Basic ".Length).Equals(Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes("simulator:super_safe!"))))
+            // debug prefix makes it easy to grep logs
+            try
             {
-                return BadRequest(new { status = 403, error_msg = "Unauthorized - Must include correct Authorization header" });
+                if (string.IsNullOrEmpty(authorization) || !authorization.Substring("Basic ".Length).Equals(Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes("simulator:super_safe!"))))
+                {
+                    return BadRequest(new { status = 403, error_msg = "Unauthorized - Must include correct Authorization header" });
+                }
+
+                _mt.UpdateLatest(latest);
+
+                if (await _mt.Get_user_id(username) == null)
+                {
+                    return BadRequest(new { status = 404, error_msg = "User not found (no response body)" });
+                }
+                
+                var followed_users = await _mt.Get_followed_users(username, no);
+
+                List<string> follows = [];
+                foreach (var user in followed_users)
+                {
+                    follows.Add((string) user["username"]);
+                }
+
+                FollowsResponse followsResponse = new FollowsResponse
+                {
+                    Follows = follows
+                };
+
+                string followsJSON = followsResponse.ToJson();
+                return StatusCode(200, followsJSON);
             }
-
-            _mt.UpdateLatest(latest);
-
-            if (await _mt.Get_user_id(username) == null)
+            catch (Exception ex)
             {
-                return BadRequest(new { status = 404, error_msg = "User not found (no response body)" });
+                return StatusCode(500);
             }
-            
-            var followed_users = await _mt.Get_followed_users(username, no);
-
-            List<string> follows = [];
-            foreach (var user in followed_users)
-            {
-                follows.Add((string) user["username"]);
-            }
-
-            FollowsResponse followsResponse = new FollowsResponse
-            {
-                Follows = follows
-            };
-
-            string followsJSON = followsResponse.ToJson();
-            return StatusCode(200, followsJSON);
         }
 
         /// <summary>
@@ -99,9 +106,16 @@ namespace Org.OpenAPITools.Controllers
         [ProducesResponseType(statusCode: 500, type: typeof(ErrorResponse), Description= "Internal Server Error")]
         public virtual IActionResult GetLatestValue()
         {
-          int latestValue = _mt.GetLatest();
+          try
+          {
+            int latestValue = _mt.GetLatest();
 
-          return Ok(new LatestValue{Latest = latestValue});
+            return Ok(new LatestValue{Latest = latestValue});
+          }
+          catch (Exception ex)
+          {
+            return StatusCode(500);
+          }
         }
 
         /// <summary>
@@ -121,37 +135,38 @@ namespace Org.OpenAPITools.Controllers
         [ProducesResponseType(statusCode: 403, type: typeof(ErrorResponse), Description= "Unauthorized - Must include correct Authorization header")]
         public virtual async Task<IActionResult> GetMessages([FromHeader (Name = "Authorization")][Required()]string authorization, [FromQuery (Name = "latest")]int? latest, [FromQuery (Name = "no")]int? no)
         {
-
-            //TODO: Uncomment the next line to return response 200 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(200, default);
-            //TODO: Uncomment the next line to return response 403 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(403, default);
-
-            if (string.IsNullOrEmpty(authorization) || !authorization.Substring("Basic ".Length).Equals(Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes("simulator:super_safe!"))))
+            try
             {
-                return BadRequest(new { status = 403, error_msg = "Unauthorized - Must include correct Authorization header" });
-            }
-
-            _mt.UpdateLatest(latest);
-
-            var messages = await _mt.Get_public_timeline();
-
-            List<Dictionary<string, object>> messagesList = new List<Dictionary<string, object>>();
-            foreach (var msg in messages)            {
-                if (msg["flagged"].ToString() == "0")
+                if (string.IsNullOrEmpty(authorization) || !authorization.Substring("Basic ".Length).Equals(Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes("simulator:super_safe!"))))
                 {
-                    var message = new Dictionary<string, object>
-                    {
-                        ["content"] = msg["text"],
-                        ["pub_date"] = msg["pub_date"],
-                        ["user"] = msg["username"]
-                    };
-                    messagesList.Add(message);
+                    return BadRequest(new { status = 403, error_msg = "Unauthorized - Must include correct Authorization header" });
                 }
-            }
 
-            string messagesJSON = JsonSerializer.Serialize(messagesList);
-            return StatusCode(200, messagesJSON);
+                _mt.UpdateLatest(latest);
+
+                var messages = await _mt.Get_public_timeline();
+
+                List<Dictionary<string, object>> messagesList = new List<Dictionary<string, object>>();
+                foreach (var msg in messages)            {
+                    if (msg["flagged"].ToString() == "0")
+                    {
+                        var message = new Dictionary<string, object>
+                        {
+                            ["content"] = msg["text"],
+                            ["pub_date"] = msg["pub_date"],
+                            ["user"] = msg["username"]
+                        };
+                        messagesList.Add(message);
+                    }
+                }
+
+                string messagesJSON = JsonSerializer.Serialize(messagesList);
+                return StatusCode(200, messagesJSON);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500);
+            }
 
             // string exampleJson = null;
             // exampleJson = "[ {\n  \"pub_date\" : \"2019-12-01 12:00:00\",\n  \"user\" : \"Helge\",\n  \"content\" : \"Hello, World!\"\n}, {\n  \"pub_date\" : \"2019-12-01 12:00:00\",\n  \"user\" : \"Helge\",\n  \"content\" : \"Hello, World!\"\n} ]";
@@ -183,58 +198,48 @@ namespace Org.OpenAPITools.Controllers
         [ProducesResponseType(statusCode: 403, type: typeof(ErrorResponse), Description= "Unauthorized - Must include correct Authorization header")]
         public virtual async Task<IActionResult> GetMessagesPerUser([FromRoute (Name = "username")][Required]string username, [FromHeader (Name = "Authorization")][Required()]string authorization, [FromQuery (Name = "latest")]int? latest, [FromQuery (Name = "no")]int? no)
         {
-
-            //TODO: Uncomment the next line to return response 200 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(200, default);
-            //TODO: Uncomment the next line to return response 403 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(403, default);
-            //TODO: Uncomment the next line to return response 404 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(404);
-            // string exampleJson = null;
-            // exampleJson = "[ {\n  \"pub_date\" : \"2019-12-01 12:00:00\",\n  \"user\" : \"Helge\",\n  \"content\" : \"Hello, World!\"\n}, {\n  \"pub_date\" : \"2019-12-01 12:00:00\",\n  \"user\" : \"Helge\",\n  \"content\" : \"Hello, World!\"\n} ]";
-            // exampleJson = "{\n  \"error_msg\" : \"You are not authorized to use this resource!\",\n  \"status\" : 403\n}";
-            
-            // var example = exampleJson != null
-            // ? JsonSerializer.Deserialize<List<Message>>(exampleJson)
-            // : default;
-            // //TODO: Change the data returned
-            // return new ObjectResult(example);
-
-            if (string.IsNullOrEmpty(authorization) || !authorization.Substring("Basic ".Length).Equals(Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes("simulator:super_safe!"))))
+            try
             {
-                return BadRequest(new { status = 403, error_msg = "Unauthorized - Must include correct Authorization header" });
-            }
-
-            _mt.UpdateLatest(latest);
-
-            if (await _mt.Get_user_id(username) == null)
-            {
-                return NotFound("User not found");
-            }
-
-            var usermessages = await _mt.Get_user_timeline(username);
-
-            //Make the messages from the Get_user_timeline function into a list of messages of the form 
-            // Message { PubDate = "2019-12-01 12:00:00", User = "Helge", Content = "Hello, World!" }
-            // Instead of the form we get from the funcion (Where we get all kinds of other information we don't need) and then serialize it to JSON
-
-            var messagesList = new List<Dictionary<string, object>>();
-            foreach (var msg in usermessages)
-            {
-                if (msg["flagged"].ToString() == "0")
+                if (string.IsNullOrEmpty(authorization) || !authorization.Substring("Basic ".Length).Equals(Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes("simulator:super_safe!"))))
                 {
-                    var message = new Dictionary<string, object>
-                    {
-                        ["pub_date"] = msg["pub_date"],
-                        ["user"] = msg["username"],
-                        ["content"] = msg["text"]
-                    };
-                    messagesList.Add(message);
+                    return BadRequest(new { status = 403, error_msg = "Unauthorized - Must include correct Authorization header" });
                 }
-            }
-            string messagesJSON = JsonSerializer.Serialize(messagesList);
 
-            return StatusCode(200, messagesJSON);
+                _mt.UpdateLatest(latest);
+
+                if (await _mt.Get_user_id(username) == null)
+                {
+                    return NotFound("User not found");
+                }
+
+                var usermessages = await _mt.Get_user_timeline(username);
+
+                //Make the messages from the Get_user_timeline function into a list of messages of the form 
+                // Message { PubDate = "2019-12-01 12:00:00", User = "Helge", Content = "Hello, World!" }
+                // Instead of the form we get from the funcion (Where we get all kinds of other information we don't need) and then serialize it to JSON
+
+                var messagesList = new List<Dictionary<string, object>>();
+                foreach (var msg in usermessages)
+                {
+                    if (msg["flagged"].ToString() == "0")
+                    {
+                        var message = new Dictionary<string, object>
+                        {
+                            ["pub_date"] = msg["pub_date"],
+                            ["user"] = msg["username"],
+                            ["content"] = msg["text"]
+                        };
+                        messagesList.Add(message);
+                    }
+                }
+                string messagesJSON = JsonSerializer.Serialize(messagesList);
+
+                return StatusCode(200, messagesJSON);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500);
+            }
         }
 
         /// <summary>
@@ -256,36 +261,41 @@ namespace Org.OpenAPITools.Controllers
         [ProducesResponseType(statusCode: 403, type: typeof(ErrorResponse), Description= "Unauthorized - Must include correct Authorization header")]
         public virtual async Task<IActionResult> PostFollow([FromRoute (Name = "username")][Required]string username, [FromHeader (Name = "Authorization")][Required()]string authorization, [FromBody]FollowAction payload, [FromQuery (Name = "latest")]int? latest)
         {
-
-             if (string.IsNullOrEmpty(authorization) || !authorization.Substring("Basic ".Length).Equals(Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes("simulator:super_safe!"))))
+            try
             {
-                return BadRequest(new { status = 403, error_msg = "Unauthorized - Must include correct Authorization header" });
-            }
-            
-            _mt.UpdateLatest(latest);
-
-            if (payload.Follow != null)
-            {
-                if (await _mt.Get_user_id(payload.Follow) != null)
+                 if (string.IsNullOrEmpty(authorization) || !authorization.Substring("Basic ".Length).Equals(Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes("simulator:super_safe!"))))
                 {
-                    await _mt.Follow_user(username, payload.Follow);
-                } else
-                {
-                    return BadRequest(new { status = 404, error_msg = "User not found" });
+                    return BadRequest(new { status = 403, error_msg = "Unauthorized - Must include correct Authorization header" });
                 }
-            } else if (payload.Unfollow != null)
-            {
-                if (await _mt.Get_user_id(payload.Unfollow) != null)
+                
+                _mt.UpdateLatest(latest);
+
+                if (payload.Follow != null)
                 {
-                    await _mt.Unfollow_user(username, payload.Unfollow);
-                } else
+                    if (await _mt.Get_user_id(payload.Follow) != null)
+                    {
+                        await _mt.Follow_user(username, payload.Follow);
+                    } else
+                    {
+                        return BadRequest(new { status = 404, error_msg = "User not found" });
+                    }
+                } else if (payload.Unfollow != null)
                 {
-                    return BadRequest(new { status = 404, error_msg = "User not found" });
+                    if (await _mt.Get_user_id(payload.Unfollow) != null)
+                    {
+                        await _mt.Unfollow_user(username, payload.Unfollow);
+                    } else
+                    {
+                        return BadRequest(new { status = 404, error_msg = "User not found" });
+                    }
                 }
+
+                return StatusCode(204);
             }
-
-            return StatusCode(204);
-
+            catch (Exception ex)
+            {
+                return StatusCode(500);
+            }
         }
 
         /// <summary>
@@ -306,26 +316,27 @@ namespace Org.OpenAPITools.Controllers
         [ProducesResponseType(statusCode: 403, type: typeof(ErrorResponse), Description ="Unauthorized - Must include correct Authorization header")]
         public virtual async Task<IActionResult> PostMessagesPerUser([FromRoute (Name = "username")][Required]string username, [FromHeader (Name = "Authorization")][Required()]string authorization, [FromBody]PostMessage payload, [FromQuery (Name = "latest")]int? latest)
         {
-
-            //TODO: Uncomment the next line to return response 204 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(204);
-            //TODO: Uncomment the next line to return response 403 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(403, default);
-
-            if (string.IsNullOrEmpty(authorization) || !authorization.Substring("Basic ".Length).Equals(Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes("simulator:super_safe!"))))
+            try
             {
-                return BadRequest(new { status = 403, error_msg = "Unauthorized - Must include correct Authorization header" });
+                if (string.IsNullOrEmpty(authorization) || !authorization.Substring("Basic ".Length).Equals(Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes("simulator:super_safe!"))))
+                {
+                    return BadRequest(new { status = 403, error_msg = "Unauthorized - Must include correct Authorization header" });
+                }
+
+                _mt.UpdateLatest(latest);
+
+                if (string.IsNullOrEmpty(payload.Content))
+                {
+                    return BadRequest(new { status = 400, error_msg = "You have to enter a message"});
+                }
+                
+                await _mt.Add_Message(username, payload.Content);
+                return StatusCode(204);
             }
-
-            _mt.UpdateLatest(latest);
-
-            if (string.IsNullOrEmpty(payload.Content))
+            catch (Exception ex)
             {
-                return BadRequest(new { status = 400, error_msg = "You have to enter a message"});
+                return StatusCode(500);
             }
-            
-            await _mt.Add_Message(username, payload.Content);
-            return StatusCode(204);
         }
 
         /// <summary>
@@ -344,37 +355,38 @@ namespace Org.OpenAPITools.Controllers
         [ProducesResponseType(statusCode: 400, type: typeof(ErrorResponse), Description ="Bad Request | Possible reasons:  - missing username  - invalid email  - password missing  - username already taken")]
         public virtual async Task <IActionResult> PostRegister([FromBody]RegisterRequest payload, [FromQuery (Name = "latest")]int? latest)
         {
-
-          //TODO: Uncomment the next line to return response 204 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-          // return StatusCode(204);
-          //TODO: Uncomment the next line to return response 400 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-          // return StatusCode(400, default);
-
-          _mt.UpdateLatest(latest);
-
-          if (string.IsNullOrEmpty(payload.Username))
+          try
           {
-            return BadRequest(new { status = 400, error_msg = "You have to enter a username"});
-          }
+              _mt.UpdateLatest(latest);
 
-          if (string.IsNullOrEmpty(payload.Email) || !payload.Email.Contains('@'))
+              if (string.IsNullOrEmpty(payload.Username))
+              {
+                return BadRequest(new { status = 400, error_msg = "You have to enter a username"});
+              }
+
+              if (string.IsNullOrEmpty(payload.Email) || !payload.Email.Contains('@'))
+              {
+                return BadRequest(new { status = 400, error_msg = "You have to enter a valid email"});
+              }
+
+              if (string.IsNullOrEmpty(payload.Pwd))
+              {
+                return BadRequest(new { status = 400, error_msg = "You have to enter a password"});
+              }
+
+              if (await _mt.Get_user_id(payload.Username) != null)
+              {
+                return BadRequest(new { status = 400, error_msg = "The username is already taken"});
+              }
+
+              await _mt.Register(payload.Username, payload.Email, payload.Pwd);
+
+              return StatusCode(204);
+          }
+          catch (Exception ex)
           {
-            return BadRequest(new { status = 400, error_msg = "You have to enter a valid email"});
+              return StatusCode(500);
           }
-
-          if (string.IsNullOrEmpty(payload.Pwd))
-          {
-            return BadRequest(new { status = 400, error_msg = "You have to enter a password"});
-          }
-
-          if (await _mt.Get_user_id(payload.Username) != null)
-          {
-            return BadRequest(new { status = 400, error_msg = "The username is already taken"});
-          }
-
-          await _mt.Register(payload.Username, payload.Email, payload.Pwd);
-
-          return StatusCode(204);
         }
     }
 }
