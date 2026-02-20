@@ -15,7 +15,7 @@ using System.Text.Json;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
-using System.Runtime.Serialization;
+using System.Text.Json.Serialization;
 /* using Newtonsoft.Json;
 using Org.OpenAPITools.Converters; */
 
@@ -24,7 +24,6 @@ namespace Org.OpenAPITools.Models
     /// <summary>
     /// 
     /// </summary>
-    [DataContract]
     public partial class ErrorResponse : IEquatable<ErrorResponse>
     {
         /// <summary>
@@ -32,7 +31,7 @@ namespace Org.OpenAPITools.Models
         /// </summary>
         /// <value>HTTP error code</value>
         /* <example>403</example> */
-        [DataMember(Name="status", EmitDefaultValue=true)]
+        [JsonPropertyName("status")]
         public int? Status { get; set; }
 
         /// <summary>
@@ -40,7 +39,7 @@ namespace Org.OpenAPITools.Models
         /// </summary>
         /// <value>Error message</value>
         /* <example>You are not authorized to use this resource!</example> */
-        [DataMember(Name="error_msg", EmitDefaultValue=false)]
+        [JsonPropertyName("error_msg")]
         public string? ErrorMsg { get; set; }
 
         /// <summary>

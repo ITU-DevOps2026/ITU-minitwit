@@ -20,11 +20,11 @@ public class LoginModel : PageModel
     MiniTwit minitwit = new MiniTwit();
     minitwit.Connect_db();
     
-    if (minitwit.Get_user_id(Username) == null)
+    if (await minitwit.Get_user_id(Username) == null)
     {
       ModelState.AddModelError("Username", "Invalid username");
     }
-    if (!minitwit.Check_password_hash(Username, Password))
+    if (!await minitwit.Check_password_hash(Username, Password))
     {
       ModelState.AddModelError("Password", "Invalid password");
     }

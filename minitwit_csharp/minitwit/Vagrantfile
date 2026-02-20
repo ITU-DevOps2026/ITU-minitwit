@@ -1,6 +1,8 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
+require 'droplet_kit'
+
 $ip_file = "db_ip.txt"
 
 Vagrant.configure("2") do |config|
@@ -9,7 +11,7 @@ Vagrant.configure("2") do |config|
   config.ssh.private_key_path = '~/.ssh/id_ed25519'
   config.vm.synced_folder ".", "/vagrant", type: "rsync"
 
-  config.vm.define "minitwit", primary: true do |server|
+  config.vm.define "minitwit-2", primary: true do |server|
     server.vm.provider :digital_ocean do |provider|
       provider.ssh_key_name = ENV["SSH_KEY_NAME"]
       provider.token = ENV["DIGITAL_OCEAN_TOKEN"]
@@ -19,14 +21,39 @@ Vagrant.configure("2") do |config|
       provider.privatenetworking = true
     end
 
-    server.vm.hostname = "minitwit"
+    server.vm.hostname = "minitwit-2"
+
+
+    # TRIGGER: Assign the Reserved IP using DropletKit
+    server.trigger.after :up do |trigger|
+      trigger.info = "Assigning Reserved IP to Droplet..."
+      trigger.ruby do |env, machine|
+        # Initialize client with your environment token
+        client = DropletKit::Client.new(access_token: ENV['DIGITAL_OCEAN_TOKEN'])
+        
+        # The Reserved IP from your provided image
+        reserved_ip = '209.38.114.224' 
+        
+        # Uses the dynamic ID from Vagrant instead of the hardcoded one
+        target_id = machine.id 
+
+        begin
+          # The assignment logic from your snippet
+          client.reserved_ip_actions.assign(ip: reserved_ip, droplet_id: target_id)
+        rescue => e
+          puts "Could not assign Reserved IP: #{e.message}"
+        end
+      end
+    end
 
     # Not sure if all of this trigger stuff is necessary, copied it from Helge's file
     server.trigger.after :up do |trigger|
       trigger.info =  "Writing minitwit's IP to file..."
       trigger.ruby do |env,machine|
-        remote_ip = machine.instance_variable_get(:@communicator).instance_variable_get(:@connection_ssh_info)[:host]
-        File.write($ip_file, remote_ip)
+
+        reserved_ip = '209.38.114.224' 
+
+        File.write($ip_file, reserved_ip)
       end
     end
 
@@ -49,8 +76,8 @@ Vagrant.configure("2") do |config|
       ./control.sh inittmpdb
 
       sudo nohup .dotnet/dotnet run --urls "http://0.0.0.0:5035" > /app.log 2>&1 &
-      THIS_IP=`hostname -I | cut -d" " -f1`
-      echo "http://${THIS_IP}:5035"
+      #THIS_IP=`hostname -I | cut -d" " -f1`
+      echo "http://209.38.114.224:5035"
     SHELL
   end
 end

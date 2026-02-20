@@ -118,6 +118,69 @@ With flag as the argument the following line is executed
 - So if we call ./control.sh flag 500 501 the script runs ./flag_tool 500 501.
 - If the flag_tool is called with several arguments it executes and update query, where it looks for the message id, and sets flagged=1 for that message id (there is a column in the database for messages which is called flag).
 
+## Minitwit on Digital Ocean via Vagrant
+### Requirements
+* A terminal
+* vagrant installation
+
+### First time guide!
+#### Step 1
+* Install the API package
+```cmd
+vagrant plugin install droplet_kit
+```
+
+#### Step 2
+* Generate a Digital Ocean Token!
+* This is done in Digital ocean, under **API**, under **Tokens/keys**, and look for **Personal Access Token**. 
+* Here you should generate a new Personal Access Token, by clicking the **Generate new Token** button. Give it a name that will identify you, and set the expiration date. Ensure to set it to **Full read/access rights**
+* REMEMBER to copy the token generated. This will be the only time you can se this, and store it somewhere safe.
+* Now you need to set this in your terminal, so the Vagrant script can extract it when needed. this is done by the commands under here:
+
+*For Windows (PowerShell):*
+
+```PowerShell
+$env:DIGITAL_OCEAN_TOKEN="your_actual_token_here"
+```
+
+*For Mac/Linux (Terminal):*
+```Bash
+export DIGITAL_OCEAN_TOKEN="your_actual_token_here"
+```
+OBS! This step I have not done permanently, in this guide (i.e. this will need to be done again when the terminal is restarted), so if someone finds a way to save these variables permanently, please change the guide accordingly
+
+### Step 3 
+* Input your SSH key name!
+* Log in to your Digital Ocean Dashboard.
+* On the left sidebar, click Settings (near the bottom).
+* Click the Security tab.
+* Look for the SSH Keys section.
+* You will see a list of keys. Look at the Name column (e.g., "Carmens key", or "mathildes key", etc..). This is what you use for SSH_KEY_NAME.
+
+*For Windows (PowerShell):*
+
+```PowerShell
+$env:SSH_KEY_NAME="the_name_you_found"
+```
+
+*For Mac/Linux (Terminal):*
+```Bash
+export SSH_KEY_NAME="the_name_you_found"
+```
+OBS! This step I have not done permanently, in this guide (i.e. this will need to be done again when the terminal is restarted), so if someone finds a way to save these variables permanently, please change the guide accordingly
+
+
+### After First time guide!
+As long as you have set your `SSH_KEY_NAME` and `DIGITAL_OCEAN_TOKEN` (in the current terminal you have opened), you should be able to navigate to the minitwit folder:
+
+```Bash
+cd ./ITU-minitwit/minitwit_csharp/minitwit/
+```
+
+And then run this command:
+```Bash
+vagrant up
+```
 
 ## MiniTwit Python/Flask Application
 ### Requirements to run locally

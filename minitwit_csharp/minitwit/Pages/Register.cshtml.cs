@@ -8,39 +8,39 @@ namespace minitwit.Pages;
 public class RegisterModel : PageModel
 {
   [BindProperty]
-  [Required(ErrorMessage ="You have to enter a username")]
-  public required string Username {get; set;}
+  [Required(ErrorMessage = "You have to enter a username")]
+  public required string Username { get; set; }
 
   [BindProperty]
-  [Required(ErrorMessage ="You have to enter a valid email address")]
+  [Required(ErrorMessage = "You have to enter a valid email address")]
   [EmailAddress]
-  public required string Email {get; set;}
+  public required string Email { get; set; }
 
   [BindProperty]
-  [Required(ErrorMessage ="You have to enter a password")]
-  public required string Password {get; set;}
+  [Required(ErrorMessage = "You have to enter a password")]
+  public required string Password { get; set; }
 
   [BindProperty]
   [Required(ErrorMessage = "Please repeat your password")]
   [Compare("Password", ErrorMessage = "The two passwords do not match")]
-  public required string Password2 {get; set;}
+  public required string Password2 { get; set; }
 
   public async Task<IActionResult> OnPostAsync()
   {
     MiniTwit minitwit = new MiniTwit();
     minitwit.Connect_db();
 
-    if (Username != null && minitwit.Get_user_id(Username) != null)
+    if (Username != null && await minitwit.Get_user_id(Username) != null)
     {
-        ModelState.AddModelError("Username", "The username is already taken"); 
+      ModelState.AddModelError("Username", "The username is already taken");
     }
-    
+
     if (!ModelState.IsValid)
     {
       return Page();
     }
 
-    minitwit.Register(Username!, Email, Password);
+    await minitwit.Register(Username!, Email, Password);
 
     TempData["Flash"] = "You were successfully registered and can login now";
 
