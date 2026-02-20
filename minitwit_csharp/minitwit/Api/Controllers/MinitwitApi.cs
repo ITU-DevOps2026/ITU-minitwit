@@ -31,7 +31,7 @@ namespace Org.OpenAPITools.Controllers
       public MinitwitApiController(minitwit.MiniTwit mt)
       {
         _mt = mt;
-        _mt.DbPath = "/tmp/minitwit.db";
+        _mt.DbPath = "./minitwit.db";
       }
 
         /// <summary>
