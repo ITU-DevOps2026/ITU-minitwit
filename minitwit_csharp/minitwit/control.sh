@@ -16,8 +16,9 @@ elif [ "$1" = "inittmpdb" ]; then
     echo "Putting a database to /tmp/minitwit.db..."
     # Vagrantfile needs to know specifically where its' dotnet is located
     # Therefore we write out the explicit path
-    export DOTNET_ROOT=/home/vagrant/.dotnet
-    sudo -u vagrant -E HOME=/home/vagrant $DOTNET_ROOT/dotnet run init
+    #export DOTNET_ROOT=/home/vagrant/.dotnet
+    #sudo -u vagrant -E HOME=/home/vagrant $DOTNET_ROOT/dotnet run init
+    sudo .dotnet/dotnet run init
 elif [ "$1" = "startprod" ]; then
      echo "Starting minitwit with production webserver..."
      nohup dotnet run -c Release --urls "http://0.0.0.0:5035" > /tmp/out.log 2>&1 &
