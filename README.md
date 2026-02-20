@@ -13,35 +13,22 @@ git config --local commit.template .gitmessage
 - A terminal capable of running sh if you want to run the control.sh script
 
 ### How to run in Container
-See [Docker readme](/minitwit_csharp/README.Docker.md)
+See [Docker readme](/README.Docker.md)
 
 ### How to run minitwit C# application
-Navigate to the `minitwit_csharp/minitwit` folder and run the following command in the terminal:
+Navigate to the `/minitwit` folder and run the following command in the terminal:
 ```bash
 dotnet run
 ```
 This will start the minitwit application. You can access it by opening a web browser and going to `http://localhost:5035`. 
 You should see the minitwit homepage where you can see the public timeline, with options to sign up and sign in.
 
-### How to run python tests against C# minitwit
-In one terminal, run the minitwit application by navigating to the `minitwit_csharp/minitwit` folder and running the following command:
-```bash
-dotnet run
-```
-Then in another terminal, run the following command to execute the tests:
-```bash
-pytest -v refactored_minitwit_tests.py
-```
-You should see all tests passing successfully! 🥇
-
-(Do note that the tests modifies the database, so you have to remove the changes between each run, otherwise they will fail)
-
 ### How to run C# tests against C# minitwit
-In one terminal, run the minitwit application by navigating to the `minitwit_csharp/minitwit` folder and running the following command:
+In one terminal, run the minitwit application by navigating to the `minitwit` folder and running the following command:
 ```bash
 dotnet run
 ```
-Then in another terminal, run the test suite by navigating to the `minitwit_csharp/tests` folder and running the following command:
+Then in another terminal, run the test suite by navigating to the `/tests` folder and running the following command:
 ```bash
 dotnet test
 ```
@@ -174,57 +161,10 @@ OBS! This step I have not done permanently, in this guide (i.e. this will need t
 As long as you have set your `SSH_KEY_NAME` and `DIGITAL_OCEAN_TOKEN` (in the current terminal you have opened), you should be able to navigate to the minitwit folder:
 
 ```Bash
-cd ./ITU-minitwit/minitwit_csharp/minitwit/
+cd ./ITU-minitwit/minitwit/
 ```
 
 And then run this command:
 ```Bash
 vagrant up
 ```
-
-## MiniTwit Python/Flask Application
-### Requirements to run locally
-- Python >=3.12
-- Flask >= version 3.0.0
-- Werkzeug >= version 3.0.0
-- Jinja2 >= version 3.0.0
-
-### How to run locally
-Navigate to the `minitwit_python` folder and run the following command in the terminal:
-```bash
-python minitwit.py
-```
-This will start the minitwit application. You can access it by opening a web browser and going to `http://localhost:5000`. 
-You should see the minitwit homepage where you can see the public timeline, with options to sign up and sign in.
-
-### How to run python tests against Python minitwit
-In one terminal, run the minitwit application by navigating to the `minitwit_python` folder and running the following command:
-```bash
-python minitwit.py
-```
-Then in another terminal, run the following command to execute the tests:
-```bash
-python minitwit_tests.py
-```
-or
-```bash
-pytest -v minitwit_tests.py
-```
-You should see all tests passing successfully! 🥇
-
-(Do note that the tests modifies the database, so you have to remove the changes between each run, otherwise they will fail)
-
-### How to run C# tests against Python minitwit
-In the `minitwit_csharp/tests/tests.cs` remember to change the port to match what the python program runs on (5000)
-
-In one terminal, run the minitwit application by navigating to the `minitwit_python` folder and running the following command:
-```bash
-python minitwit.py
-```
-Then in another terminal, navigate to the `minitwit_csharp/tests` folder and run the following command to execute the tests:
-```bash
-dotnet test
-```
-All tests will not pass as quotation marks are interpreted differently by C# and Python.
-
-(Do note that the tests modifies the database, so you have to remove the changes between each run, otherwise they will fail)
