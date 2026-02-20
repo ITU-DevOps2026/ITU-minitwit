@@ -73,8 +73,9 @@ namespace minitwit
   {
     // Configuration
     // string DATABASE = "/tmp/minitwit.db";
-    public string DbPath { get; set; } = "./minitwit.db";
-    private const string Default_Database = "./minitwit.db";
+    public string DbPath { get; set; } = 
+        Environment.GetEnvironmentVariable("DbPath") ?? "../data/minitwit.db";
+    private const string Default_Database = "../data/minitwit.db";
     private int PER_PAGE = 30;
     private static int _latest = -1;
 
