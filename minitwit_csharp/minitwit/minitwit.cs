@@ -59,7 +59,8 @@ app.MapControllers();
 if (args.Contains("init"))
 {
   var mt = new MiniTwit();
-  mt.Init_db();
+  // Added an argument to init_db so that it initializes the tmp database 
+  mt.Init_db("/tmp/minitwit.db");
   // Prevent the program from actually starting
   Environment.Exit(0);
 }
@@ -136,9 +137,9 @@ namespace minitwit
       return results;
     }
 
-    public void Init_db()
+    public void Init_db(string db_string = Default_Database)
     {
-      using SqliteConnection connection = Connect_db();
+      using SqliteConnection connection = Connect_db(db_string);
       string schemaSql = File.ReadAllText("schema.sql");
       using SqliteCommand command = connection.CreateCommand();
       command.CommandText = schemaSql;
