@@ -5,8 +5,8 @@ namespace minitwit.Pages;
 
 [IgnoreAntiforgeryToken]
 public class PublicTimelineModel : PageModel
-{ 
-  public List<Dictionary<string, object>> Messages { get; private set; }
+{
+  public List<Dictionary<string, object>>? Messages { get; private set; }
   public void OnGet()
   {
     MiniTwit minitwit = new MiniTwit();

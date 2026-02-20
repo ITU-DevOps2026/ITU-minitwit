@@ -5,7 +5,7 @@ namespace minitwit.Pages;
 
 public class UserTimelineModel : PageModel
 { 
-  public List<Dictionary<string, object>> Messages { get; private set; }
+  public List<Dictionary<string, object>>? Messages { get; private set; }
   public bool Followed { get; set; }
   public IActionResult OnGet(string username)
   {

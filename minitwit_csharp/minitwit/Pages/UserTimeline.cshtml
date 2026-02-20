@@ -2,12 +2,13 @@
 @model UserTimelineModel
 @{
   var routeName = HttpContext.GetRouteValue("username");
+  var logged_in_user = HttpContext.Session.GetString("Logged_In_Username");
 }
 
 <h2>@routeName's Timeline</h2>
-@if(HttpContext.Session.GetString("Logged_In_Username") != null)
+@if(logged_in_user != null)
 {
-  @if(HttpContext.Session.GetString("Logged_In_Username").Equals(@routeName)){
+  @if(logged_in_user.Equals(@routeName)){
     <div class=followstatus>
       This is you!
     </div>
@@ -28,8 +29,10 @@
   }
 }
 <ul class="messages">
-@foreach (Dictionary<string, object> message in Model.Messages)
+@if (Model.Messages != null) 
 {
+  @foreach (Dictionary<string, object> message in Model.Messages)
+  {
   <li>
     <img src="@MiniTwit.Get_Gravatar_Url((string)@message["email"], 48)" />
     <p>
@@ -40,10 +43,10 @@
       </small>
     </p>
   </li>
+  }
 }
-</ul>
-
-@if (!Model.Messages.Any())
+else 
 {
   <p><em>There's no message so far.</em></p>
 }
+</ul>

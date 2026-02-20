@@ -1,0 +1,5 @@
+## Generated API files based on spec
+### Changes made to generated files
+- Replace Newtonsoft.Json with System.Text.Json in accordance with this article: <https://learn.microsoft.com/en-us/aspnet/core/release-notes/aspnetcore-10.0?view=aspnetcore-10.0>. The generated files contains the Newtonsoft.Json library which is a legacy library, because the OpenAPI Generator CLI tool, can only target up til dotnet 8.0: <https://openapi-generator.tech/docs/generators/aspnetcore/>.
+
+- Replace Swashbuckle library with Microsoft.AspNetCore.OpenApi as it is what is used in dotnet 9.0 or newer: <https://learn.microsoft.com/en-us/aspnet/core/tutorials/getting-started-with-swashbuckle?view=aspnetcore-8.0&tabs=visual-studio-code>. We used the "Minimal APIs" section under "Describe Response type": <https://learn.microsoft.com/en-us/aspnet/core/fundamentals/openapi/include-metadata?view=aspnetcore-10.0&tabs=minimal-apis> to convert the SwaggerResponses and SwaggerOperations
