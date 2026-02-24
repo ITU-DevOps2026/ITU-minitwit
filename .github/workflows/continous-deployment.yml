@@ -19,18 +19,25 @@ on:
 # SSH_HOST
 
 jobs:
-  build-test:
+  dotnet-tests:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Build and test minitwit
-        run: docker compose up --build -d
-        env:
-          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Run dotnet tests
+        run: docker compose run --rm tests
+  
+  api-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Run API tests
+        run: docker compose up --exit-code-from apitests # The --exit-code-from flag ensures that the workflow fails if the API tests fail
     
   build-push:
     runs-on: ubuntu-latest
@@ -59,7 +66,7 @@ jobs:
           cache-to: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/minitwitimage:webbuildcache,mode=max
 
   deploy:
-    needs: [build-test, build-push]
+    needs: [dotnet-tests, api-tests, build-push]
     runs-on: ubuntu-latest
 
     steps:
