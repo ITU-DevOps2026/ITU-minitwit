@@ -54,4 +54,6 @@ COPY --from=build /app .
 # and https://github.com/dotnet/dotnet-docker/discussions/4764
 USER $APP_UID
 
+EXPOSE 5035
+
 ENTRYPOINT ["dotnet", "minitwit.dll"]
