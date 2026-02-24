@@ -19,7 +19,20 @@ on:
 # SSH_HOST
 
 jobs:
-  build:
+  build-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Build and test minitwit
+        run: docker compose up --build -d
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+    
+  build-push:
     runs-on: ubuntu-latest
 
     steps:
@@ -45,14 +58,8 @@ jobs:
           cache-from: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/minitwitimage:webbuildcache
           cache-to: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/minitwitimage:webbuildcache,mode=max
 
-      - name: Build and test minitwit
-        run: docker compose up --build -d
-        env:
-          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-
   deploy:
-    needs: build
+    needs: [build-test, build-push]
     runs-on: ubuntu-latest
 
     steps:
