@@ -1,0 +1,12 @@
+FROM python:3.12-alpine
+
+RUN mkdir /minitwit-api-tests
+
+COPY ./tests/requirements.txt /minitwit-api-tests/requirements.txt
+COPY ./tests/minitwit_sim_api_test.py /minitwit-api-tests/minitwit_sim_api_test.py
+
+WORKDIR /minitwit-api-tests
+
+RUN pip install -r requirements.txt
+
+ENTRYPOINT ["pytest", "-s", "minitwit_sim_api_test.py"]

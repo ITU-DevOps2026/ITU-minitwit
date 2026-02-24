@@ -37,3 +37,14 @@ services:
       - minitwit
     environment:
       - BaseUrl=http://minitwit:8080
+
+  apitests:
+    build:
+      context: .
+      dockerfile: Dockerfile-minitwit-api-tests
+    networks:
+      - main
+    depends_on:
+      - minitwit
+    environment:
+      - BaseUrl=http://minitwit:8080/api
