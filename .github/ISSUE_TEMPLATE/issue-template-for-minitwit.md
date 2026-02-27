@@ -4,7 +4,6 @@ about: Standardize issues for MiniTwit to always include Timespent and a guide f
   naming issues
 title: "[Type of issue, i.e Refactor, Bug, etc] - Title of issue"
 labels: ''
-assignees: Casper2411, Noerklit, MathildeGonzalez, Carmish, wowholasa
 
 ---
 
