@@ -5,8 +5,11 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 namespace minitwit.Pages;
 
 [IgnoreAntiforgeryToken]
-public class RegisterModel : PageModel
+public class RegisterModel(MiniTwit minitwit) : PageModel
 {
+
+  private readonly MiniTwit minitwit = minitwit;
+
   [BindProperty]
   [Required(ErrorMessage = "You have to enter a username")]
   public required string Username { get; set; }
@@ -27,9 +30,6 @@ public class RegisterModel : PageModel
 
   public async Task<IActionResult> OnPostAsync()
   {
-    MiniTwit minitwit = new MiniTwit();
-    minitwit.Connect_db();
-
     if (Username != null && await minitwit.Get_user_id(Username) != null)
     {
       ModelState.AddModelError("Username", "The username is already taken");

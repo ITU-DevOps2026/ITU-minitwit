@@ -3,6 +3,8 @@ using System.Text;
 using Microsoft.Data.Sqlite;
 using Microsoft.AspNetCore.OpenApi;
 using minitwit;
+using minitwit.Model;
+using Microsoft.EntityFrameworkCore;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -21,7 +23,19 @@ builder.Services.AddSession(options =>
 
 builder.Services.AddOpenApi();
 
+string DbPath = Environment.GetEnvironmentVariable("DbPath") ?? "../data/minitwit.db";
+
+if (args.Contains("init"))
+{
+  DbPath = "/tmp/minitwit.db";
+} 
+  
+builder.Services.AddDbContext<MinitwitContext>(options =>
+  options.UseSqlite($"DataSource={DbPath}"));
+
+
 builder.Services.AddScoped<MiniTwit>();
+
 
 /* builder.Services.AddControllers().AddJsonOptions(options =>
 {
@@ -29,6 +43,16 @@ builder.Services.AddScoped<MiniTwit>();
 }); */
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+
+    var context = services.GetRequiredService<MinitwitContext>();
+    Console.WriteLine("her");
+    Console.WriteLine(context.Database.GetConnectionString());
+    context.Database.EnsureCreated();
+}
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
@@ -52,29 +76,18 @@ app.MapRazorPages()
 
 app.MapControllers();
 
-// This function is necessary because while the script in python can specifically target and run a function
-// this does not seem to be achievable in .NET, but this function helps by looking at the argument given to
-// when starting the program, ensuring that if init is an argument, we don't actually start the web app, but just
-// call init_db() and exit.
-if (args.Contains("init"))
-{
-  var mt = new MiniTwit();
-  // Added an argument to init_db so that it initializes the tmp database 
-  await mt.Init_db("/tmp/minitwit.db");
-  // Prevent the program from actually starting
-  Environment.Exit(0);
-}
-
 app.Run();
 
 namespace minitwit
 {
-  public class MiniTwit
-  {
+  public class MiniTwit(MinitwitContext minitwitContext)
+    {
+    private readonly MinitwitContext minitwitContext = minitwitContext; 
     // Configuration
     // string DATABASE = "/tmp/minitwit.db";
     public string DbPath { get; set; } = 
         Environment.GetEnvironmentVariable("DbPath") ?? "../data/minitwit.db";
+        
     private const string Default_Database = "../data/minitwit.db";
     private int PER_PAGE = 30;
     private static int _latest = -1;
@@ -86,6 +99,7 @@ namespace minitwit
 
     public SqliteConnection Connect_db()
     {
+      Console.WriteLine("Hej");
       return new SqliteConnection($"Data Source={DbPath};Pooling=False;");
     }
 
@@ -173,25 +187,31 @@ namespace minitwit
       return DateTimeOffset.FromUnixTimeSeconds(timestamp).ToLocalTime().ToString("yyyy-MM-dd @ HH:mm");
     }
 
-    public static string Get_Gravatar_Url(string email, int size = 80)
+    public static string Get_Gravatar_Url(string username, int size = 80)
     {
-      byte[] inputBytes = Encoding.UTF8.GetBytes(email.Trim().ToLower());
+      byte[] inputBytes = Encoding.UTF8.GetBytes(username.Trim().ToLower());
       byte[] hashBytes = MD5.HashData(inputBytes);
       string hashString = Convert.ToHexString(hashBytes).ToLower();
 
       return $"https://www.gravatar.com/avatar/{hashString}?d=identicon&s={size}";
     }
 
-    public async Task<List<Dictionary<string, object>>> Get_public_timeline()
+    public async Task<List<Org.OpenAPITools.Models.Message>> Get_public_timeline()
     {
-      string query = """
-        Select message.*, user.* 
-        from message, user
-        where message.flagged = 0 and message.author_id = user.user_id
-        order by message.pub_date desc limit @per_page
-      """;
-      SqliteParameter pp_param = new SqliteParameter("@per_page", PER_PAGE);
-      List<Dictionary<string, object>> messages = await Query_db_Read(query, [pp_param]);
+      var messages = await minitwitContext.Messages
+        .Where(m => m.Flagged == 0)
+        .OrderByDescending(x => x.PubDate)
+        .Take(PER_PAGE)
+        .Join(minitwitContext.Users, 
+          m => m.AuthorId,
+          u => u.UserId, 
+          (m, u) => new Org.OpenAPITools.Models.Message
+          {
+            Content = m.Text,
+            User = u.Username,
+            PubDate = Format_datetime(m.PubDate ?? 0)
+          })
+        .ToListAsync();
 
       return messages;
     }
