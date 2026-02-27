@@ -31,7 +31,7 @@ namespace Org.OpenAPITools.Controllers
       public MinitwitApiController(minitwit.MiniTwit mt)
       {
         _mt = mt;
-        _mt.DbPath = "./minitwit.db";
+        _mt.DbPath = Environment.GetEnvironmentVariable("DbPath") ?? "../data/minitwit.db";
       }
 
         /// <summary>

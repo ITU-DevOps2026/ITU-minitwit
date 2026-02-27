@@ -12,7 +12,7 @@ namespace tests
   [Collection("Non-Parallel Collection")]
   public class MiniTwitTests : IDisposable
   {
-    private readonly string _baseUrl = "http://localhost:5035";
+    private readonly string _baseUrl = Environment.GetEnvironmentVariable("BaseUrl") ?? "http://localhost:5035";
     private readonly HttpClient _client;
     private readonly CookieContainer _cookieContainer;
 

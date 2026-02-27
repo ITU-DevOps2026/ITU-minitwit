@@ -1,0 +1,26 @@
+name: PR Tests
+
+on:
+    pull_request:
+
+jobs:
+  dotnet-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Run dotnet tests
+        run: docker compose run --rm tests
+  
+  api-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Run API tests
+        run: docker compose up --exit-code-from apitests # The --exit-code-from flag ensures that the workflow fails if the API tests fail
+    
