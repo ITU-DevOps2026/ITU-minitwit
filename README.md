@@ -7,6 +7,21 @@ To tell Git to use gitmessage as commit template file, run the following command
 ```bash
 git config --local commit.template .gitmessage
 ```
+
+## Releases
+### Making a release draft using tags
+On the main branch first create a tag with the intended version number:
+```bash
+git tag vx.x.x
+```
+Where you replace each x with a number from 0-9.
+After creating the tag, you push the tag which triggers the workflow and creates a draft release:
+```bash
+git push origin <tag>
+```
+### Semantic versioning
+Versioning numbers are determined by following the SemVer versioning scheme, see: <https://semver.org/> for full documentation
+
 ## MiniTwit C# Application 
 ### Requirements to run locally
 - dotnet 10.0
