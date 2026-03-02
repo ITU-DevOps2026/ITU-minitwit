@@ -362,26 +362,32 @@ namespace minitwit
       }
     }
 
-    public async Task Follow_user(string active_username, string username_to_follow)
+    public async Task Follow_user(string who, string whom)
     {
-      int? active_user_id = await Get_user_id(active_username);
-      if (active_user_id == null)
+      int? who_user_id = await Get_user_id(who);
+      if (who_user_id == null)
       {
         throw new Exception("Active user doesn't exist");
       }
 
-      int? profile_user_id = await Get_user_id(username_to_follow);
-      if (profile_user_id == null)
+      int? whom_user_id = await Get_user_id(whom);
+      if (whom_user_id == null)
       {
         throw new Exception("User doesn't exist");
       }
 
-      string query = """
-        insert into follower (who_id, whom_id) values (@active_id, @other_id)
-      """;
-      SqliteParameter active_id_param = new SqliteParameter("@active_id", active_user_id);
-      SqliteParameter other_id_param = new SqliteParameter("@other_id", profile_user_id);
-      await Query_db_Insert(query, [active_id_param, other_id_param], true);
+      bool already_following = await minitwitContext.Followers
+        .AnyAsync(f => f.WhoId == who_user_id && f.WhomId == whom_user_id);
+      
+      if (!already_following)
+      {
+        minitwitContext.Followers.Add(new Follower
+        {
+          WhoId = who_user_id,
+          WhomId = whom_user_id
+        });
+        await minitwitContext.SaveChangesAsync();
+      }
     }
 
     public async Task Unfollow_user(string who, string whom)
