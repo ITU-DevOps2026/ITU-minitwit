@@ -216,7 +216,7 @@ namespace minitwit
       return messages;
     }
 
-    public async Task<List<Dictionary<string, object>>> Get_user_timeline(string username)
+    public async Task<List<Org.OpenAPITools.Models.Message>> Get_user_timeline(string username)
     {
       int? profile_user_id = await Get_user_id(username);
       if (profile_user_id == null)
@@ -224,23 +224,19 @@ namespace minitwit
         throw new Exception("User doesn't exist");
       }
 
-      string query = """
-        select message.*, user.*
-        from message, user where
-        user.user_id = message.author_id and user.user_id = @user_id
-        order by message.pub_date desc limit @per_page
-      """;
-      SqliteParameter user_id_param = new SqliteParameter("@user_id", SqliteType.Integer)
-      {
-        Value = profile_user_id
-      };
-
-      SqliteParameter pp_param = new SqliteParameter("@per_page", SqliteType.Integer)
-      {
-        Value = PER_PAGE
-      };
-      List<Dictionary<string, object>> messages = await Query_db_Read(query, [user_id_param, pp_param]);
-
+      List<Org.OpenAPITools.Models.Message> messages = await minitwitContext.Messages
+          .Where(m => m.AuthorId == profile_user_id)
+          .OrderByDescending(m => m.PubDate)
+          .Take(PER_PAGE)
+          .Select(
+            m => new Org.OpenAPITools.Models.Message
+            {
+              Content = m.Text,
+              User = username,
+              PubDate = Format_datetime(m.PubDate ?? 0)
+            })
+            .ToListAsync();
+            
       return messages;
     }
 

@@ -194,20 +194,7 @@ namespace Org.OpenAPITools.Controllers
                 // Message { PubDate = "2019-12-01 12:00:00", User = "Helge", Content = "Hello, World!" }
                 // Instead of the form we get from the funcion (Where we get all kinds of other information we don't need) and then serialize it to JSON
 
-                var messagesList = new List<Dictionary<string, object>>();
-                foreach (var msg in usermessages)
-                {
-                    if (msg["flagged"].ToString() == "0")
-                    {
-                        var message = new Dictionary<string, object>
-                        {
-                            ["pub_date"] = msg["pub_date"],
-                            ["user"] = msg["username"],
-                            ["content"] = msg["text"]
-                        };
-                        messagesList.Add(message);
-                    }
-                }
+                var messagesList = usermessages;
                 string messagesJSON = JsonSerializer.Serialize(messagesList);
 
                 return StatusCode(200, messagesJSON);
