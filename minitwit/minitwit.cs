@@ -240,29 +240,25 @@ namespace minitwit
       return messages;
     }
 
-    public async Task<bool> Is_following(string active_username, string other_username)
+    public async Task<bool> Is_following(string who, string whom)
     {
-      int? active_user_id = await Get_user_id(active_username);
-      if (active_user_id == null)
+      int? who_user_id = await Get_user_id(who);
+      if (who_user_id == null)
       {
         throw new Exception("Active user doesn't exist");
       }
 
-      int? profile_user_id = await Get_user_id(other_username);
-      if (profile_user_id == null)
+      int? whom_user_id = await Get_user_id(whom);
+      if (whom_user_id == null)
       {
         throw new Exception("User doesn't exist");
       }
 
-      string query = """
-        select 1
-        from follower 
-        where follower.who_id = @active_id and follower.whom_id = @other_id
-      """;
-      SqliteParameter active_id_param = new SqliteParameter("@active_id", active_user_id);
-      SqliteParameter other_id_param = new SqliteParameter("@other_id", profile_user_id);
-      List<Dictionary<string, object>> followed = await Query_db_Read(query, [active_id_param, other_id_param], true);
-      return followed.Count > 0;
+      Follower? follows = await minitwitContext.Followers
+        .Where(f => f.WhoId == who_user_id && f.WhomId == whom_user_id)
+        .FirstOrDefaultAsync(); 
+      
+      return follows != null;
     }
 
     public async Task<List<Dictionary<string, object>>> Get_my_timeline(string username)
