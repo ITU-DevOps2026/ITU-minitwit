@@ -384,26 +384,23 @@ namespace minitwit
       await Query_db_Insert(query, [active_id_param, other_id_param], true);
     }
 
-    public async Task Unfollow_user(string active_username, string username_to_follow)
+    public async Task Unfollow_user(string who, string whom)
     {
-      int? active_user_id = await Get_user_id(active_username);
-      if (active_user_id == null)
+      int? who_user_id = await Get_user_id(who);
+      if (who_user_id == null)
       {
         throw new Exception("Active user doesn't exist");
       }
 
-      int? profile_user_id = await Get_user_id(username_to_follow);
-      if (profile_user_id == null)
+      int? whom_user_id = await Get_user_id(whom);
+      if (whom_user_id == null)
       {
         throw new Exception("User doesn't exist");
       }
 
-      string query = """
-        delete from follower where who_id=@active_id and whom_id=@other_id
-      """;
-      SqliteParameter active_id_param = new SqliteParameter("@active_id", active_user_id);
-      SqliteParameter other_id_param = new SqliteParameter("@other_id", profile_user_id);
-      await Query_db_Insert(query, [active_id_param, other_id_param], true);
+      await minitwitContext.Followers
+        .Where(f => f.WhoId == who_user_id && f.WhomId == whom_user_id)
+        .ExecuteDeleteAsync();
     }
 
     public void UpdateLatest(int? latest)
