@@ -312,15 +312,14 @@ namespace minitwit
 
     public async Task<bool> Check_password_hash(string username, string input_password)
     {
-      string query = """
-        SELECT * FROM user WHERE username = @username
-      """;
-      SqliteParameter username_param = new SqliteParameter("@username", username);
-      var result = await Query_db_Read(query, [username_param], true);
-      if (result != null && result.Count > 0)
+      string? pw_hash = await minitwitContext.Users
+        .Where(u => u.Username == username)
+        .Select(u => u.PwHash)
+        .FirstOrDefaultAsync();
+      if (pw_hash != null)
       {
         // Split pw_hash from DB into hashing algorithm, salt, and password hash
-        string[] res = ((string)result[0]["pw_hash"]).Split('$');
+        string[] res = pw_hash.Split('$');
         var salt_from_DB = Convert.FromHexString(res[1]);
         var pwd_hash_from_DB = res[2];
 
