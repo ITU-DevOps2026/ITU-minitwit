@@ -338,16 +338,13 @@ namespace minitwit
 
     public async Task<int?> Get_user_id(string username)
     {
-      string query = """
-        SELECT user_id FROM user WHERE username = @username
-      """;
-      SqliteParameter username_param = new SqliteParameter("@username", username);
-      var result = await Query_db_Read(query, [username_param], true);
-      if (result != null && result.Count > 0)
-      {
-        return Convert.ToInt32(result[0]["user_id"]);
-      }
-      return null;
+
+      int user_id = await minitwitContext.Users
+        .Where(u => u.Username == username)
+        .Select(u => u.UserId)
+        .FirstOrDefaultAsync();
+      
+      return user_id == 0 ? null : user_id;
     }
 
     public async Task Add_Message(string username, string text)
