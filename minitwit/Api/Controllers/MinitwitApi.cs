@@ -72,16 +72,7 @@ namespace Org.OpenAPITools.Controllers
                 
                 var followed_users = await _mt.Get_followed_users(username, no);
 
-                List<string> follows = [];
-                foreach (var user in followed_users)
-                {
-                    follows.Add((string) user["username"]);
-                }
-
-                FollowsResponse followsResponse = new FollowsResponse
-                {
-                    Follows = follows
-                };
+                FollowsResponse followsResponse = followed_users;
 
                 string followsJSON = followsResponse.ToJson();
                 return StatusCode(200, followsJSON);
