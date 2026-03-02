@@ -289,14 +289,13 @@ namespace minitwit
 
     public async Task Register(string username, string email, string password)
     {
-      
-      string query = """
-        INSERT INTO user (username, email, pw_hash) values (@username, @email, @pw_hash)
-      """;
-      SqliteParameter username_param = new SqliteParameter("@username", username);
-      SqliteParameter email_param = new SqliteParameter("@email", email);
-      SqliteParameter pw_hash_param = new SqliteParameter("@pw_hash", Generate_password_hash(password));
-      await Query_db_Insert(query, [username_param, email_param, pw_hash_param]);
+      minitwitContext.Users.Add(new User
+      {
+        Username = username,
+        Email = email,
+        PwHash = Generate_password_hash(password)
+      });
+      await minitwitContext.SaveChangesAsync();
     }
 
 
