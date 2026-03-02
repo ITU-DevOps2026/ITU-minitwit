@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Org.OpenAPITools.Models;
 
 namespace minitwit.Pages;
 
@@ -8,7 +9,7 @@ public class IndexModel(MiniTwit minitwit) : PageModel
 {
 
   private readonly MiniTwit minitwit = minitwit;
-  public List<Dictionary<string, object>>? Messages { get; private set; }
+  public List<Message>? Messages { get; private set; }
 
   public async Task<IActionResult> OnGet()
   {
