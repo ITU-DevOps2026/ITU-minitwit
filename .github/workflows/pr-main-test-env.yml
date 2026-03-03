@@ -10,7 +10,7 @@ on:
 
 jobs:
   tests:
-    uses: ./.github/workflows/pr-tests.yml
+    uses: ./.github/workflows/tests.yml
   build-push:
     runs-on: ubuntu-latest
 
