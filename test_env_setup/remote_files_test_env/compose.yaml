@@ -1,0 +1,10 @@
+services:
+  minitwit-dev:
+    image: ${DOCKER_USERNAME}/minitwit-dev
+    container_name: minitwit_container
+    ports:
+      - 5035:8080
+    volumes:
+      - ../data:/app/data
+    environment:
+      - DbPath=/app/data/minitwit.db
