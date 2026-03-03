@@ -22,5 +22,5 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Run API tests
-        run: docker compose up --exit-code-from apitests # The --exit-code-from flag ensures that the workflow fails if the API tests fail
+        run: docker compose run --rm apitests
     
