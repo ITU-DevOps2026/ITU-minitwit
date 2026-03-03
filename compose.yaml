@@ -26,6 +26,11 @@ services:
       - ./data:/app/data
     environment:
       - DbPath=/app/data/minitwit.db
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/latest"]
+      interval: 5s
+      timeout: 2s
+      retries: 10
   
   tests:
     build:
@@ -34,7 +39,8 @@ services:
     networks:
       - main
     depends_on:
-      - minitwit
+      minitwit:
+        condition: service_healthy
     environment:
       - BaseUrl=http://minitwit:8080
 
@@ -45,6 +51,7 @@ services:
     networks:
       - main
     depends_on:
-      - minitwit
+      minitwit:
+        condition: service_healthy
     environment:
       - BaseUrl=http://minitwit:8080/api
