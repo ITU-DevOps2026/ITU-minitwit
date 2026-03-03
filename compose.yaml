@@ -48,4 +48,3 @@ services:
       - minitwit
     environment:
       - BaseUrl=http://minitwit:8080/api
-    entrypoint: ["/bin/sh", "-c", "sleep 5 && pytest -s minitwit_sim_api_test.py"]
