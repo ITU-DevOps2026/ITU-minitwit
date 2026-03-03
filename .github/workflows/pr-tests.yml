@@ -1,7 +1,10 @@
 name: PR Tests
 
-on:
-    pull_request:
+on: 
+  workflow_call:
+  pull_request:
+    branches-ignore: 
+      - main
 
 jobs:
   dotnet-tests:
