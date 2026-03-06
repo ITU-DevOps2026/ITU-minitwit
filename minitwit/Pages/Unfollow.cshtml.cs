@@ -4,13 +4,12 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 namespace minitwit.Pages;
 
 [IgnoreAntiforgeryToken]
-public class UnfollowModel : PageModel
+public class UnfollowModel(MiniTwit minitwit) : PageModel
 {
+
+  private readonly MiniTwit minitwit = minitwit;
   public async Task<IActionResult> OnGet(string username)
   {
-    MiniTwit minitwit = new MiniTwit();
-    minitwit.Connect_db();
-
     //Get current user and ensure it is not null
     string? logged_in_username = HttpContext.Session.GetString("Logged_In_Username");
     if(logged_in_username != null)

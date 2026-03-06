@@ -3,6 +3,8 @@ using System.Text;
 using Microsoft.Data.Sqlite;
 using Microsoft.AspNetCore.OpenApi;
 using minitwit;
+using minitwit.Model;
+using Microsoft.EntityFrameworkCore;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -21,7 +23,19 @@ builder.Services.AddSession(options =>
 
 builder.Services.AddOpenApi();
 
+string DbPath = Environment.GetEnvironmentVariable("DbPath") ?? "../data/minitwit.db";
+
+if (args.Contains("init"))
+{
+  DbPath = "/tmp/minitwit.db";
+} 
+  
+builder.Services.AddDbContext<MinitwitContext>(options =>
+  options.UseSqlite($"DataSource={DbPath}"));
+
+
 builder.Services.AddScoped<MiniTwit>();
+
 
 /* builder.Services.AddControllers().AddJsonOptions(options =>
 {
@@ -29,6 +43,14 @@ builder.Services.AddScoped<MiniTwit>();
 }); */
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+
+    var context = services.GetRequiredService<MinitwitContext>();
+    context.Database.EnsureCreated();
+}
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
@@ -52,29 +74,18 @@ app.MapRazorPages()
 
 app.MapControllers();
 
-// This function is necessary because while the script in python can specifically target and run a function
-// this does not seem to be achievable in .NET, but this function helps by looking at the argument given to
-// when starting the program, ensuring that if init is an argument, we don't actually start the web app, but just
-// call init_db() and exit.
-if (args.Contains("init"))
-{
-  var mt = new MiniTwit();
-  // Added an argument to init_db so that it initializes the tmp database 
-  await mt.Init_db("/tmp/minitwit.db");
-  // Prevent the program from actually starting
-  Environment.Exit(0);
-}
-
 app.Run();
 
 namespace minitwit
 {
-  public class MiniTwit
-  {
+  public class MiniTwit(MinitwitContext minitwitContext)
+    {
+    private readonly MinitwitContext minitwitContext = minitwitContext; 
     // Configuration
     // string DATABASE = "/tmp/minitwit.db";
     public string DbPath { get; set; } = 
         Environment.GetEnvironmentVariable("DbPath") ?? "../data/minitwit.db";
+        
     private const string Default_Database = "../data/minitwit.db";
     private int PER_PAGE = 30;
     private static int _latest = -1;
@@ -173,30 +184,36 @@ namespace minitwit
       return DateTimeOffset.FromUnixTimeSeconds(timestamp).ToLocalTime().ToString("yyyy-MM-dd @ HH:mm");
     }
 
-    public static string Get_Gravatar_Url(string email, int size = 80)
+    public static string Get_Gravatar_Url(string username, int size = 80)
     {
-      byte[] inputBytes = Encoding.UTF8.GetBytes(email.Trim().ToLower());
+      byte[] inputBytes = Encoding.UTF8.GetBytes(username.Trim().ToLower());
       byte[] hashBytes = MD5.HashData(inputBytes);
       string hashString = Convert.ToHexString(hashBytes).ToLower();
 
       return $"https://www.gravatar.com/avatar/{hashString}?d=identicon&s={size}";
     }
 
-    public async Task<List<Dictionary<string, object>>> Get_public_timeline()
+    public async Task<List<Org.OpenAPITools.Models.Message>> Get_public_timeline()
     {
-      string query = """
-        Select message.*, user.* 
-        from message, user
-        where message.flagged = 0 and message.author_id = user.user_id
-        order by message.pub_date desc limit @per_page
-      """;
-      SqliteParameter pp_param = new SqliteParameter("@per_page", PER_PAGE);
-      List<Dictionary<string, object>> messages = await Query_db_Read(query, [pp_param]);
+      var messages = await minitwitContext.Messages
+        .Where(m => m.Flagged == 0)
+        .OrderByDescending(x => x.PubDate)
+        .Take(PER_PAGE)
+        .Join(minitwitContext.Users, 
+          m => m.AuthorId,
+          u => u.UserId, 
+          (m, u) => new Org.OpenAPITools.Models.Message
+          {
+            Content = m.Text,
+            User = u.Username,
+            PubDate = Format_datetime(m.PubDate ?? 0)
+          })
+        .ToListAsync();
 
       return messages;
     }
 
-    public async Task<List<Dictionary<string, object>>> Get_user_timeline(string username)
+    public async Task<List<Org.OpenAPITools.Models.Message>> Get_user_timeline(string username)
     {
       int? profile_user_id = await Get_user_id(username);
       if (profile_user_id == null)
@@ -204,84 +221,78 @@ namespace minitwit
         throw new Exception("User doesn't exist");
       }
 
-      string query = """
-        select message.*, user.*
-        from message, user where
-        user.user_id = message.author_id and user.user_id = @user_id
-        order by message.pub_date desc limit @per_page
-      """;
-      SqliteParameter user_id_param = new SqliteParameter("@user_id", SqliteType.Integer)
-      {
-        Value = profile_user_id
-      };
-
-      SqliteParameter pp_param = new SqliteParameter("@per_page", SqliteType.Integer)
-      {
-        Value = PER_PAGE
-      };
-      List<Dictionary<string, object>> messages = await Query_db_Read(query, [user_id_param, pp_param]);
-
+      List<Org.OpenAPITools.Models.Message> messages = await minitwitContext.Messages
+          .Where(m => m.AuthorId == profile_user_id)
+          .OrderByDescending(m => m.PubDate)
+          .Take(PER_PAGE)
+          .Select(
+            m => new Org.OpenAPITools.Models.Message
+            {
+              Content = m.Text,
+              User = username,
+              PubDate = Format_datetime(m.PubDate ?? 0)
+            })
+            .ToListAsync();
+            
       return messages;
     }
 
-    public async Task<bool> Is_following(string active_username, string other_username)
+    public async Task<bool> Is_following(string who, string whom)
     {
-      int? active_user_id = await Get_user_id(active_username);
-      if (active_user_id == null)
+      int? who_user_id = await Get_user_id(who);
+      if (who_user_id == null)
       {
         throw new Exception("Active user doesn't exist");
       }
 
-      int? profile_user_id = await Get_user_id(other_username);
-      if (profile_user_id == null)
+      int? whom_user_id = await Get_user_id(whom);
+      if (whom_user_id == null)
       {
         throw new Exception("User doesn't exist");
       }
 
-      string query = """
-        select 1
-        from follower 
-        where follower.who_id = @active_id and follower.whom_id = @other_id
-      """;
-      SqliteParameter active_id_param = new SqliteParameter("@active_id", active_user_id);
-      SqliteParameter other_id_param = new SqliteParameter("@other_id", profile_user_id);
-      List<Dictionary<string, object>> followed = await Query_db_Read(query, [active_id_param, other_id_param], true);
-      return followed.Count > 0;
+      Follower? follows = await minitwitContext.Followers
+        .Where(f => f.WhoId == who_user_id && f.WhomId == whom_user_id)
+        .FirstOrDefaultAsync(); 
+      
+      return follows != null;
     }
 
-    public async Task<List<Dictionary<string, object>>> Get_my_timeline(string username)
+    public async Task<List<Org.OpenAPITools.Models.Message>> Get_my_timeline(string username)
     {
       int? u_ID = await Get_user_id(username);
 
       if (u_ID != null) //Checking that the user exists
       {
-        string query = """
-          select message.*, user.* from message, user
-          where message.flagged = 0 and message.author_id = user.user_id and (
-              user.user_id = @user_id or
-              user.user_id in (select whom_id from follower
-                                      where who_id = @user_id))
-          order by message.pub_date desc limit @per_page
-        """;
-        SqliteParameter user_id_param = new SqliteParameter("@user_id", u_ID);
-        SqliteParameter pp_param = new SqliteParameter("@per_page", PER_PAGE);
-        List<Dictionary<string, object>> messages = await Query_db_Read(query, [user_id_param, pp_param]);
+        List<Org.OpenAPITools.Models.Message> messages = await minitwitContext.Messages
+          .Where(m => m.Flagged == 0 && (m.AuthorId == u_ID || minitwitContext.Followers.Any(f => f.WhoId == u_ID && f.WhomId == m.AuthorId)))
+          .OrderByDescending(m => m.PubDate)
+          .Take(PER_PAGE)
+          .Join(minitwitContext.Users, 
+            m => m.AuthorId,
+            u => u.UserId, 
+            (m, u) => new Org.OpenAPITools.Models.Message
+            {
+              Content = m.Text,
+              User = u.Username,
+              PubDate = Format_datetime(m.PubDate ?? 0)
+            })
+          .ToListAsync();
 
         return messages;
       }
-      return new List<Dictionary<string, object>>();
+      return new List<Org.OpenAPITools.Models.Message>();
     }
 
     public async Task Register(string username, string email, string password)
     {
-      
-      string query = """
-        INSERT INTO user (username, email, pw_hash) values (@username, @email, @pw_hash)
-      """;
-      SqliteParameter username_param = new SqliteParameter("@username", username);
-      SqliteParameter email_param = new SqliteParameter("@email", email);
-      SqliteParameter pw_hash_param = new SqliteParameter("@pw_hash", Generate_password_hash(password));
-      await Query_db_Insert(query, [username_param, email_param, pw_hash_param]);
+      minitwitContext.Users.Add(new User
+      {
+        Username = username,
+        Email = email,
+        PwHash = Generate_password_hash(password)
+      });
+      await minitwitContext.SaveChangesAsync();
     }
 
 
@@ -298,15 +309,14 @@ namespace minitwit
 
     public async Task<bool> Check_password_hash(string username, string input_password)
     {
-      string query = """
-        SELECT * FROM user WHERE username = @username
-      """;
-      SqliteParameter username_param = new SqliteParameter("@username", username);
-      var result = await Query_db_Read(query, [username_param], true);
-      if (result != null && result.Count > 0)
+      string? pw_hash = await minitwitContext.Users
+        .Where(u => u.Username == username)
+        .Select(u => u.PwHash)
+        .FirstOrDefaultAsync();
+      if (pw_hash != null)
       {
         // Split pw_hash from DB into hashing algorithm, salt, and password hash
-        string[] res = ((string)result[0]["pw_hash"]).Split('$');
+        string[] res = pw_hash.Split('$');
         var salt_from_DB = Convert.FromHexString(res[1]);
         var pwd_hash_from_DB = res[2];
 
@@ -322,16 +332,13 @@ namespace minitwit
 
     public async Task<int?> Get_user_id(string username)
     {
-      string query = """
-        SELECT user_id FROM user WHERE username = @username
-      """;
-      SqliteParameter username_param = new SqliteParameter("@username", username);
-      var result = await Query_db_Read(query, [username_param], true);
-      if (result != null && result.Count > 0)
-      {
-        return Convert.ToInt32(result[0]["user_id"]);
-      }
-      return null;
+
+      int user_id = await minitwitContext.Users
+        .Where(u => u.Username == username)
+        .Select(u => u.UserId)
+        .FirstOrDefaultAsync();
+      
+      return user_id == 0 ? null : user_id;
     }
 
     public async Task Add_Message(string username, string text)
@@ -341,59 +348,62 @@ namespace minitwit
       if (u_ID != null) //Checking that the user exists
       {
         int time = (int)DateTimeOffset.UtcNow.ToUnixTimeSeconds(); //Gets current time
-        string query = """
-          INSERT INTO message (author_id, text, pub_date, flagged) values (@author_id, @text, @pub_date, @flagged)
-        """;
-        SqliteParameter author_param = new SqliteParameter("@author_id", u_ID);
-        SqliteParameter text_param = new SqliteParameter("@text", text);
-        SqliteParameter pub_date_param = new SqliteParameter("@pub_date", time);
-        SqliteParameter flag_param = new SqliteParameter("@flagged", SqliteType.Integer) { Value = 0 };
-        await Query_db_Insert(query, [author_param, text_param, pub_date_param, flag_param]);
+        minitwitContext.Messages.Add(new Message
+        {
+          AuthorId = (int)u_ID,
+          Text = text,
+          PubDate = time,
+          Flagged = 0
+        });
+        await minitwitContext.SaveChangesAsync();
       }
     }
 
-    public async Task Follow_user(string active_username, string username_to_follow)
+    public async Task Follow_user(string who, string whom)
     {
-      int? active_user_id = await Get_user_id(active_username);
-      if (active_user_id == null)
+      int? who_user_id = await Get_user_id(who);
+      if (who_user_id == null)
       {
         throw new Exception("Active user doesn't exist");
       }
 
-      int? profile_user_id = await Get_user_id(username_to_follow);
-      if (profile_user_id == null)
+      int? whom_user_id = await Get_user_id(whom);
+      if (whom_user_id == null)
       {
         throw new Exception("User doesn't exist");
       }
 
-      string query = """
-        insert into follower (who_id, whom_id) values (@active_id, @other_id)
-      """;
-      SqliteParameter active_id_param = new SqliteParameter("@active_id", active_user_id);
-      SqliteParameter other_id_param = new SqliteParameter("@other_id", profile_user_id);
-      await Query_db_Insert(query, [active_id_param, other_id_param], true);
+      bool already_following = await minitwitContext.Followers
+        .AnyAsync(f => f.WhoId == who_user_id && f.WhomId == whom_user_id);
+      
+      if (!already_following)
+      {
+        minitwitContext.Followers.Add(new Follower
+        {
+          WhoId = who_user_id,
+          WhomId = whom_user_id
+        });
+        await minitwitContext.SaveChangesAsync();
+      }
     }
 
-    public async Task Unfollow_user(string active_username, string username_to_follow)
+    public async Task Unfollow_user(string who, string whom)
     {
-      int? active_user_id = await Get_user_id(active_username);
-      if (active_user_id == null)
+      int? who_user_id = await Get_user_id(who);
+      if (who_user_id == null)
       {
         throw new Exception("Active user doesn't exist");
       }
 
-      int? profile_user_id = await Get_user_id(username_to_follow);
-      if (profile_user_id == null)
+      int? whom_user_id = await Get_user_id(whom);
+      if (whom_user_id == null)
       {
         throw new Exception("User doesn't exist");
       }
 
-      string query = """
-        delete from follower where who_id=@active_id and whom_id=@other_id
-      """;
-      SqliteParameter active_id_param = new SqliteParameter("@active_id", active_user_id);
-      SqliteParameter other_id_param = new SqliteParameter("@other_id", profile_user_id);
-      await Query_db_Insert(query, [active_id_param, other_id_param], true);
+      await minitwitContext.Followers
+        .Where(f => f.WhoId == who_user_id && f.WhomId == whom_user_id)
+        .ExecuteDeleteAsync();
     }
 
     public void UpdateLatest(int? latest)
@@ -405,7 +415,7 @@ namespace minitwit
     }
     public int GetLatest() => _latest;
 
-    public async Task<List<Dictionary<string, object>>> Get_followed_users(string active_username, int? limit)
+    public async Task<Org.OpenAPITools.Models.FollowsResponse> Get_followed_users(string active_username, int? limit)
     {
       int? active_user_id = await Get_user_id(active_username);
       if (active_user_id == null)
@@ -413,17 +423,17 @@ namespace minitwit
         throw new Exception("Active user doesn't exist");
       }
 
-      string query = """
-          select user.* from user
-          where user.user_id in (select whom_id from follower
-                                      where who_id = @user_id)
-          limit @per_page
-        """;
-        SqliteParameter user_id_param = new SqliteParameter("@user_id", active_user_id);
-        SqliteParameter pp_param = new SqliteParameter("@per_page", limit ?? PER_PAGE);
-        List<Dictionary<string, object>> followed_users = await Query_db_Read(query, [user_id_param, pp_param]);
-
-        return followed_users;
-      }
+      List<string> followed_users = await minitwitContext.Users
+        .Where(u => minitwitContext.Followers.Any(f => f.WhoId == active_user_id && f.WhomId == u.UserId))
+        .Take(limit ?? PER_PAGE)
+        .Select(u => u.Username)
+        .ToListAsync();
+      
+      Org.OpenAPITools.Models.FollowsResponse response = new Org.OpenAPITools.Models.FollowsResponse
+      {
+        Follows = followed_users
+      };
+      return response;
     }
   }
+}

@@ -1,4 +1,5 @@
 ﻿@page
+@using Org.OpenAPITools.Models
 @model IndexModel
 @{
     ViewData["Title"] = "Home page";
@@ -20,15 +21,15 @@
 {
   @if(Model.Messages.Any()) 
   {
-    @foreach (Dictionary<string, object> message in Model.Messages)
+    @foreach (Message message in Model.Messages)
     {
     <li>
-      <img src="@MiniTwit.Get_Gravatar_Url((string)@message["email"], 48)" />
+      <img src="@MiniTwit.Get_Gravatar_Url(message.User ?? "Default", 48)" />
         <p>
-        <strong><a href="/@message["username"]">@message["username"]</a></strong>
-        @message["text"]
+        <strong><a href="/@message.User">@message.User</a></strong>
+        @message.Content
         <small>
-            — @MiniTwit.Format_datetime(Convert.ToInt32(@message["pub_date"]))
+            — @message.PubDate
         </small>
         </p>
     </li>

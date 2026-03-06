@@ -72,16 +72,7 @@ namespace Org.OpenAPITools.Controllers
                 
                 var followed_users = await _mt.Get_followed_users(username, no);
 
-                List<string> follows = [];
-                foreach (var user in followed_users)
-                {
-                    follows.Add((string) user["username"]);
-                }
-
-                FollowsResponse followsResponse = new FollowsResponse
-                {
-                    Follows = follows
-                };
+                FollowsResponse followsResponse = followed_users;
 
                 string followsJSON = followsResponse.ToJson();
                 return StatusCode(200, followsJSON);
@@ -146,37 +137,13 @@ namespace Org.OpenAPITools.Controllers
 
                 var messages = await _mt.Get_public_timeline();
 
-                List<Dictionary<string, object>> messagesList = new List<Dictionary<string, object>>();
-                foreach (var msg in messages)            {
-                    if (msg["flagged"].ToString() == "0")
-                    {
-                        var message = new Dictionary<string, object>
-                        {
-                            ["content"] = msg["text"],
-                            ["pub_date"] = msg["pub_date"],
-                            ["user"] = msg["username"]
-                        };
-                        messagesList.Add(message);
-                    }
-                }
-
-                string messagesJSON = JsonSerializer.Serialize(messagesList);
+                string messagesJSON = JsonSerializer.Serialize(messages);
                 return StatusCode(200, messagesJSON);
             }
             catch (Exception ex)
             {
                 return StatusCode(500);
             }
-
-            // string exampleJson = null;
-            // exampleJson = "[ {\n  \"pub_date\" : \"2019-12-01 12:00:00\",\n  \"user\" : \"Helge\",\n  \"content\" : \"Hello, World!\"\n}, {\n  \"pub_date\" : \"2019-12-01 12:00:00\",\n  \"user\" : \"Helge\",\n  \"content\" : \"Hello, World!\"\n} ]";
-            // exampleJson = "{\n  \"error_msg\" : \"You are not authorized to use this resource!\",\n  \"status\" : 403\n}";
-            
-            // var example = exampleJson != null
-            // ? JsonSerializer.Deserialize<List<Message>>(exampleJson)
-            // : default;
-            // //TODO: Change the data returned
-            // return new ObjectResult(example);
         }
 
         /// <summary>
@@ -218,20 +185,7 @@ namespace Org.OpenAPITools.Controllers
                 // Message { PubDate = "2019-12-01 12:00:00", User = "Helge", Content = "Hello, World!" }
                 // Instead of the form we get from the funcion (Where we get all kinds of other information we don't need) and then serialize it to JSON
 
-                var messagesList = new List<Dictionary<string, object>>();
-                foreach (var msg in usermessages)
-                {
-                    if (msg["flagged"].ToString() == "0")
-                    {
-                        var message = new Dictionary<string, object>
-                        {
-                            ["pub_date"] = msg["pub_date"],
-                            ["user"] = msg["username"],
-                            ["content"] = msg["text"]
-                        };
-                        messagesList.Add(message);
-                    }
-                }
+                var messagesList = usermessages;
                 string messagesJSON = JsonSerializer.Serialize(messagesList);
 
                 return StatusCode(200, messagesJSON);

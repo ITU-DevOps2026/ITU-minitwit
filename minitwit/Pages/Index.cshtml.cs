@@ -1,12 +1,15 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Org.OpenAPITools.Models;
 
 namespace minitwit.Pages;
 
 [IgnoreAntiforgeryToken]
-public class IndexModel : PageModel
+public class IndexModel(MiniTwit minitwit) : PageModel
 {
-  public List<Dictionary<string, object>>? Messages { get; private set; }
+
+  private readonly MiniTwit minitwit = minitwit;
+  public List<Message>? Messages { get; private set; }
 
   public async Task<IActionResult> OnGet()
   {
@@ -15,10 +18,6 @@ public class IndexModel : PageModel
     string? username = HttpContext.Session.GetString("Logged_In_Username");
     if(username != null)
     {
-      // fetch messages 
-      MiniTwit minitwit = new MiniTwit();
-      minitwit.Connect_db();
-
       Messages = await minitwit.Get_my_timeline(username);
       return Page();
     }

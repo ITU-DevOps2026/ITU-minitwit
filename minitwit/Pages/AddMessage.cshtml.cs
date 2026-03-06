@@ -4,16 +4,15 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 namespace minitwit.Pages;
 
 [IgnoreAntiforgeryToken]
-public class AddMessageModel : PageModel
+public class AddMessageModel(MiniTwit minitwit) : PageModel
 {
+
+    private readonly MiniTwit minitwit = minitwit;
     [BindProperty]
     public required string Text {get;set;}
 
     public async Task<IActionResult> OnPostAsync()
     {
-        MiniTwit minitwit = new MiniTwit();
-        minitwit.Connect_db();
-
         //Get current user and ensure it is not null
         string? username = HttpContext.Session.GetString("Logged_In_Username");
         if(username != null)

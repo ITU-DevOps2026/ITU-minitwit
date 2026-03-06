@@ -5,8 +5,10 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 namespace minitwit.Pages;
 
 [IgnoreAntiforgeryToken]
-public class LoginModel : PageModel
+public class LoginModel(MiniTwit minitwit) : PageModel
 {
+
+  private readonly MiniTwit minitwit = minitwit;
   [BindProperty]
   [Required(ErrorMessage ="You have to enter a username")]
   public required string Username {get; set;}
@@ -17,9 +19,6 @@ public class LoginModel : PageModel
 
   public async Task<IActionResult> OnPostAsync()
   {
-    MiniTwit minitwit = new MiniTwit();
-    minitwit.Connect_db();
-    
     if (await minitwit.Get_user_id(Username) == null)
     {
       ModelState.AddModelError("Username", "Invalid username");

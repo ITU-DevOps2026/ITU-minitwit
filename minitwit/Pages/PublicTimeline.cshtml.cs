@@ -1,17 +1,17 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Org.OpenAPITools.Models;
 
 namespace minitwit.Pages;
 
 [IgnoreAntiforgeryToken]
-public class PublicTimelineModel : PageModel
+public class PublicTimelineModel(MiniTwit minitwit) : PageModel
 {
-  public List<Dictionary<string, object>>? Messages { get; private set; }
+  private readonly MiniTwit minitwit = minitwit;
+
+  public List<Message>? Messages { get; private set; }
   public async Task OnGet()
   {
-    MiniTwit minitwit = new MiniTwit();
-    minitwit.Connect_db();
-
     Messages = await minitwit.Get_public_timeline();
   }
 }
