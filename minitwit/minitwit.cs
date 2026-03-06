@@ -97,7 +97,6 @@ namespace minitwit
 
     public SqliteConnection Connect_db()
     {
-      Console.WriteLine("Hej");
       return new SqliteConnection($"Data Source={DbPath};Pooling=False;");
     }
 
