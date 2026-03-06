@@ -50,7 +50,6 @@ using (var scope = app.Services.CreateScope())
 
     var context = services.GetRequiredService<MinitwitContext>();
     Console.WriteLine("her");
-    Console.WriteLine(context.Database.GetConnectionString());
     context.Database.EnsureCreated();
 }
 
