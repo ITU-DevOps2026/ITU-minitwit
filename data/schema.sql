@@ -1,4 +1,5 @@
 PRAGMA foreign_keys=OFF;
+BEGIN TRANSACTION;
 
 CREATE TABLE user (
   user_id integer primary key autoincrement,
