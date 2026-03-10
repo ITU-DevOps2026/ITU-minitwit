@@ -31,7 +31,7 @@ if (args.Contains("init"))
 } 
   
 builder.Services.AddDbContext<MinitwitContext>(options =>
-  options.UseSqlite($"DataSource={DbPath}"));
+  options.UseMySql(DbPath, ServerVersion.AutoDetect(DbPath)));
 
 
 builder.Services.AddScoped<MiniTwit>();
