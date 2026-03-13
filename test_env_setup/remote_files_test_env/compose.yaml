@@ -8,6 +8,8 @@ services:
       - ../data:/app/data
     environment:
       - DbPath=${db_connection}
+    networks:
+      - main
 
   prometheus:
     build: 
@@ -28,3 +30,7 @@ services:
       - "3000:3000"
     networks:
       - main
+
+networks:
+  main:
+    driver: bridge
