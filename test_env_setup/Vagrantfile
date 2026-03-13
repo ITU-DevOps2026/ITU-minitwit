@@ -40,9 +40,11 @@ Vagrant.configure("2") do |config|
     docker run --rm hello-world
     docker rmi hello-world
 
-    echo -e "\nOpening port for minitwit ...\n"
+    echo -e "\nOpening port for minitwit UI, Grafana, and Prometheus ...\n"
     ufw allow 5035 && \
-    ufw allow 22/tcp
+    ufw allow 22/tcp && \
+    ufw allow 9090/tcp && \
+    ufw allow 3000/tcp
 
     echo ". $HOME/.bashrc" >> $HOME/.bash_profile
 
