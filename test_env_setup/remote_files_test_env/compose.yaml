@@ -1,5 +1,5 @@
 services:
-  minitwit-dev:
+  minitwit:
     image: ${DOCKER_USERNAME}/minitwit-dev
     container_name: minitwit_container
     ports:
