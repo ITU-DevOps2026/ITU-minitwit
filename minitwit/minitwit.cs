@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.OpenApi;
 using minitwit;
 using minitwit.Model;
 using Microsoft.EntityFrameworkCore;
+using Prometheus;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -50,6 +51,13 @@ using (var scope = app.Services.CreateScope())
 
     var context = services.GetRequiredService<MinitwitContext>();
     context.Database.EnsureCreated();
+
+    //Start the metrics at the amount of tweets and users in the database
+    var totalTweets = context.Messages.Count();
+    var totalUsers = context.Users.Count();
+    
+    MinitwitMetrics.TweetCounter.IncTo(totalTweets);
+    MinitwitMetrics.UserRegistrationCounter.IncTo(totalUsers);
 }
 
 // Configure the HTTP request pipeline.
@@ -59,6 +67,10 @@ if (!app.Environment.IsDevelopment())
   // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
   app.UseHsts();
 }
+
+// Add Prometheus metrics
+app.UseHttpMetrics();
+app.MapMetrics();
 
 app.UseHttpsRedirection();
 
@@ -78,6 +90,14 @@ app.Run();
 
 namespace minitwit
 {
+  public static class MinitwitMetrics
+  {
+    public static readonly Counter TweetCounter = Metrics
+            .CreateCounter("minitwit_tweets_total", "Total number of tweets posted.");
+
+    public static readonly Counter UserRegistrationCounter = Metrics
+            .CreateCounter("minitwit_registrations_total", "Total number of user registrations.");
+  }
   public class MiniTwit(MinitwitContext minitwitContext)
     {
     private readonly MinitwitContext minitwitContext = minitwitContext; 
@@ -293,6 +313,9 @@ namespace minitwit
         PwHash = Generate_password_hash(password)
       });
       await minitwitContext.SaveChangesAsync();
+
+      //Increment the amount of users for the metrics:
+      MinitwitMetrics.UserRegistrationCounter.Inc();
     }
 
 
@@ -356,6 +379,9 @@ namespace minitwit
           Flagged = 0
         });
         await minitwitContext.SaveChangesAsync();
+
+        //Increment the amount of users for the metrics:
+        MinitwitMetrics.TweetCounter.Inc();
       }
     }
 

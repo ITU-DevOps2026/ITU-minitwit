@@ -9,6 +9,7 @@ Vagrant.configure("2") do |config|
   config.ssh.private_key_path = '~/.ssh/id_ed25519'
   config.vm.synced_folder "remote_files", "/minitwit", type: "rsync"
   config.vm.synced_folder "data", "/data", type: "rsync"
+  config.vm.synced_folder "monitoring", "/monitoring", type: "rsync" # For Grafana and Prometheus having the dashboard
   config.vm.synced_folder ".", "/vagrant", disabled: true
 
   config.vm.define "minitwit-3", primary: true do |server|
@@ -24,6 +25,7 @@ Vagrant.configure("2") do |config|
     server.vm.hostname = "minitwit-3"
     server.vm.provision "shell", inline: 'echo "export DOCKER_USERNAME=' + "'" + ENV["DOCKER_USERNAME"] + "'" + '" >> ~/.bash_profile'
     server.vm.provision "shell", inline: 'echo "export DOCKER_PASSWORD=' + "'" + ENV["DOCKER_PASSWORD"] + "'" + '" >> ~/.bash_profile'
+    server.vm.provision "shell", inline: 'echo "export db_connection=' + "'" + ENV["db_connection"] + "'" + '" >> ~/.bash_profile'
 
     server.vm.provision "shell", inline: <<-SHELL
     # The following addresses an issue in DO's Ubuntu images, which still contain a lock file
@@ -41,7 +43,9 @@ Vagrant.configure("2") do |config|
 
     echo -e "\nOpening port for minitwit ...\n"
     ufw allow 5035 && \
-    ufw allow 22/tcp
+    ufw allow 22/tcp && \
+    ufw allow 9090/tcp && \
+    ufw allow 3000/tcp
 
     echo ". $HOME/.bashrc" >> $HOME/.bash_profile
 
