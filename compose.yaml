@@ -101,5 +101,10 @@ services:
     volumes:
       - grafana-storage:/var/lib/grafana
 
+      # Save the dasboards to the container, so it can build them.
+      - ./monitoring/grafana/datasources/datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml
+      - ./monitoring/grafana/dashboards/dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml
+      - ./monitoring/grafana/dashboards:/etc/grafana/dashboards
+
 volumes:
   grafana-storage: {}
