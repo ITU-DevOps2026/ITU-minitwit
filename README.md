@@ -124,6 +124,18 @@ With flag as the argument the following line is executed
 - So if we call ./control.sh flag 500 501 the script runs ./flag_tool 500 501.
 - If the flag_tool is called with several arguments it executes and update query, where it looks for the message id, and sets flagged=1 for that message id (there is a column in the database for messages which is called flag).
 
+
+## Monitoring and Dashboards
+Minitwit has monitoring implemented, so we can log things like responsetime, and amount of tweets. This data can be found on the `/metrics` endpoint from the minitwit url: [http://209.38.114.224:5035/metrics](http://209.38.114.224:5035/metrics) .
+
+If you want to see specific data, you can use prometheus to query this endpoint. The prometheus page can be found on the minitwit url, on port `9090`, i.e. [http://209.38.114.224:9090](http://209.38.114.224:9090) .
+
+### The 2 dashboards
+We have integrated Grafana, to use Prometheus to pull data from Minitwit and show 2 dashboards. One dashboard for a more developerr view, with information on reponse time status and more, and another one with more of a business perspective showing how many users and tweets we are gaining, and what the average response time is for a user.
+
+* The developer focused dashboard can be [found on this link!](http://209.38.114.224:3000/public-dashboards/80d599614bec4f2d978930fddc345520?refresh=10s&from=now-3h&to=now&timezone=browser)
+* The business focused dashboard can be [found on this link!](http://209.38.114.224:3000/public-dashboards/c42f9a112ff24e4eb48e1ddd2a9b34a3?from=now-5m&to=now&timezone=browser&refresh=10s)
+
 ## Minitwit on Digital Ocean via Vagrant
 ### Requirements
 * A terminal

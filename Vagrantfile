@@ -9,6 +9,7 @@ Vagrant.configure("2") do |config|
   config.ssh.private_key_path = '~/.ssh/id_ed25519'
   config.vm.synced_folder "remote_files", "/minitwit", type: "rsync"
   config.vm.synced_folder "data", "/data", type: "rsync"
+  config.vm.synced_folder "monitoring", "/monitoring", type: "rsync" # For Grafana and Prometheus having the dashboard
   config.vm.synced_folder ".", "/vagrant", disabled: true
 
   config.vm.define "minitwit-3", primary: true do |server|
@@ -41,7 +42,9 @@ Vagrant.configure("2") do |config|
 
     echo -e "\nOpening port for minitwit ...\n"
     ufw allow 5035 && \
-    ufw allow 22/tcp
+    ufw allow 22/tcp && \
+    ufw allow 9090/tcp && \
+    ufw allow 3000/tcp
 
     echo ". $HOME/.bashrc" >> $HOME/.bash_profile
 
