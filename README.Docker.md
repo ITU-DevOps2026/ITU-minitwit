@@ -18,13 +18,7 @@ This will start a container with the MySQL database, which will be seeded with s
 
 The application will be available at http://localhost:5035.
 
-To stop the application simply press Ctrl+C in your terminal, and remember to run `docker compose down -v` to down the application. 
-
-If you want to run the application detached from your terminal you instead run: 
-`docker compose up --build -d`.
-
-To stop the application run the following command:
-`docker compose down`.
+To stop the application simply press Ctrl+C in your terminal, and run `docker compose down -v` to down the application. 
 
 ### Running the tests 
 Tests can be run using the following commands:
