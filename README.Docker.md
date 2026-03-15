@@ -26,15 +26,26 @@ If you want to run the application detached from your terminal you instead run:
 To stop the application run the following command:
 `docker compose down`.
 
+### Running the tests 
+Tests can be run using the following commands:
+
+`docker compose run --rm tests`
+
+`docker compose run --rm apitests`
+
+
 ### Deploying your application to the cloud
 
 First, build your image, e.g.: `docker build -t myapp .`.
 If your cloud uses a different CPU architecture than your development
 machine (e.g., you are on a Mac M1 and your cloud provider is amd64),
 you'll want to build the image for that platform, e.g.:
-`docker build --platform=linux/amd64 -t myapp .`.
+`docker build --platform=linux/amd64 -t myregistry.com/myapp .`. Specify a specific Dockerfile to build by setting the -f flag: 
+`docker build --platform=linux/amd64 -t myregistry.com/myapp -f <Name of Dockerfile> .`
 
-Then, push it to your registry, e.g. `docker push myregistry.com/myapp`.
+Since we are using mathildegk's Docker Hub as our registry, we can replace myregistry.com with mathildegk instead. So an example of a command could be: `docker build --platform=linux/amd64 -t mathildegk/minitwit-mysql-test -f Dockerfile-mysql .`
+
+Then, push it to the registry, e.g. `docker push mathildegk/minitwit-mysql-test`.
 
 Consult Docker's [getting started](https://docs.docker.com/go/get-started-sharing/)
 docs for more detail on building and pushing.

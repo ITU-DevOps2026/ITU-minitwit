@@ -117,6 +117,22 @@ scp data.sql root@164.92.189.173:~/data.sql
 
 ## Running the application
 
-- Now that we have switched to use MySQL instead of simply an Sqlite file, the application can no longer be run with the `dotnet run` command, because the application requires a connection to a running MySQL server. 
+- Now that we have switched to use MySQL instead of simply an Sqlite file, the application can be run in two different ways. 
 
-- Instead, the application should be run using docker. See file [Docker readme](/README.Docker.md) for instructions on how to run. 
+```C#
+string? DbPath = Environment.GetEnvironmentVariable("DbPath");
+
+if (string.IsNullOrEmpty(DbPath))
+{
+  builder.Services.AddDbContext<MinitwitContext>(options =>
+    options.UseSqlite("DataSource=../data/minitwit.db"));
+} else
+{
+  builder.Services.AddDbContext<MinitwitContext>(options =>
+    options.UseMySql(DbPath, ServerVersion.AutoDetect(DbPath)));
+}
+```
+
+- If you want to run it locally with the `dotnet run` command, you need to make sure that you do not have an environment variable DbPath set. The application will then see that there is no DbPath and will default to using the original Sqlite database instead.
+
+- If you want to run it containerized in a production-like environment, you should use Docker. This will start up a MySQL database server and the application. See file [Docker readme](/README.Docker.md) for instructions on how to run. 

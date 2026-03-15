@@ -23,7 +23,7 @@ Vagrant.configure("2") do |config|
 
     server.vm.hostname = "minitwit-3"
     server.vm.provision "shell", inline: 'echo "export DOCKER_USERNAME=' + "'" + ENV["DOCKER_USERNAME"] + "'" + '" >> ~/.bash_profile'
-    server.vm.provision "shell", inline: 'echo "export DOCKER_PASSWORD=' + "'" + ENV["DOCKER_PASSWORD"] + "'" + '" >> ~/.bash_profile'
+    server.vm.provision "shell", inline: 'echo "export db_connection=' + "'" + ENV["db_connection"] + "'" + '" >> ~/.bash_profile'
 
     server.vm.provision "shell", inline: <<-SHELL
     # The following addresses an issue in DO's Ubuntu images, which still contain a lock file

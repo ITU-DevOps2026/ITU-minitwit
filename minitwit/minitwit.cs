@@ -1,7 +1,5 @@
 using System.Security.Cryptography;
 using System.Text;
-using Microsoft.Data.Sqlite;
-using Microsoft.AspNetCore.OpenApi;
 using minitwit;
 using minitwit.Model;
 using Microsoft.EntityFrameworkCore;
@@ -23,24 +21,19 @@ builder.Services.AddSession(options =>
 
 builder.Services.AddOpenApi();
 
-string DbPath = Environment.GetEnvironmentVariable("DbPath") ?? "../data/minitwit.db";
+string? DbPath = Environment.GetEnvironmentVariable("DbPath");
 
-if (args.Contains("init"))
+if (string.IsNullOrEmpty(DbPath))
 {
-  DbPath = "/tmp/minitwit.db";
-} 
-  
-builder.Services.AddDbContext<MinitwitContext>(options =>
-  options.UseMySql(DbPath, ServerVersion.AutoDetect(DbPath)));
-
+  builder.Services.AddDbContext<MinitwitContext>(options =>
+    options.UseSqlite("DataSource=../data/minitwit.db"));
+} else
+{
+  builder.Services.AddDbContext<MinitwitContext>(options =>
+    options.UseMySql(DbPath, ServerVersion.AutoDetect(DbPath)));
+}
 
 builder.Services.AddScoped<MiniTwit>();
-
-
-/* builder.Services.AddControllers().AddJsonOptions(options =>
-{
-  options.JsonSerializerOptions.WriteIndented = true;
-}); */
 
 var app = builder.Build();
 
@@ -81,12 +74,6 @@ namespace minitwit
   public class MiniTwit(MinitwitContext minitwitContext)
     {
     private readonly MinitwitContext minitwitContext = minitwitContext; 
-    // Configuration
-    // string DATABASE = "/tmp/minitwit.db";
-    public string DbPath { get; set; } = 
-        Environment.GetEnvironmentVariable("DbPath") ?? "../data/minitwit.db";
-        
-    private const string Default_Database = "../data/minitwit.db";
     private int PER_PAGE = 30;
     private static int _latest = -1;
 
@@ -94,90 +81,6 @@ namespace minitwit
     const int keySize = 32;
     const int iterations = 50000;
     HashAlgorithmName hashAlgorithm = HashAlgorithmName.SHA256;
-
-    public SqliteConnection Connect_db()
-    {
-      return new SqliteConnection($"Data Source={DbPath};Pooling=False;");
-    }
-
-    public async Task<List<Dictionary<string, object>>> Query_db_Read(string query, SqliteParameter[] args, bool one = false)
-    {
-      return (List<Dictionary<string, object>>) await Query_db(query, args, false, one);
-    }
-
-    public async Task<int> Query_db_Insert(string query, SqliteParameter[] args, bool one = false)
-    {
-      return (int) await Query_db(query, args, true, one);
-    }
-
-    public async Task<object> Query_db(string query, SqliteParameter[] args, bool nonQuery, bool one = false)
-    {
-      using (SqliteConnection connection = Connect_db())
-      {
-        if (connection == null) throw new Exception("Connection is null");
-
-        await connection.OpenAsync();
-
-        // ADD THIS BLOCK HERE:
-        using (var walCommand = connection.CreateCommand())
-        {
-            walCommand.CommandText = "PRAGMA journal_mode=WAL;";
-            await walCommand.ExecuteNonQueryAsync();
-        }
-
-        using (SqliteCommand command = connection.CreateCommand())
-        {
-          command.CommandText = query;
-          foreach (SqliteParameter param in args)
-          {
-            command.Parameters.Add(param);
-          }
-          if (nonQuery)
-          {
-            return await command.ExecuteNonQueryAsync();
-          }
-
-          using (SqliteDataReader reader = await command.ExecuteReaderAsync())
-          {
-            List<Dictionary<string, object>> results = new List<Dictionary<string, object>>();
-            while (await reader.ReadAsync())
-            {
-              Dictionary<string, object> row = new Dictionary<string, object>();
-              for (int i = 0; i < reader.FieldCount; i++)
-              {
-                row.Add(reader.GetName(i), reader.GetValue(i));
-              }
-              results.Add(row);
-
-              if (one) break;
-            }
-            return results;
-          }
-        }
-      }
-    }
-
-    public async Task Init_db(string db_string = Default_Database)
-    {
-      using (SqliteConnection connection = new SqliteConnection($"Data Source={db_string};"))
-      {
-        await connection.OpenAsync();
-
-        // Set WAL mode before running the schema
-        using (var walCommand = connection.CreateCommand())
-        {
-            walCommand.CommandText = "PRAGMA journal_mode=WAL;";
-            await walCommand.ExecuteNonQueryAsync();
-        }
-
-        string schemaSql = await File.ReadAllTextAsync("schema.sql");
-        using (SqliteCommand command = connection.CreateCommand())
-        {
-          command.CommandText = schemaSql;
-          await command.ExecuteNonQueryAsync();
-        }
-      }
-    }
 
     public static string Format_datetime(int timestamp)
     {

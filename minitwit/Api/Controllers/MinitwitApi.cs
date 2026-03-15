@@ -24,15 +24,9 @@ namespace Org.OpenAPITools.Controllers
     /// </summary>
     [Route("api")]
     [ApiController]
-    public class MinitwitApiController : ControllerBase
+    public class MinitwitApiController(minitwit.MiniTwit mt) : ControllerBase
     {
-      private readonly minitwit.MiniTwit _mt;
-
-      public MinitwitApiController(minitwit.MiniTwit mt)
-      {
-        _mt = mt;
-        _mt.DbPath = Environment.GetEnvironmentVariable("DbPath") ?? "../data/minitwit.db";
-      }
+      private readonly minitwit.MiniTwit _mt = mt;
 
         /// <summary>
         /// 
@@ -77,7 +71,7 @@ namespace Org.OpenAPITools.Controllers
                 string followsJSON = followsResponse.ToJson();
                 return StatusCode(200, followsJSON);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return StatusCode(500);
             }
@@ -103,8 +97,8 @@ namespace Org.OpenAPITools.Controllers
 
             return Ok(new LatestValue{Latest = latestValue});
           }
-          catch (Exception ex)
-          {
+          catch (Exception)
+            {
             return StatusCode(500);
           }
         }
@@ -140,7 +134,7 @@ namespace Org.OpenAPITools.Controllers
                 string messagesJSON = JsonSerializer.Serialize(messages);
                 return StatusCode(200, messagesJSON);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return StatusCode(500);
             }
@@ -190,7 +184,7 @@ namespace Org.OpenAPITools.Controllers
 
                 return StatusCode(200, messagesJSON);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return StatusCode(500);
             }
@@ -246,7 +240,7 @@ namespace Org.OpenAPITools.Controllers
 
                 return StatusCode(204);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return StatusCode(500);
             }
@@ -287,7 +281,7 @@ namespace Org.OpenAPITools.Controllers
                 await _mt.Add_Message(username, payload.Content);
                 return StatusCode(204);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return StatusCode(500);
             }
@@ -337,8 +331,8 @@ namespace Org.OpenAPITools.Controllers
 
               return StatusCode(204);
           }
-          catch (Exception ex)
-          {
+          catch (Exception)
+            {
               return StatusCode(500);
           }
         }
