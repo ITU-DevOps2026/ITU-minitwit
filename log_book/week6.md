@@ -111,4 +111,12 @@ scp data.sql root@164.92.189.173:~/data.sql
 
 - We decided to delete the database droplets (both our test environment and production environment databases had been hacked), and with assistance from Gemini, we created Vagrantfiles that could set up more secure droplets. We realized that our databases had been accessible from the public internet without any secure credentials, so it makes sense that some hackers/bots gained root access to our databases. 
 
-- The new Vagrantfiles require you to set a secure database password in your own environment variables before creating the droplet. It also sets up a firewall which only allows access to the droplet via ssh and from the application's IP address. This ensures that the database is no longer accessible from the public internet, and that access to the database is also guarded by a secure password. 
+- The new Vagrantfiles require you to set a secure database password in your own environment variables before creating the droplet. It also sets up a firewall which only allows access to the droplet via ssh and from the application's IP address. This ensures that the database is no longer accessible from the public internet, and that access to the database is also guarded by a secure password.
+
+- This new Vagrantfile is used to set up both the test environment's database and the production environment's database. 
+
+## Running the application
+
+- Now that we have switched to use MySQL instead of simply an Sqlite file, the application can no longer be run with the `dotnet run` command, because the application requires a connection to a running MySQL server. 
+
+- Instead, the application should be run using docker. See file [Docker readme](/README.Docker.md) for instructions on how to run. 

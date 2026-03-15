@@ -12,11 +12,13 @@ To ensure the Docker Hardened Images can be pulled if they are not already on yo
 `docker login dhi.io`.
 
 When you're ready, start your application by running the following command from the root of the C# minitwit project:
-`docker compose up --build`.
+`docker compose up minitwit`. You can also add the `-d` flag to run the application in detached mode, meaning that the containers are run in the background. 
 
-Your application will be available at http://localhost:5035.
+This will start a container with the MySQL database, which will be seeded with some test data, and then the application will start running in another container. 
 
-To stop the application simply press ctrl+c in your terminal
+The application will be available at http://localhost:5035.
+
+To stop the application simply press Ctrl+C in your terminal, and remember to run `docker compose down -v` to down the application. 
 
 If you want to run the application detached from your terminal you instead run: 
 `docker compose up --build -d`.
