@@ -20,37 +20,55 @@ Vagrant.configure("2") do |config|
     end
 
     server.vm.hostname = "minitwit-test-env-mysql"
-    server.vm.provision "shell", inline: 'echo "export DOCKER_USERNAME=' + "'" + ENV["DOCKER_USERNAME"] + "'" + '" >> ~/.bash_profile'
-    server.vm.provision "shell", inline: 'echo "export DOCKER_PASSWORD=' + "'" + ENV["DOCKER_PASSWORD"] + "'" + '" >> ~/.bash_profile'
 
     server.vm.provision "shell", inline: <<-SHELL
-    # The following addresses an issue in DO's Ubuntu images, which still contain a lock file
-    sudo apt-get update
+    echo "export DB_PASSWORD='#{ENV['DB_PASSWORD']}'" >> /etc/profile.d/db_env.sh
+    echo "export TEST_APP_SERVER_IP='#{ENV['TEST_APP_SERVER_PRIVATE_IP']}'" >> /etc/profile.d/db_env.sh
+    chmod +x /etc/profile.d/db_env.sh
+    SHELL
+
+    server.vm.provision "shell", inline: <<-SHELL
+    set -e # Exit on error
 
     while fuser /var/lib/apt/lists/lock >/dev/null 2>&1 ; do
       echo "Waiting for other software managers to finish..."
       sleep 5
     done
 
-    # Install docker and docker compose
-    sudo apt install -qq -y docker.io
-    sudo apt install -qq -y docker-compose-v2
+    sudo apt-get update
+    
+    sudo apt install -qq -y docker.io docker-compose-v2 ufw
+    
+    # 1. GET THE PRIVATE IP
+    # In DigitalOcean, eth1 is typically the private network interface
+    PRIVATE_IP=$(ip -4 addr show eth1 | grep -oP '(?<=inet\\s)\\d+(\\.\\d+){3}')
+    echo "Detected Private IP: $PRIVATE_IP"
 
-    sudo systemctl status docker
+    # 2. CONFIGURE FIREWALL (The Bouncer)
+    sudo ufw default deny incoming
+    sudo ufw default allow outgoing
+    sudo ufw allow ssh
+    
+    # Only allow your web server's private IP to access the DB port
+    if [ ! -z "$TEST_APP_SERVER_IP" ]; then
+      sudo ufw allow from "$TEST_APP_SERVER_IP" to any port 3306
+      echo "Firewall: Allowed 3306 for $TEST_APP_SERVER_IP"
+    fi
+    
+    sudo ufw --force enable
 
-    echo -e "\nVerifying that docker works ...\n"
-    docker run --rm hello-world
-    docker rmi hello-world
 
-    echo ". $HOME/.bashrc" >> $HOME/.bash_profile
+    # 3. RUN DOCKER BOUND TO PRIVATE IP
+    # Using the password from the environment variable instead of 'root'
+    docker run -d \
+      --name minitwit_mysql \
+      --restart unless-stopped \
+      -p $PRIVATE_IP:3306:3306 \
+      --mount type=volume,source=minitwit_db_data,target=/var/lib/mysql \
+      -e MYSQL_ROOT_PASSWORD="$DB_PASSWORD" \
+      mathildegk/itusqlimage
 
-    echo -e "\nConfiguring credentials as environment variables...\n"
-
-    source $HOME/.bash_profile
-
-    docker run -d --name minitwit_mysql --restart unless-stopped -p 3306:3306 --mount type=volume,source=minitwit_db_data,target=/var/lib/mysql -e MYSQL_ROOT_PASSWORD=root mathildegk/itusqlimage
-
-    echo -e "\nVagrant setup done ..."
+    echo -e "\\nVagrant setup done with security hardening..."
 
     SHELL
   end
