@@ -21,6 +21,7 @@ Vagrant.configure("2") do |config|
 
     server.vm.hostname = "minitwit-test-env-mysql"
 
+    # Pass the secure password and the App Server IP as env variables to the shell script
     server.vm.provision "shell", inline: <<-SHELL
     echo "export DB_PASSWORD='#{ENV['DB_PASSWORD']}'" >> /etc/profile.d/db_env.sh
     echo "export TEST_APP_SERVER_IP='#{ENV['TEST_APP_SERVER_PRIVATE_IP']}'" >> /etc/profile.d/db_env.sh
@@ -44,12 +45,12 @@ Vagrant.configure("2") do |config|
     PRIVATE_IP=$(ip -4 addr show eth1 | grep -oP '(?<=inet\\s)\\d+(\\.\\d+){3}')
     echo "Detected Private IP: $PRIVATE_IP"
 
-    # 2. CONFIGURE FIREWALL (The Bouncer)
+    # 2. CONFIGURE FIREWALL
     sudo ufw default deny incoming
     sudo ufw default allow outgoing
     sudo ufw allow ssh
     
-    # Only allow your web server's private IP to access the DB port
+    # Only allow the application's private IP to access the DB port
     if [ ! -z "$TEST_APP_SERVER_IP" ]; then
       sudo ufw allow from "$TEST_APP_SERVER_IP" to any port 3306
       echo "Firewall: Allowed 3306 for $TEST_APP_SERVER_IP"
@@ -59,14 +60,13 @@ Vagrant.configure("2") do |config|
 
 
     # 3. RUN DOCKER BOUND TO PRIVATE IP
-    # Using the password from the environment variable instead of 'root'
     docker run -d \
       --name minitwit_mysql \
       --restart unless-stopped \
       -p $PRIVATE_IP:3306:3306 \
       --mount type=volume,source=minitwit_db_data,target=/var/lib/mysql \
       -e MYSQL_ROOT_PASSWORD="$DB_PASSWORD" \
-      mathildegk/itusqlimage
+      mathildegk/minitwit-mysql-test
 
     echo -e "\\nVagrant setup done with security hardening..."
 
