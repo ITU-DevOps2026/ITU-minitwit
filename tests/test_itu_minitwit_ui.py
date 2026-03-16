@@ -1,26 +1,26 @@
 """
-To run this test with a visible browser, the following dependencies have to be setup:
+To run this test locally, the following dependencies have to be setup:
 
   * `pip install selenium`
-  * `pip install pymongo`
+  * `pip install pymysql`
   * `pip install pytest`
+
+You also need to install geckodriver (a test-driver for Firefox). You should install this directly in the folder 
+where this test is located (so inside ./tests):
   * `wget https://github.com/mozilla/geckodriver/releases/download/v0.32.0/geckodriver-v0.32.0-linux64.tar.gz`
   * `tar xzvf geckodriver-v0.32.0-linux64.tar.gz`
   * After extraction, the downloaded artifact can be removed: `rm geckodriver-v0.32.0-linux64.tar.gz`
+  * You also need to make sure that Firefox is installed on your machine, as the tests need both Firefox and Geckodriver to run.
 
-The application that it tests is the version of _ITU-MiniTwit_ that you got to know during the exercises on Docker:
-https://github.com/itu-devops/flask-minitwit-mongodb/tree/Containerize (*OBS*: branch Containerize)
+The tests have to be run against our running application. To do that, run `docker compose up minitwit` to get the application
+up and running. Then the tests can be executed via: `pytest test_itu_minitwit_ui.py`. If you want to see the tests running 
+in Firefox as they are being executed, you need to comment out the lines with `firefox_options.add_argument("--headless")`
+in the tests below. This will ensure that a browser window is opened up, where you will be able to see how the tests are running.
 
-```bash
-$ git clone https://github.com/HelgeCPH/flask-minitwit-mongodb.git
-$ cd flask-minitwit-mongodb
-$ git switch Containerize
-```
-
-After editing the `docker-compose.yml` file file where you replace `youruser` with your respective username, the
-application can be started with `docker-compose up`.
-
-Now, the test itself can be executed via: `pytest test_itu_minitwit_ui.py`.
+The environment variables GUI_URL, DB_HOST, DB_PORT, DB_USER, DB_PWD, and DB_NAME have some default values that work when 
+running the tests locally as explained above. The environment variables are set to some specific values in the compose-file
+so that it works when you run the tests only via docker. Remember that Docker requires the tests to run in headless mode. 
+Run the tests via Docker by running the command `docker compose run --rm uitests`. 
 """
 
 import os
