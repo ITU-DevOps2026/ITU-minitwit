@@ -23,7 +23,6 @@ application can be started with `docker-compose up`.
 Now, the test itself can be executed via: `pytest test_itu_minitwit_ui.py`.
 """
 
-#import pymongo
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
@@ -35,7 +34,6 @@ import pymysql.cursors
 
 
 GUI_URL = "http://localhost:5035/register"
-#DB_URL = "mongodb://localhost:27017/test"
 
 
 def _register_user_via_gui(driver, data):
@@ -55,8 +53,11 @@ def _register_user_via_gui(driver, data):
     return flashes
 
 
-def _get_user_by_name(db_client, name):
-    return db_client.test.user.find_one({"username": name})
+def _get_user_by_name(connection, name):
+    with connection.cursor() as cursor:
+        sql = "SELECT username FROM user WHERE username=%s"
+        cursor.execute(sql, (name,))
+        return cursor.fetchone()
 
 
 def test_register_user_via_gui():
@@ -85,9 +86,6 @@ def test_register_user_via_gui():
             cursor.execute(sql)
         
         connection.commit()
-    # cleanup, make test case idempotent
-    #db_client = pymongo.MongoClient(DB_URL, serverSelectionTimeoutMS=5000)
-    #db_client.test.user.delete_one({"username": "Me"})
 
 
 def test_register_user_via_gui_and_check_db_entry():
@@ -100,15 +98,22 @@ def test_register_user_via_gui_and_check_db_entry():
     firefox_options.binary_location = "/Applications/Firefox.app/Contents/MacOS/firefox"
     # firefox_options = None
     with webdriver.Firefox(service=Service("./geckodriver"), options=firefox_options) as driver:
-        #db_client = pymongo.MongoClient(DB_URL, serverSelectionTimeoutMS=5000)
 
-        #assert _get_user_by_name(db_client, "Me") == None
+        connection = pymysql.connect(host='localhost',
+                                port=3306,
+                                user='root',
+                                password='root',
+                                database='minitwit',
+                                ssl_disabled=True,
+                                cursorclass=pymysql.cursors.DictCursor)
 
-        generated_msg = _register_user_via_gui(driver, ["Me", "me@some.where", "secure123", "secure123"])[0].text
-        expected_msg = "You were successfully registered and can login now"
-        assert generated_msg == expected_msg
+        with connection:
+            assert _get_user_by_name(connection, "Me") == None
 
-        #assert _get_user_by_name(db_client, "Me")["username"] == "Me"
+            generated_msg = _register_user_via_gui(driver, ["Me", "me@some.where", "secure123", "secure123"])[0].text
+            expected_msg = "You were successfully registered and can login now"
+            assert generated_msg == expected_msg
 
-        # cleanup, make test case idempotent
-        #db_client.test.user.delete_one({"username": "Me"})
+            connection.commit()
+        
+            assert _get_user_by_name(connection, "Me")["username"] == "Me"
