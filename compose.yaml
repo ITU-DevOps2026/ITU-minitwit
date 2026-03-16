@@ -67,6 +67,22 @@ services:
     environment:
       - BaseUrl=http://minitwit:8080/api
 
+  uitests:
+    build:
+      context: .
+      dockerfile: Dockerfile-minitwit-ui-tests
+    networks:
+      - main
+    depends_on:
+      - minitwit
+    environment:
+      - GUI_URL=http://minitwit:8080/register
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_USER=root
+      - DB_PWD=root
+      - DB_NAME=minitwit
+      
   prometheus:
     build: 
       dockerfile: ./Dockerfile

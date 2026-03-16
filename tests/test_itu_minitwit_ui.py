@@ -23,6 +23,8 @@ application can be started with `docker-compose up`.
 Now, the test itself can be executed via: `pytest test_itu_minitwit_ui.py`.
 """
 
+import os
+
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
@@ -33,8 +35,12 @@ from selenium.webdriver.firefox.options import Options
 import pymysql.cursors
 
 
-GUI_URL = "http://localhost:5035/register"
-
+GUI_URL = os.environ.get('GUI_URL', "http://localhost:5035/register")
+DB_HOST = os.environ.get('DB_HOST', "localhost")
+DB_PORT = os.environ.get('DB_PORT', "3306")
+DB_USER = os.environ.get('DB_USER', "root")
+DB_PWD = os.environ.get('DB_PWD', "root")
+DB_NAME = os.environ.get('DB_NAME', "minitwit")
 
 def _register_user_via_gui(driver, data):
     driver.get(GUI_URL)
@@ -59,6 +65,11 @@ def _get_user_by_name(connection, name):
         cursor.execute(sql, (name,))
         return cursor.fetchone()
 
+def _delete_user_by_name(connection, name):
+    with connection.cursor() as cursor:
+        sql = "DELETE FROM user WHERE username=%s"
+        cursor.execute(sql, (name,))
+
 
 def test_register_user_via_gui():
     """
@@ -66,6 +77,7 @@ def test_register_user_via_gui():
     responses that users observe are displayed.
     """
     firefox_options = Options()
+    # Make sure that headless argument is enabled, this is the only way it can run through docker
     firefox_options.add_argument("--headless")
     # firefox_options = None
     with webdriver.Firefox(service=Service("./geckodriver"), options=firefox_options) as driver:
@@ -73,18 +85,15 @@ def test_register_user_via_gui():
         expected_msg = "You were successfully registered and can login now"
         assert generated_msg == expected_msg
 
-    connection = pymysql.connect(host='localhost',
-                                port=3306,
-                                user='root',
-                                password='root',
-                                database='minitwit',
+    connection = pymysql.connect(host = DB_HOST,
+                                port = int(DB_PORT),
+                                user = DB_USER,
+                                password= DB_PWD,
+                                database=DB_NAME,
                                 ssl_disabled=True,
                                 cursorclass=pymysql.cursors.DictCursor)
     with connection:
-        with connection.cursor() as cursor:
-            sql = "DELETE FROM user WHERE username='Me'"
-            cursor.execute(sql)
-        
+        _delete_user_by_name(connection, 'Me')
         connection.commit()
 
 
@@ -94,26 +103,35 @@ def test_register_user_via_gui_and_check_db_entry():
     database yet. After registering a user, it checks that the respective user appears in the database.
     """
     firefox_options = Options()
-    #firefox_options.add_argument("--headless")
-    firefox_options.binary_location = "/Applications/Firefox.app/Contents/MacOS/firefox"
+    # Make sure that headless argument is enabled, this is the only way it can run through docker
+    firefox_options.add_argument("--headless")
     # firefox_options = None
     with webdriver.Firefox(service=Service("./geckodriver"), options=firefox_options) as driver:
 
-        connection = pymysql.connect(host='localhost',
-                                port=3306,
-                                user='root',
-                                password='root',
-                                database='minitwit',
+        connection = pymysql.connect(host = DB_HOST,
+                                port = int(DB_PORT),
+                                user = DB_USER,
+                                password= DB_PWD,
+                                database=DB_NAME,
                                 ssl_disabled=True,
                                 cursorclass=pymysql.cursors.DictCursor)
 
         with connection:
+            # Make sure that there is no user in the database with this name already
             assert _get_user_by_name(connection, "Me") == None
 
             generated_msg = _register_user_via_gui(driver, ["Me", "me@some.where", "secure123", "secure123"])[0].text
             expected_msg = "You were successfully registered and can login now"
             assert generated_msg == expected_msg
 
+            # Make sure that the new user is commited to the database so that we can see the changes
             connection.commit()
-        
+
+            # Verify that the user now exists in the database
             assert _get_user_by_name(connection, "Me")["username"] == "Me"
+
+            # We delete the created user from the database so the test can be run multiple times without 
+            # throwing errors that user already exists. 
+            _delete_user_by_name(connection, 'Me')
+            connection.commit()
+

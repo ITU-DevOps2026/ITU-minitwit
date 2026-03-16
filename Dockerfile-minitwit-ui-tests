@@ -1,0 +1,17 @@
+FROM python:3.12-alpine
+
+RUN mkdir /minitwit-ui-tests
+
+COPY ./tests/requirements_ui_tests.txt /minitwit-ui-tests/requirements.txt
+COPY ./tests/test_itu_minitwit_ui.py /minitwit-ui-tests/test_itu_minitwit_ui.py
+
+WORKDIR /minitwit-ui-tests
+
+RUN pip install -r requirements.txt
+RUN apk add firefox
+RUN apk add --no-cache wget
+RUN wget https://github.com/mozilla/geckodriver/releases/download/v0.36.0/geckodriver-v0.36.0-linux64.tar.gz
+RUN tar xzvf geckodriver-v0.36.0-linux64.tar.gz
+RUN rm geckodriver-v0.36.0-linux64.tar.gz
+
+ENTRYPOINT ["pytest", "-s", "test_itu_minitwit_ui.py"]

@@ -11,6 +11,8 @@ We specifically use these to DHI:
 To ensure the Docker Hardened Images can be pulled if they are not already on your system, start by running.
 `docker login dhi.io`.
 
+Build the compose file with this command: `docker compose build`
+
 When you're ready, start your application by running the following command from the root of the C# minitwit project:
 `docker compose up minitwit`. You can also add the `-d` flag to run the application in detached mode, meaning that the containers are run in the background. 
 
@@ -26,6 +28,8 @@ Tests can be run using the following commands:
 `docker compose run --rm tests`
 
 `docker compose run --rm apitests`
+
+`docker compose run --rm uitests`
 
 
 ### Deploying your application to the cloud
