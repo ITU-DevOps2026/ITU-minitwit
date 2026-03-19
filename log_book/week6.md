@@ -1,11 +1,11 @@
 # Migrating to another database
 
 ## Choice of database
-- We will be using a SQL database as we want our data to be structed and consistent, which is a part of what SQL databases excel at, in comparison NOSQL allows us to store data in more loose fashions, which can be more scalable and better supports exposing it systems that will utilize it with algorithms, something we will not be doing. Source: https://www.integrate.io/blog/which-database/
+- We will be using an SQL database as we want our data to be structed and consistent, which is a part of what an SQL databases excels at, in comparison a NOSQL database allows us to store data in more loose fashions, which can be more scalable and better supports exposing the database to it systems that will utilize the database with algorithms and machine learning, something we do not currently plan on doing for our project. Source: https://www.integrate.io/blog/which-database/
 
 - We are using a MySQL database, as it was one of the SQL database engines commonly recommended. We also considered Postgres, but after reading articles online it seems like Postgres has some extra advanced features which are good for complex queries and transactions, which we don't really have a use-case for in our application at the moment. Also, MySQL is supposedly easier to setup and can run a bit faster, since it is more lightweight compared to Postgres. Source: https://www.geeksforgeeks.org/mysql/difference-between-mysql-and-postgresql/
 
-- We have decided to host our database on a seperate droplet within the same team, this means that the droplets will be running on the same virtual private cloud, allowing our application to connect to the database via private IP's, without exposing it to the public internet. We think that separating the application and the database on their own droplets will make it easier for us to get an overview of different metrics on Digital Ocean, like fx CPU usage etc., so that it is clearer which of our artifacts is the metrics relate to. 
+- We have decided to host our database on a seperate droplet within the same team, this means that the droplets will be running on the same virtual private cloud, allowing our application to connect to the database via private IP's, without exposing it to the public internet. We think that separating the application and the database on their own droplets will make it easier for us to get an overview and measure of different metrics such as CPU usage etc. We belive that seperating the droplets will make it much clearer, how many ressources the different artifacts are using, allowing for more precise metrics. 
 
 ## Trial of database change
 -  We created a docker image for a MySQL database (in Dockerfile-mysql) based mainly on what was done in this repo: https://github.com/itu-devops/itu-minitwit-ci/tree/master. 
@@ -111,7 +111,7 @@ scp data.sql root@164.92.189.173:~/data.sql
 
 - We decided to delete the database droplets (both our test environment and production environment databases had been hacked), and with assistance from Gemini, we created Vagrantfiles that could set up more secure droplets. We realized that our databases had been accessible from the public internet without any secure credentials, so it makes sense that some hackers/bots gained root access to our databases. 
 
-- The new Vagrantfiles require you to set a secure database password in your own environment variables before creating the droplet. It also sets up a firewall which only allows access to the droplet via ssh and from the application's IP address. This ensures that the database is no longer accessible from the public internet, and that access to the database is also guarded by a secure password.
+- The new Vagrantfiles requires you to set a secure database password in your own environment variables before creating the droplet. It also sets up a firewall which only allows access to the droplet via ssh and from the application's IP address. This ensures that the database is no longer accessible from the public internet, and that access to the database is also guarded by a secure password.
 
 - This new Vagrantfile is used to set up both the test environment's database and the production environment's database. 
 
