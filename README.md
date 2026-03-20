@@ -23,12 +23,14 @@ git push origin <tag>
 Versioning numbers are determined by following the SemVer versioning scheme, see: <https://semver.org/> for full documentation
 
 ## MiniTwit C# Application 
+### How to run in Container
+Running the application with Docker sets up a production-like environment on your machine, where you will have a container running with a MySQL database server and another container with the application, which can then connect to the MySQL database. This setup is similar to what is happening on our droplets on Digital Ocean.
+
+See [Docker readme](/README.Docker.md) for instructions on how to run using Docker.
+
 ### Requirements to run locally
 - dotnet 10.0
 - A terminal capable of running sh if you want to run the control.sh script
-
-### How to run in Container
-See [Docker readme](/README.Docker.md)
 
 ### How to run minitwit C# application
 Navigate to the `/minitwit` folder and run the following command in the terminal:
@@ -37,6 +39,8 @@ dotnet run
 ```
 This will start the minitwit application. You can access it by opening a web browser and going to `http://localhost:5035`. 
 You should see the minitwit homepage where you can see the public timeline, with options to sign up and sign in.
+
+OBS: You need to make sure that you **don't** have an environment variable called DbPath set up on your machine, as this variable points to the path for a MySQL database. The application specifically looks for this variable to determine which database to connect to, and when using `dotnet run`, the application should connect to the Sqlite database file, since there will be no running instance of a MySQL database server. 
 
 ### How to run C# tests against C# minitwit
 In one terminal, run the minitwit application by navigating to the `minitwit` folder and running the following command:
@@ -137,7 +141,18 @@ We have integrated Grafana, to use Prometheus to pull data from Minitwit and sho
 * A terminal
 * vagrant installation
 
-### First time guide!
+### Creating the droplets
+#### Step 0
+You need to ensure that the following Docker images have been built and pushed to Docker Hub: 
+- mathildegk/minitwitimage (This is the production application, it is automatically updated when we push new changes to main)
+- mathildegk/minitwit-dev (This is the development/test application, it is automatically updated when a new PR is created)
+- mathildegk/minitwit-mysql-prod (This is the production database, simply a MySQL image with an initialized database containing the necessary tables, but no data)
+- mathildegk/minitwit-mysql-test (This is the development/test database, simply a MySQL image with an initialized database containing the necessary tables, but no data)
+
+See guide in [Docker readme](/README.Docker.md) on how to build an push images to Docker Hub. 
+
+The reason why we need these images, is because our Vagrantfiles set up our droplets with Docker installed, so that the droplets can simply pull the necessary images from Docker Hub and run them using Docker compose. This way we can avoid installing fx Dotnet and MySQL directly on the droplets. 
+
 #### Step 1
 * Install the API package
 ```cmd
@@ -161,7 +176,7 @@ $env:DIGITAL_OCEAN_TOKEN="your_actual_token_here"
 ```Bash
 export DIGITAL_OCEAN_TOKEN="your_actual_token_here"
 ```
-OBS! This step I have not done permanently, in this guide (i.e. this will need to be done again when the terminal is restarted), so if someone finds a way to save these variables permanently, please change the guide accordingly
+OBS! Setting the environment variable like this does not store it permanently on your machine (i.e. you will need to set them again when the terminal is restarted). Save them in your environment file on your machine if you don't want to set them every time. 
 
 ### Step 3 
 * Input your SSH key name!
@@ -181,17 +196,63 @@ $env:SSH_KEY_NAME="the_name_you_found"
 ```Bash
 export SSH_KEY_NAME="the_name_you_found"
 ```
-OBS! This step I have not done permanently, in this guide (i.e. this will need to be done again when the terminal is restarted), so if someone finds a way to save these variables permanently, please change the guide accordingly
 
+### Step 4
+The Vagrantfiles that set up the databases for the production and test application require two more environment variables to be set. You need `DB_PASSWORD` (a strong password that will be used to secure the database - it will be part of the application's connection string and has to be used whenever you want to access the database, so you need to store it in a place where you can find it again), and you need `APP_SERVER_PRIVATE_IP` (the IP of the application that the firewall should allow to connect to the database). 
 
-### After First time guide!
-As long as you have set your `SSH_KEY_NAME` and `DIGITAL_OCEAN_TOKEN` (in the current terminal you have opened), you should be able to navigate to the minitwit folder:
+*For Windows (PowerShell):*
 
-```Bash
-cd ./ITU-minitwit/minitwit/
+```PowerShell
+$env:DB_PASSWORD="<password>"
+$env:APP_SERVER_PRIVATE_IP="<IP of application>"
 ```
 
-And then run this command:
+*For Mac/Linux (Terminal):*
+```Bash
+export DB_PASSWORD="<password>"
+export APP_SERVER_PRIVATE_IP="<IP of application>"
+```
+
+### Step 5
+The Vagrantfiles that set up the application on both the production and test environments also require two more environment variables; the `DOCKER_USERNAME` (which should be set to `mathildegk`, as this is the username that our Docker images are saved at on Docker Hub, and the docker-compose file on the droplet needs to know this in order to pull the right images), and the `db_connection` (which is the connection string for the database that you want the application to connect to, likely either the minitwit-test-env-mysql or the minitwit-prod-env-mysql).
+
+*For Windows (PowerShell):*
+
+```PowerShell
+$env:DOCKER_USERNAME="mathildegk"
+$env:db_connection="Server=<IP>;Port=<port>;Database=minitwit;Uid=root;Pwd=<password>;SslMode=None;AllowPublicKeyRetrieval=True;"
+```
+
+*For Mac/Linux (Terminal):*
+```Bash
+export DOCKER_USERNAME="mathildegk"
+export db_connection="Server=<IP>;Port=<port>;Database=minitwit;Uid=root;Pwd=<password>;SslMode=None;AllowPublicKeyRetrieval=True;"
+```
+
+You need to set the IP and port so that it matches the droplet running the database. The password should be the one you set up earlier, when you created the droplets for the database. 
+
+### OBS: Dependencies
+As you see in step 4 and 5, there are some "circular" dependencies between the application droplets and the database droplets. The database needs to have the IP address of the application, which you don't know if your application droplet isn't running yet, and likewise the application needs to have the connection string for the database, which you don't know if your database droplet isn't running yet. 
+
+One approach to solve this dependency could be to start the database droplet first without specifying the application's IP address. By default, the Vagrantfile for the database sets up a firewall that denies all incoming requests, and then only if the APP_SERVER_IP variable is set, the firewall will allow requests from this IP. So if you omit setting this variable, you can get the droplet up and running (with a very strict firewall), and you can then get the connection string that you need in order to start the application droplet. As soon as the application droplet is running and you can get the application's IP address, you can then manually connect to the database droplet and run `sudo ufw allow from "<IP address>" to any port 3306` in order to "open up" the firewall so that it allows the application to access the database. 
+
+### Setting up the droplets!
+The Vagrantfile to set up the application in production environment can be found in the root of the project, so you need to be in the ITU-minitwit folder, and run the following command to create the droplet:
 ```Bash
 vagrant up
 ```
+
+To set up the application in a production-like test environment, navigate to the test_env_setup folder:
+
+```Bash
+cd test_env_setup
+```
+
+And then run this command to create the droplet:
+```Bash
+vagrant up
+```
+
+The Vagrantfiles to set up the production and test databases can be found in the folders `prod_env_db_setup` and `test_env_db_setup`, and can be started with the same `vagrant up` command. 
+
+Future work would be to combine all the Vagrantfiles into a single file that can be run with different arguments to set up the different droplets. 
