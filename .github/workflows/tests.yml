@@ -26,4 +26,14 @@ jobs:
 
       - name: Run API tests
         run: docker compose run --rm apitests
+  
+  ui-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Run UI/End-to-End tests
+        run: docker compose run --rm uitests
     
