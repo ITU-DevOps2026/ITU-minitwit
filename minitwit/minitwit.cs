@@ -102,7 +102,7 @@ namespace minitwit
     const int iterations = 50000;
     HashAlgorithmName hashAlgorithm = HashAlgorithmName.SHA256;
 
-    public static string Format_datetime(long timestamp)
+    public static string Format_datetime(int timestamp)
     {
       // Convert timestamp to UTC object
       DateTimeOffset utcTime = DateTimeOffset.FromUnixTimeSeconds(timestamp);
