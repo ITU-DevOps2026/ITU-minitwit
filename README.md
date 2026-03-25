@@ -160,99 +160,112 @@ vagrant plugin install droplet_kit
 ```
 
 #### Step 2
+Create a .env file in the root of the project, so in the root of ITU-minitwit. Make sure that this file is ignored by the .gitignore file, as it should not be in the versioning, because it will contain secrets.
+
+Your .env file should contain the following:
+```dotenv
+# Global secrets
+# Digital Ocean credentials
+DIGITAL_OCEAN_TOKEN=<your digital ocean token>
+
+SSH_KEY_NAME=<Name of your ssh key>
+
+# Docker Hub (Also global)
+DOCKER_USERNAME=mathildegk
+
+# Production environment secrets
+db_connection=Server=<Private IP of droplet containing prodcution mysql database>;Port=3306;Database=minitwit;Uid=root;Pwd=<Secure Database Password (same as what you set as DB_PASSWORD)>;SslMode=None;AllowPublicKeyRetrieval=True;
+
+DB_PASSWORD=<Secure Database Password>
+
+APP_SERVER_PRIVATE_IP=<Private IP of droplet containing production MiniTwit application>
+
+# Test environment secrets
+test_db_connection=Server=<Private IP of droplet containing test mysql database>;Port=3306;Database=minitwit;Uid=root;Pwd=<Secure Database Password (same as what you set as TEST_DB_PASSWORD)>;SslMode=None;AllowPublicKeyRetrieval=True;
+
+TEST_DB_PASSWORD=XbkVxETFT8UqA1G
+
+TEST_APP_SERVER_PRIVATE_IP=<Private IP of droplet containing test MiniTwit application>
+```
+
+#### Step 3
 * Generate a Digital Ocean Token!
 * This is done in Digital ocean, under **API**, under **Tokens/keys**, and look for **Personal Access Token**. 
 * Here you should generate a new Personal Access Token, by clicking the **Generate new Token** button. Give it a name that will identify you, and set the expiration date. Ensure to set it to **Full read/access rights**
 * REMEMBER to copy the token generated. This will be the only time you can se this, and store it somewhere safe.
-* Now you need to set this in your terminal, so the Vagrant script can extract it when needed. this is done by the commands under here:
+* Now you need to set this in your .env file as the DIGITAL_OCEAN_TOKEN
 
-*For Windows (PowerShell):*
-
-```PowerShell
-$env:DIGITAL_OCEAN_TOKEN="your_actual_token_here"
-```
-
-*For Mac/Linux (Terminal):*
-```Bash
-export DIGITAL_OCEAN_TOKEN="your_actual_token_here"
-```
-OBS! Setting the environment variable like this does not store it permanently on your machine (i.e. you will need to set them again when the terminal is restarted). Save them in your environment file on your machine if you don't want to set them every time. 
-
-### Step 3 
+### Step 4
 * Input your SSH key name!
 * Log in to your Digital Ocean Dashboard.
 * On the left sidebar, click Settings (near the bottom).
 * Click the Security tab.
 * Look for the SSH Keys section.
-* You will see a list of keys. Look at the Name column (e.g., "Carmens key", or "mathildes key", etc..). This is what you use for SSH_KEY_NAME.
-
-*For Windows (PowerShell):*
-
-```PowerShell
-$env:SSH_KEY_NAME="the_name_you_found"
-```
-
-*For Mac/Linux (Terminal):*
-```Bash
-export SSH_KEY_NAME="the_name_you_found"
-```
-
-### Step 4
-The Vagrantfiles that set up the databases for the production and test application require two more environment variables to be set. You need `DB_PASSWORD` (a strong password that will be used to secure the database - it will be part of the application's connection string and has to be used whenever you want to access the database, so you need to store it in a place where you can find it again), and you need `APP_SERVER_PRIVATE_IP` (the IP of the application that the firewall should allow to connect to the database). 
-
-*For Windows (PowerShell):*
-
-```PowerShell
-$env:DB_PASSWORD="<password>"
-$env:APP_SERVER_PRIVATE_IP="<IP of application>"
-```
-
-*For Mac/Linux (Terminal):*
-```Bash
-export DB_PASSWORD="<password>"
-export APP_SERVER_PRIVATE_IP="<IP of application>"
-```
+* You will see a list of keys. Look at the Name column (e.g., "Carmens key", or "mathildes key", etc..). This is what you use for SSH_KEY_NAME in your .env file.
 
 ### Step 5
+The Vagrantfiles that set up the databases for the production and test application require two more variables to be set in the .env file. You need `DB_PASSWORD` (a strong password that will be used to secure the database - it will be part of the application's connection string and has to be used whenever you want to access the database), and you need `APP_SERVER_PRIVATE_IP` (the IP of the application that the firewall should allow to connect to the database). 
+
+The same applies to `TEST_DB_PASSWORD` and `TEST_APP_SERVER_PRIVATE_IP` these are simply to keep the testing environment and production environment seperated.
+
+### Step 6
 The Vagrantfiles that set up the application on both the production and test environments also require two more environment variables; the `DOCKER_USERNAME` (which should be set to `mathildegk`, as this is the username that our Docker images are saved at on Docker Hub, and the docker-compose file on the droplet needs to know this in order to pull the right images), and the `db_connection` (which is the connection string for the database that you want the application to connect to, likely either the minitwit-test-env-mysql or the minitwit-prod-env-mysql).
 
-*For Windows (PowerShell):*
-
-```PowerShell
-$env:DOCKER_USERNAME="mathildegk"
-$env:db_connection="Server=<IP>;Port=<port>;Database=minitwit;Uid=root;Pwd=<password>;SslMode=None;AllowPublicKeyRetrieval=True;"
-```
-
-*For Mac/Linux (Terminal):*
-```Bash
-export DOCKER_USERNAME="mathildegk"
-export db_connection="Server=<IP>;Port=<port>;Database=minitwit;Uid=root;Pwd=<password>;SslMode=None;AllowPublicKeyRetrieval=True;"
-```
-
-You need to set the IP and port so that it matches the droplet running the database. The password should be the one you set up earlier, when you created the droplets for the database. 
+You need to set the IP and port so that it matches the droplet running the database.
 
 ### OBS: Dependencies
-As you see in step 4 and 5, there are some "circular" dependencies between the application droplets and the database droplets. The database needs to have the IP address of the application, which you don't know if your application droplet isn't running yet, and likewise the application needs to have the connection string for the database, which you don't know if your database droplet isn't running yet. 
+As you see in step 5 and 6, there are some "circular" dependencies between the application droplets and the database droplets. The database needs to have the IP address of the application, which you don't know if your application droplet isn't running yet, and likewise the application needs to have the connection string for the database, which you don't know if your database droplet isn't running yet. 
+
+An approach to solving this is mentioned below in **Setting up the droplets!**, but is something that mainly should apply to the testing application and testing database, as there currently is no intention of redeploying the production application or production database.
 
 One approach to solve this dependency could be to start the database droplet first without specifying the application's IP address. By default, the Vagrantfile for the database sets up a firewall that denies all incoming requests, and then only if the APP_SERVER_IP variable is set, the firewall will allow requests from this IP. So if you omit setting this variable, you can get the droplet up and running (with a very strict firewall), and you can then get the connection string that you need in order to start the application droplet. As soon as the application droplet is running and you can get the application's IP address, you can then manually connect to the database droplet and run `sudo ufw allow from "<IP address>" to any port 3306` in order to "open up" the firewall so that it allows the application to access the database. 
 
 ### Setting up the droplets!
-The Vagrantfile to set up the application in production environment can be found in the root of the project, so you need to be in the ITU-minitwit folder, and run the following command to create the droplet:
+Both the production and testing environment, are set up using the same Vagrantfile, found in the root of the project, so you need to be in the ITU-minitwit folder to run your commands. Below is a list of commands and an explanation of which part of the environment it spins up. Be aware that the production application and database should not be needlessy messed with, as they are what is being used in the simulator. As mentioned earlier, the intention is for application and database to be up at all times (or as close to it as possible).
+#### Setup of production MiniTwit application
+The current MiniTwit application that is in production, would be spun up by running (If you already have the database you want this application to connect to up and running, you should update your .env file with the private ip for it accordingly before running the command)::
 ```Bash
-vagrant up
+vagrant up minitwit-3
+```
+This creates a droplet with the necessities to run the containers for MiniTwit. The containers are not run as part of this process, and you will have to ssh into the droplet and run the deploy.sh script, by writing the following command in the folder it is located in (which should be the starting point for the terminal).
+```Bash
+./deploy.sh
+```
+#### Setup of production database 
+To create the droplet containing the production database, run the following command (If you already have the dropet containing the application you to connect to this database, up and running, you should update your .env file with the private ip for it accordingly before running the command):
+```Bash
+vagrant up minitwit-prod-env-mysql
 ```
 
-To set up the application in a production-like test environment, navigate to the test_env_setup folder:
-
+#### Setup of test MiniTwit application
+To create a droplet containing a MiniTwit application used for testing in a production like environment, run the following command (If you already have the database you want this application to connect to up and running, you should update your .env file with the private ip for it accordingly before running the command):
 ```Bash
-cd test_env_setup
+vagrant up minitwit-test-env
+```
+This creates a droplet with the necessities to run the containers for MiniTwit. The containers are not run as part of this process, and you will have to ssh into the droplet and run the deploy.sh script, by writing the following command in the folder it is located in (which should be the starting point for the terminal).
+```Bash
+./deploy.sh
 ```
 
-And then run this command to create the droplet:
+#### Setup of test database
+To create the droplet containing the test database, run the following command (If you already have the dropet containing the application you to connect to this database, up and running, you should update your .env file with the private ip for it accordingly before running the command):
 ```Bash
-vagrant up
+vagrant up minitwit-test-env-mysql
 ```
 
-The Vagrantfiles to set up the production and test databases can be found in the folders `prod_env_db_setup` and `test_env_db_setup`, and can be started with the same `vagrant up` command. 
+#### Connecting the database and the application through vagrant commands:
+As mentioned before, here is an approach to solve the circular dependencies and connect the database and application. Note that this approach assumes you want to spin up a fresh application and database:
 
-Future work would be to combine all the Vagrantfiles into a single file that can be run with different arguments to set up the different droplets. 
+First run the following command to spin up both droplets:
+```Bash
+vagrant up minitwit-test-env-mysql minitwit-test-env
+```
+When both droplets have been created, update your .env file with the corresponding private IP's they have been assigned, then run the following command:
+```Bash
+vagrant provision minitwit-test-env-mysql minitwit-test-env
+```
+This runs the sections of the vagrant file for the machines, marked with server.vm.provision, which in this case updates things, such as the variables containing the Private IP's. When this command has finished, you should be able to ssh into the droplet containing the application, and running
+```Bash
+./deploy.sh
+```
+and you should now have a working MiniTwit application, which you access on the public ip of the droplet containing the application and adding :5035 at the end of it.
