@@ -104,7 +104,20 @@ namespace minitwit
 
     public static string Format_datetime(int timestamp)
     {
-      return DateTimeOffset.FromUnixTimeSeconds(timestamp).ToLocalTime().ToString("yyyy-MM-dd @ HH:mm");
+      // Convert timestamp to UTC object
+      DateTimeOffset utcTime = DateTimeOffset.FromUnixTimeSeconds(timestamp);
+
+      //tz id which Linux uses for our timezone https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+      string tzId = "Europe/Copenhagen"; 
+
+      // Identify the TimeZone by using the tz id
+      TimeZoneInfo dkTimeZone = TimeZoneInfo.FindSystemTimeZoneById(tzId);
+      
+      // Convert from utc to our timezone
+      DateTimeOffset dkTime = TimeZoneInfo.ConvertTime(utcTime, dkTimeZone);
+      
+      //Formatting
+      return dkTime.ToString("yyyy-MM-dd @ HH:mm");
     }
 
     public static string Get_Gravatar_Url(string username, int size = 80)
