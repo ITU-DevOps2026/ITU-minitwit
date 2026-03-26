@@ -49,7 +49,7 @@ jobs:
         shell: bash
         run: |
           "${{ runner.temp }}/scanner/dotnet-sonarscanner" begin /k:"ITU-DevOps2026_ITU-minitwit" \
-            /o:"itu-devops2026-patmyaz" \ 
+            /o:"itu-devops2026-patmyaz" \
             /d:sonar.token="${{ secrets.SONAR_TOKEN }}" \
             /d:sonar.c.file.suffixes=- \
             /d:sonar.cpp.file.suffixes=- \
