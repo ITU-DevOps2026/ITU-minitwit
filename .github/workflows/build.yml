@@ -48,7 +48,14 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         shell: bash
         run: |
-          "${{ runner.temp }}/scanner/dotnet-sonarscanner" begin /k:"ITU-DevOps2026_ITU-minitwit" /o:"itu-devops2026-patmyaz" /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+          "${{ runner.temp }}/scanner/dotnet-sonarscanner" begin /k:"ITU-DevOps2026_ITU-minitwit" \
+            /o:"itu-devops2026-patmyaz" \ 
+            /d:sonar.token="${{ secrets.SONAR_TOKEN }}" \
+            /d:sonar.c.file.suffixes=- \
+            /d:sonar.cpp.file.suffixes=- \
+            /d:sonar.objc.file.suffixes=- \
+            /d:sonar.exclusions="**/bin/**,**/obj/**,**/wwwroot/lib/**"
+
           dotnet restore minitwit/minitwit.sln
           dotnet build minitwit/minitwit.sln --no-restore
           "${{ runner.temp }}/scanner/dotnet-sonarscanner" end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
