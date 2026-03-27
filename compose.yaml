@@ -131,20 +131,6 @@ services:
       - discovery.type=single-node
     networks:
       - main
-    
-  kibana:
-    container_name: kibana
-    build:
-      dockerfile: ./Dockerfile
-      context: ./logging/kibana
-    ports:
-      - 5601:5601
-    depends_on:
-      - elasticsearch
-    environment:
-      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
-    networks:
-      - main
 
 volumes:
   grafana-storage: {}
