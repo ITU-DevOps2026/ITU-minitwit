@@ -25,6 +25,7 @@ services:
       - ./data:/app/data
     environment:
       - DbPath=Server=mysql;Port=3306;Database=minitwit;Uid=root;Pwd=root;SslMode=None;AllowPublicKeyRetrieval=True;
+      - ELASTICSEARCH_URI=http://elasticsearch:9200
     
   mysql:
     build:
@@ -114,5 +115,37 @@ services:
       - ./monitoring/grafana/dashboards/dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml
       - ./monitoring/grafana/dashboards:/etc/grafana/dashboards
 
+  elasticsearch:
+    container_name: elasticsearch
+    build:
+      dockerfile: ./Dockerfile
+      context: ./logging/elasticsearch
+    ports:
+      - 9200:9200
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+    environment:
+      - xpack.monitoring.enabled=true
+      - xpack.watcher.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - discovery.type=single-node
+    networks:
+      - main
+    
+  kibana:
+    container_name: kibana
+    build:
+      dockerfile: ./Dockerfile
+      context: ./logging/kibana
+    ports:
+      - 5601:5601
+    depends_on:
+      - elasticsearch
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    networks:
+      - main
+
 volumes:
   grafana-storage: {}
+  elasticsearch-data: {}
