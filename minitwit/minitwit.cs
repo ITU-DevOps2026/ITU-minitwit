@@ -5,14 +5,18 @@ using minitwit.Model;
 using Microsoft.EntityFrameworkCore;
 using Prometheus;
 using Serilog;
-using Elastic.Serilog.Sinks;
+//using Elastic.Serilog.Sinks;
 using Elastic.Ingest.Elasticsearch.DataStreams;
 using Elastic.Ingest.Elasticsearch;
+// using Microsoft.AspNetCore.Hosting;
+// using Microsoft.Extensions.Configuration;
+// using Microsoft.Extensions.Hosting;
+using Serilog.Sinks.Elasticsearch;
+// using System;
+using System.Reflection;
 
-Log.Logger = new LoggerConfiguration()
-  .MinimumLevel.Debug()
-  .Enrich.FromLogContext()
-  .CreateLogger();
+
+// MinitwitLogging.ConfigureLogging();
 
 try
 {
@@ -20,14 +24,21 @@ try
 
   var builder = WebApplication.CreateBuilder(args);
 
+  // builder.Configuration
+  //   .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+  //   .AddJsonFile(
+  //     $"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")}.json",
+  //     optional: true);
+  // builder.Services.AddSerilog();
+
   builder.Services.AddSerilog((services, loggerConfig) => loggerConfig
     .ReadFrom.Configuration(builder.Configuration)
     .Enrich.FromLogContext()
     .WriteTo.Console()
-    .WriteTo.Elasticsearch(new [] { new Uri("http://ip_of_droplet_running_elasticsearch:9200")}, opts =>
+    .WriteTo.Elasticsearch(new ElasticsearchSinkOptions(new Uri(Environment.GetEnvironmentVariable("ELASTICSEARCH_URI") ?? "http://localhost:9200"))
     {
-      opts.DataStream = new DataStreamName("logs", "miniTwit", "simulation");
-      opts.BootstrapMethod = BootstrapMethod.Failure;
+      AutoRegisterTemplate = true,
+		  IndexFormat = $"{Assembly.GetExecutingAssembly().GetName().Name.ToLower().Replace(".", "-")}-{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")?.ToLower().Replace(".", "-")}-{DateTime.UtcNow:yyyy-MM}"
     })
   );
 
@@ -106,7 +117,8 @@ try
 }
 catch (Exception ex)
 {
-  Log.Fatal(ex, "MiniTwit terminated unexpectedly");
+  Log.Fatal($"Failed to start {Assembly.GetExecutingAssembly().GetName().Name}", ex);
+	throw;
 }
 finally
 {
@@ -115,6 +127,41 @@ finally
 
 namespace minitwit
 {
+  // public static class MinitwitLogging
+  // {
+
+  //   public static void ConfigureLogging()
+  //   {
+  //     var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+  //     var configuration = new ConfigurationBuilder()
+  //       .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+  //       .AddJsonFile(
+  //         $"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")}.json",
+  //         optional: true)
+  //       .Build();
+
+  //     Log.Logger = new LoggerConfiguration()
+  //       .Enrich.FromLogContext()
+  //       .Enrich.WithMachineName()
+  //       .WriteTo.Debug()
+  //       .WriteTo.Console()
+  //       .WriteTo.Elasticsearch(ConfigureElasticSink(configuration, environment))
+  //       .Enrich.WithProperty("Environment", environment)
+  //       .ReadFrom.Configuration(configuration)
+  //       .CreateLogger();
+  //   }
+
+  //   private static Serilog.Sinks.Elasticsearch.ElasticsearchSinkOptions ConfigureElasticSink(IConfigurationRoot configuration, string environment)
+  //   {
+  //     return new Serilog.Sinks.Elasticsearch.ElasticsearchSinkOptions(new Uri(configuration["ElasticConfiguration:Uri"]))
+  //     {
+  //       AutoRegisterTemplate = true,
+  //       IndexFormat = $"{Assembly.GetExecutingAssembly().GetName().Name.ToLower().Replace(".", "-")}-{environment?.ToLower().Replace(".", "-")}-{DateTime.UtcNow:yyyy-MM}"
+  //     };
+  //   }
+  // }
+  
+
   public static class MinitwitMetrics
   {
     public static readonly Counter TweetCounter = Metrics
