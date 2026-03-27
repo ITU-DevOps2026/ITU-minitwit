@@ -192,7 +192,7 @@ TEST_APP_SERVER_PRIVATE_IP=<Private IP of droplet containing test MiniTwit appli
 * Generate a Digital Ocean Token!
 * This is done in Digital ocean, under **API**, under **Tokens/keys**, and look for **Personal Access Token**. 
 * Here you should generate a new Personal Access Token, by clicking the **Generate new Token** button. Give it a name that will identify you, and set the expiration date. Ensure to set it to **Full read/access rights**
-* REMEMBER to copy the token generated. This will be the only time you can se this, and store it somewhere safe.
+* REMEMBER to copy the token generated and store it somewhere safe. This will be the only time you can see it.
 * Now you need to set this in your .env file as the DIGITAL_OCEAN_TOKEN
 
 ### Step 4
