@@ -1,3 +1,34 @@
+# Monitoring
+
+For monitoring of our application, we are using prometheus and grafana. We have set up a prometheus server on the same droplet as our application, and we have set up the application to send metrics to this server. We have also set up a grafana dashboard that visualizes the metrics from prometheus.
+
+In grafana, we have set up two seperate dashboards, a Infrastructure Health dashboard mainly for developers, visualizing the health-metrics of the application, and a Product Performance dashboard which is more business-oriented, visualizing the number of register requests and tweets over time.
+
+## The Infrastructure Health dashboard
+This dashboard is designed for Reliability and Troubleshooting, and it visualizes the following metrics:
+- Status (UP/DOWN): A binary indicator of whether the application instance is currently reachable by Prometheus.
+- Error Rate: A 5-minute rolling average of HTTP 5xx errors (server-side failures).
+- Requests per Second (RPS): The real-time volume of traffic hitting the application.
+- Total HTTP Requests: A cumulative count (historical volume) of all incoming traffic.
+- Latency (Request Duration): The average time it takes for the server to process a request.
+
+### Relevance of the Infrastructure Health metrics for developers
+- Immediate Root Cause Analysis: If the Status is UP but the Error Rate is spiking, developers know the app is running but the code or database is failing.
+- Capacity Planning: RPS and Total Requests help developers understand if the current infrastructure (CPU/RAM) can handle the load or if they need to scale.
+- Performance Regressions: By monitoring Latency, developers can see if a recent code deployment made the app slower, even if it didn't _break_ it.
+
+## The Product Performance dashboard
+This dashboard translates technical signals into Value and Growth metrics. It answers the question: "Is the product successful and are the users happy?". It visualizes the following metrics:
+- Total Tweets & Tweets (Last 24h): Measures user engagement and content creation.
+- Amount of Users & New Registrations: Tracks growth and the onboarding-health of the platform.
+- Latency (Business Perspective): While also on the dev dashboard, here it represents User Experience (UX).
+
+### Relevance of the Product Performance metrics for Business Stakeholders
+- KPI Tracking: "Total Tweets" and "User Registrations" are direct Key Performance Indicators. In a real application, if registrations drop to zero, the Marketing or Product team needs to know immediately.
+- Engagement Trends: The 24-hour tweet increase shows the pulse of the community. A sudden drop might indicate a trend issue or a subtle bug that doesn't trigger a 500 error but prevents posting.
+- User Satisfaction: To a business owner, Latency isn't just a number; it’s a Bounce Rate indicator. Slow apps lead to lost users. Including it here keeps the business aligned with the need for technical optimization.
+
+
 # Migrating to another database
 
 ## Choice of database
