@@ -31,11 +31,28 @@ services:
     networks:
       - main
     volumes:
+      - grafana-storage:/var/lib/grafana
       # Save the dasboards to the container, so it can build them.
       - ../monitoring/grafana/datasources/datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml
       - ../monitoring/grafana/dashboards/dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml
       - ../monitoring/grafana/dashboards:/etc/grafana/dashboards
 
+  elasticsearch:
+    container_name: elasticsearch
+    build:
+      dockerfile: ./Dockerfile
+      context: ../logging/elasticsearch
+    ports:
+      - 9200:9200
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+    networks:
+      - main
+
 networks:
   main:
     driver: bridge
+
+volumes:
+  elasticsearch-data: {}
+  grafana-storage: {}
