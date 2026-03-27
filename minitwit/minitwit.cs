@@ -4,82 +4,114 @@ using minitwit;
 using minitwit.Model;
 using Microsoft.EntityFrameworkCore;
 using Prometheus;
+using Serilog;
+using Elastic.Serilog.Sinks;
+using Elastic.Ingest.Elasticsearch.DataStreams;
+using Elastic.Ingest.Elasticsearch;
 
+Log.Logger = new LoggerConfiguration()
+  .MinimumLevel.Debug()
+  .Enrich.FromLogContext()
+  .CreateLogger();
 
-var builder = WebApplication.CreateBuilder(args);
-
-// Add services to the container.
-builder.Services.AddRazorPages();
-
-builder.Services.AddDistributedMemoryCache();
-
-builder.Services.AddSession(options =>
+try
 {
-  options.IdleTimeout = TimeSpan.FromMinutes(15);
-  options.Cookie.HttpOnly = true;
-  options.Cookie.IsEssential = true;
-});
+  Log.Information("Starting MiniTwit application");
 
-builder.Services.AddOpenApi();
+  var builder = WebApplication.CreateBuilder(args);
 
-string? DbPath = Environment.GetEnvironmentVariable("DbPath");
+  builder.Services.AddSerilog((services, loggerConfig) => loggerConfig
+    .ReadFrom.Configuration(builder.Configuration)
+    .Enrich.FromLogContext()
+    .WriteTo.Console()
+    .WriteTo.Elasticsearch(new [] { new Uri("http://ip_of_droplet_running_elasticsearch:9200")}, opts =>
+    {
+      opts.DataStream = new DataStreamName("logs", "miniTwit", "simulation");
+      opts.BootstrapMethod = BootstrapMethod.Failure;
+    })
+  );
 
-if (string.IsNullOrEmpty(DbPath))
-{
-  builder.Services.AddDbContext<MinitwitContext>(options =>
-    options.UseSqlite("DataSource=../data/minitwit.db"));
-} else
-{
-  builder.Services.AddDbContext<MinitwitContext>(options =>
-    options.UseMySql(DbPath, ServerVersion.AutoDetect(DbPath)));
+  // Add services to the container.
+  builder.Services.AddRazorPages();
+
+  builder.Services.AddDistributedMemoryCache();
+
+  builder.Services.AddSession(options =>
+  {
+    options.IdleTimeout = TimeSpan.FromMinutes(15);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+  });
+
+  builder.Services.AddOpenApi();
+
+  string? DbPath = Environment.GetEnvironmentVariable("DbPath");
+
+  if (string.IsNullOrEmpty(DbPath))
+  {
+    builder.Services.AddDbContext<MinitwitContext>(options =>
+      options.UseSqlite("DataSource=../data/minitwit.db"));
+  } else
+  {
+    builder.Services.AddDbContext<MinitwitContext>(options =>
+      options.UseMySql(DbPath, ServerVersion.AutoDetect(DbPath)));
+  }
+
+  builder.Services.AddScoped<MiniTwit>();
+
+  var app = builder.Build();
+
+  using (var scope = app.Services.CreateScope())
+  {
+      var services = scope.ServiceProvider;
+
+      var context = services.GetRequiredService<MinitwitContext>();
+      context.Database.EnsureCreated();
+
+      //Start the metrics at the amount of tweets and users in the database
+      var totalTweets = context.Messages.Count();
+      var totalUsers = context.Users.Count();
+      
+      MinitwitMetrics.TweetCounter.IncTo(totalTweets);
+      MinitwitMetrics.UserRegistrationCounter.IncTo(totalUsers);
+  }
+
+  // Configure the HTTP request pipeline.
+  if (!app.Environment.IsDevelopment())
+  {
+    app.UseExceptionHandler("/Error");
+    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+    app.UseHsts();
+  }
+
+  // Add Prometheus metrics
+  app.UseHttpMetrics();
+  app.MapMetrics();
+
+  app.UseHttpsRedirection();
+
+  app.UseRouting();
+
+  app.UseAuthorization();
+
+  app.UseSession();
+
+  app.MapStaticAssets();
+  app.MapRazorPages()
+    .WithStaticAssets();
+
+  app.MapControllers();
+
+  app.Run();
 }
-
-builder.Services.AddScoped<MiniTwit>();
-
-var app = builder.Build();
-
-using (var scope = app.Services.CreateScope())
+catch (Exception ex)
 {
-    var services = scope.ServiceProvider;
-
-    var context = services.GetRequiredService<MinitwitContext>();
-    context.Database.EnsureCreated();
-
-    //Start the metrics at the amount of tweets and users in the database
-    var totalTweets = context.Messages.Count();
-    var totalUsers = context.Users.Count();
-    
-    MinitwitMetrics.TweetCounter.IncTo(totalTweets);
-    MinitwitMetrics.UserRegistrationCounter.IncTo(totalUsers);
+  Log.Fatal(ex, "MiniTwit terminated unexpectedly");
 }
-
-// Configure the HTTP request pipeline.
-if (!app.Environment.IsDevelopment())
+finally
 {
-  app.UseExceptionHandler("/Error");
-  // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-  app.UseHsts();
+  await Log.CloseAndFlushAsync();
 }
-
-// Add Prometheus metrics
-app.UseHttpMetrics();
-app.MapMetrics();
-
-app.UseHttpsRedirection();
-
-app.UseRouting();
-
-app.UseAuthorization();
-
-app.UseSession();
-
-app.MapStaticAssets();
-app.MapRazorPages()
-   .WithStaticAssets();
-
-app.MapControllers();
-
-app.Run();
 
 namespace minitwit
 {
