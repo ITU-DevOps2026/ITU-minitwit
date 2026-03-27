@@ -8,6 +8,7 @@ services:
       - ../data:/app/data
     environment:
       - DbPath=${db_connection}
+      - ELASTICSEARCH_URI=http://elasticsearch:9200
     networks:
       - main
 
