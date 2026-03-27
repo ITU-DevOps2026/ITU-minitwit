@@ -183,7 +183,7 @@ APP_SERVER_PRIVATE_IP=<Private IP of droplet containing production MiniTwit appl
 # Test environment secrets
 test_db_connection=Server=<Private IP of droplet containing test mysql database>;Port=3306;Database=minitwit;Uid=root;Pwd=<Secure Database Password (same as what you set as TEST_DB_PASSWORD)>;SslMode=None;AllowPublicKeyRetrieval=True;
 
-TEST_DB_PASSWORD=XbkVxETFT8UqA1G
+TEST_DB_PASSWORD=<Secure Test Database Password>
 
 TEST_APP_SERVER_PRIVATE_IP=<Private IP of droplet containing test MiniTwit application>
 ```
