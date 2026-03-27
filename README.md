@@ -223,7 +223,10 @@ One approach to solve this dependency could be to start the database droplet fir
 ### Setting up the droplets!
 Both the production and testing environment, are set up using the same Vagrantfile, found in the root of the project, so you need to be in the ITU-minitwit folder to run your commands. Below is a list of commands and an explanation of which part of the environment it spins up. Be aware that the production application and database should not be needlessy messed with, as they are what is being used in the simulator. As mentioned earlier, the intention is for application and database to be up at all times (or as close to it as possible).
 #### Setup of production MiniTwit application
-The current MiniTwit application that is in production, would be spun up by running (If you already have the database you want this application to connect to up and running, you should update your .env file with the private ip for it accordingly before running the command)::
+First, make sure the database you want the application to connect to is up and running and
+the variable `db_connection` in your .env file is updated with the correct private ip for this database.
+
+Then, the current MiniTwit application which is in production, can be spun up by running this command:
 ```Bash
 vagrant up minitwit-3
 ```
@@ -232,13 +235,18 @@ This creates a droplet with the necessities to run the containers for MiniTwit. 
 ./deploy.sh
 ```
 #### Setup of production database 
-To create the droplet containing the production database, run the following command (If you already have the dropet containing the application you to connect to this database, up and running, you should update your .env file with the private ip for it accordingly before running the command):
+If you already have the droplet for the production application up and running, you should first make sure to update your .env file with the private ip for this accordingly. If not, read the section above named "OBS: Dependencies".
+
+Then, to create the droplet containing the production database, run the following command:
 ```Bash
 vagrant up minitwit-prod-env-mysql
 ```
 
 #### Setup of test MiniTwit application
-To create a droplet containing a MiniTwit application used for testing in a production like environment, run the following command (If you already have the database you want this application to connect to up and running, you should update your .env file with the private ip for it accordingly before running the command):
+First, make sure the test database you want the application to connect to is up and running and
+the variable `test_db_connection` in your .env file is updated with the correct private ip for this database.
+
+Then, the current MiniTwit test application, can be spun up by running this command:
 ```Bash
 vagrant up minitwit-test-env
 ```
@@ -248,7 +256,9 @@ This creates a droplet with the necessities to run the containers for MiniTwit. 
 ```
 
 #### Setup of test database
-To create the droplet containing the test database, run the following command (If you already have the dropet containing the application you to connect to this database, up and running, you should update your .env file with the private ip for it accordingly before running the command):
+If you already have the droplet for the test application up and running, you should first make sure to update your .env file with the private ip for this accordingly. If not, read the section above named "OBS: Dependencies".
+
+Then, to create the droplet containing the test database, run the following command:
 ```Bash
 vagrant up minitwit-test-env-mysql
 ```
