@@ -162,7 +162,7 @@ vagrant plugin install droplet_kit
 #### Step 2
 Create a .env file in the root of the project, so in the root of ITU-minitwit. Make sure that this file is ignored by the .gitignore file, as it should not be in the versioning, because it will contain secrets.
 
-Your .env file should contain the following:
+Your .env file should contain the following (We will describe how to get the different variables in later steps):
 ```dotenv
 # Global secrets
 # Digital Ocean credentials
