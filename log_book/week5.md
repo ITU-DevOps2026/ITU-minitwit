@@ -11,7 +11,7 @@ The first way focuses on ensuring that our code changes can be quickly and relia
 - Work in Progress: We use GitHub Projects to track issues. By limiting our active tasks to 1–3 items for our 5-person team, we maintain a high focus and reduce the overhead of context switching.
 
 We could improve our Flow-way by including more automated checks in our pipeline, such as static code analysis or security scanning. 
-This would help catch issues earlier and further reduce the time to deployment.
+This would help catch issues earlier and further reduce the time to deployment. To go even futher, refactoring our project to allow for workflows to be run locally, could improve it even further, as we could trigger things such as static code analysis more often.
 
 
 ## Feedback
