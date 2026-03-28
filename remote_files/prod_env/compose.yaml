@@ -38,17 +38,17 @@ services:
       - ../monitoring/grafana/dashboards/dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml
       - ../monitoring/grafana/dashboards:/etc/grafana/dashboards
 
-    elasticsearch:
-      container_name: elasticsearch
-      build:
-        dockerfile: ./Dockerfile
-        context: ../logging/elasticsearch
-      ports:
-        - 9200:9200
-      volumes:
-        - elasticsearch-data:/usr/share/elasticsearch/data
-      networks:
-        - main
+  elasticsearch:
+    container_name: elasticsearch
+    build:
+      dockerfile: ./Dockerfile
+      context: ../logging/elasticsearch
+    ports:
+      - 9200:9200
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+    networks:
+      - main
 
 networks:
   main:
