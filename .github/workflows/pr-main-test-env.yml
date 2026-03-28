@@ -55,8 +55,11 @@ jobs:
       
       - name: Copy configuration files to Droplet
         run: |
-          scp -i ~/.ssh/do_ssh_key -o StrictHostKeyChecking=no ./remote_files/test_env/* $SSH_USER_TEST_ENV@$SSH_HOST_TEST_ENV:/minitwit/
+          scp -r -i ~/.ssh/do_ssh_key -o StrictHostKeyChecking=no ./remote_files/test_env/* $SSH_USER_TEST_ENV@$SSH_HOST_TEST_ENV:/minitwit/
           scp -r -i ~/.ssh/do_ssh_key -o StrictHostKeyChecking=no ./monitoring $SSH_USER_TEST_ENV@$SSH_HOST_TEST_ENV:/minitwit/
+        env: 
+          SSH_USER_TEST_ENV: ${{ secrets.SSH_USER_TEST_ENV }}
+          SSH_HOST_TEST_ENV: ${{ secrets.SSH_HOST_TEST_ENV }}
 
       - name: Deploy to server
         run: >
