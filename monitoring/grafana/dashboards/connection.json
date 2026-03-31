@@ -100,6 +100,7 @@
         }
       ],
       "title": "Status",
+      "description": "Binary liveness check. 1 = Up (healthy), 0 = Down (unreachable). Triggered via Prometheus 'up' metric.",
       "type": "stat"
     },
     {
@@ -193,6 +194,7 @@
         }
       ],
       "title": "Error rate",
+      "description": "Rate of HTTP 5xx errors per second over a 5-minute window. Indicates server-side code or DB failures.",
       "type": "timeseries"
     },
     {
@@ -286,6 +288,7 @@
         }
       ],
       "title": "Requests per second",
+      "description": "Instantaneous throughput (1m window). Used to identify traffic spikes or DDoS attempts.",
       "type": "timeseries"
     },
     {
@@ -390,6 +393,7 @@
         }
       ],
       "title": "Total HTTP requests recieved",
+      "description": "The raw counter of all processed HTTP requests since the last application restart.",
       "type": "timeseries"
     },
     {
@@ -483,6 +487,7 @@
         }
       ],
       "title": "Duration of HTTP Requests (Latency)",
+      "description": "Average request processing time. Helps identify bottlenecking in middleware or database queries.",
       "type": "timeseries"
     }
   ],
@@ -498,7 +503,7 @@
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "Minitwit-test-Connection_status",
+  "title": "Minitwit Infrastructure Health",
   "uid": "45447965-71a2-4f95-ae96-7b42fe7185dc",
   "version": 9
 }
