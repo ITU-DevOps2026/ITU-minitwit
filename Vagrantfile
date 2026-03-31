@@ -136,19 +136,12 @@ $app_setup_script = <<-SHELL
   docker run --rm hello-world
   docker rmi hello-world
 
+  source /minitwit/.env
+
   echo -e "\nOpening port for minitwit ...\n"
   sudo ufw allow 5035/tcp && \
   sudo ufw allow 22/tcp && \
   sudo ufw allow 3000/tcp
-
-  # Load the variables we just wrote to the .env file
-  if [ -f /minitwit/.env ]; then
-    # The 'set -a' tells bash to export everything it finds in the file
-    set -a
-    source /minitwit/.env
-    set +a
-    echo "Variables loaded from /minitwit/.env"
-  fi
 
   # Only allow our monitoring's private IP to access the metrics port
   echo "About to enter if statement for port 9091"
