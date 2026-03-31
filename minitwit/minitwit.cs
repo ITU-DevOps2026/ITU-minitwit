@@ -5,7 +5,6 @@ using minitwit.Model;
 using Microsoft.EntityFrameworkCore;
 using Prometheus;
 using Serilog;
-using Serilog.Sinks.Elasticsearch;
 using System.Reflection;
 
 try
@@ -16,13 +15,6 @@ try
 
   builder.Services.AddSerilog((services, loggerConfig) => loggerConfig
     .ReadFrom.Configuration(builder.Configuration)
-    .Enrich.FromLogContext()
-    .WriteTo.Console()
-    .WriteTo.Elasticsearch(new ElasticsearchSinkOptions(new Uri(Environment.GetEnvironmentVariable("ELASTICSEARCH_URI")))
-    {
-      AutoRegisterTemplate = true,
-		  IndexFormat = $"{Assembly.GetExecutingAssembly().GetName().Name.ToLower().Replace(".", "-")}-{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")?.ToLower().Replace(".", "-")}-{DateTime.UtcNow:yyyy-MM}"
-    })
   );
 
   // Add services to the container.
@@ -45,7 +37,8 @@ try
   {
     builder.Services.AddDbContext<MinitwitContext>(options =>
       options.UseSqlite("DataSource=../data/minitwit.db"));
-  } else
+  }
+  else
   {
     builder.Services.AddDbContext<MinitwitContext>(options =>
       options.UseMySql(DbPath, ServerVersion.AutoDetect(DbPath)));
@@ -57,17 +50,17 @@ try
 
   using (var scope = app.Services.CreateScope())
   {
-      var services = scope.ServiceProvider;
+    var services = scope.ServiceProvider;
 
-      var context = services.GetRequiredService<MinitwitContext>();
-      context.Database.EnsureCreated();
+    var context = services.GetRequiredService<MinitwitContext>();
+    context.Database.EnsureCreated();
 
-      //Start the metrics at the amount of tweets and users in the database
-      var totalTweets = context.Messages.Count();
-      var totalUsers = context.Users.Count();
-      
-      MinitwitMetrics.TweetCounter.IncTo(totalTweets);
-      MinitwitMetrics.UserRegistrationCounter.IncTo(totalUsers);
+    //Start the metrics at the amount of tweets and users in the database
+    var totalTweets = context.Messages.Count();
+    var totalUsers = context.Users.Count();
+
+    MinitwitMetrics.TweetCounter.IncTo(totalTweets);
+    MinitwitMetrics.UserRegistrationCounter.IncTo(totalUsers);
   }
 
   // Configure the HTTP request pipeline.
@@ -79,8 +72,8 @@ try
   }
 
   // Add Prometheus metrics
+  app.UseMetricServer(port: 9091);
   app.UseHttpMetrics();
-  app.MapMetrics();
 
   app.UseHttpsRedirection();
 
@@ -101,7 +94,7 @@ try
 catch (Exception ex)
 {
   Log.Fatal($"Failed to start {Assembly.GetExecutingAssembly().GetName().Name}", ex);
-	throw;
+  throw;
 }
 finally
 {
@@ -119,8 +112,8 @@ namespace minitwit
             .CreateCounter("minitwit_registrations_total", "Total number of user registrations.");
   }
   public class MiniTwit(MinitwitContext minitwitContext)
-    {
-    private readonly MinitwitContext minitwitContext = minitwitContext; 
+  {
+    private readonly MinitwitContext minitwitContext = minitwitContext;
     private int PER_PAGE = 30;
     private static int _latest = -1;
 
@@ -149,9 +142,9 @@ namespace minitwit
         .Where(m => m.Flagged == 0)
         .OrderByDescending(x => x.PubDate)
         .Take(PER_PAGE)
-        .Join(minitwitContext.Users, 
+        .Join(minitwitContext.Users,
           m => m.AuthorId,
-          u => u.UserId, 
+          u => u.UserId,
           (m, u) => new Org.OpenAPITools.Models.Message
           {
             Content = m.Text,
@@ -183,7 +176,7 @@ namespace minitwit
               PubDate = Format_datetime(m.PubDate ?? 0)
             })
             .ToListAsync();
-            
+
       return messages;
     }
 
@@ -203,8 +196,8 @@ namespace minitwit
 
       Follower? follows = await minitwitContext.Followers
         .Where(f => f.WhoId == who_user_id && f.WhomId == whom_user_id)
-        .FirstOrDefaultAsync(); 
-      
+        .FirstOrDefaultAsync();
+
       return follows != null;
     }
 
@@ -218,9 +211,9 @@ namespace minitwit
           .Where(m => m.Flagged == 0 && (m.AuthorId == u_ID || minitwitContext.Followers.Any(f => f.WhoId == u_ID && f.WhomId == m.AuthorId)))
           .OrderByDescending(m => m.PubDate)
           .Take(PER_PAGE)
-          .Join(minitwitContext.Users, 
+          .Join(minitwitContext.Users,
             m => m.AuthorId,
-            u => u.UserId, 
+            u => u.UserId,
             (m, u) => new Org.OpenAPITools.Models.Message
             {
               Content = m.Text,
@@ -243,6 +236,7 @@ namespace minitwit
         PwHash = Generate_password_hash(password)
       });
       await minitwitContext.SaveChangesAsync();
+      Log.Information("Registered user with name: {username} and email: {email}", username, email);
 
       //Increment the amount of users for the metrics:
       MinitwitMetrics.UserRegistrationCounter.Inc();
@@ -290,7 +284,7 @@ namespace minitwit
         .Where(u => u.Username == username)
         .Select(u => u.UserId)
         .FirstOrDefaultAsync();
-      
+
       return user_id == 0 ? null : user_id;
     }
 
@@ -309,6 +303,8 @@ namespace minitwit
           Flagged = 0
         });
         await minitwitContext.SaveChangesAsync();
+
+        Log.Information("User {username} posted a tweet, with length: {TextLength}", username, text.Length);
 
         //Increment the amount of users for the metrics:
         MinitwitMetrics.TweetCounter.Inc();
@@ -331,7 +327,7 @@ namespace minitwit
 
       bool already_following = await minitwitContext.Followers
         .AnyAsync(f => f.WhoId == who_user_id && f.WhomId == whom_user_id);
-      
+
       if (!already_following)
       {
         minitwitContext.Followers.Add(new Follower
@@ -384,7 +380,7 @@ namespace minitwit
         .Take(limit ?? PER_PAGE)
         .Select(u => u.Username)
         .ToListAsync();
-      
+
       Org.OpenAPITools.Models.FollowsResponse response = new Org.OpenAPITools.Models.FollowsResponse
       {
         Follows = followed_users

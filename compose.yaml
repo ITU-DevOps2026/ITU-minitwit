@@ -10,7 +10,9 @@ services:
       dockerfile: Dockerfile-minitwit
       target: final
     networks:
-      - main
+      main:
+        aliases:
+          - APP_IP_PLACEHOLDER
     ports:
       - 5035:8080
       - 9091:9090
@@ -22,7 +24,7 @@ services:
       prometheus:
         condition: service_started
     volumes:
-      - ./data:/app/data
+      - ./data:/app/data    
     environment:
       - DbPath=Server=mysql;Port=3306;Database=minitwit;Uid=root;Pwd=root;SslMode=None;AllowPublicKeyRetrieval=True;
       - ELASTICSEARCH_URI=http://elasticsearch:9200

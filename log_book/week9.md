@@ -8,3 +8,20 @@ Whilst choosing ElasticSearch as part of our locking stack, is heavier on the me
 Choosing to stick with ElasticSearch, we had to try and solve our memory issues. One solution to this could be linear scaling, in this case allocating more CPU and RAM for our droplet, but for now we have decided to refrain from this, as we have limited free credits on Digital Ocean (and we don't think the scale of our program requires ElasticSearch to be using several gigabytes of memory). Instead we limit the heap size of ElasticSearch based on the available ram of the droplet (this line in the Dockerfile: ENV ES_JAVA_OPTS="-Xms256m -Xmx256m"). We set this to no more than 50% of the total memory available, in accordance with the documentation: https://www.elastic.co/docs/reference/elasticsearch/jvm-settings
 
 This alone was not enough, as the other 50% was used up by a combination of things, such as our monitoring, the off heap memory usage of elasticsearch (for things such as caching), the operating system of the droplet, etc. We therefore decided to also implement a swap file (https://medium.com/@adebanjoemmanuel01/understanding-swap-files-1967fe8c5c89), to take over processes, so we would not run out of memory on the droplet. ElasticSearch docs does warn against this, https://www.elastic.co/docs/deploy-manage/deploy/self-managed/setup-configuration-memory, so in accordance to their documentation we do set swappiness to 1, which reduces the kernel's tendencies to swap, meaning it should only happen in emergency situations. Configuration of the swap file, happens in the Vagrantfile, during provisioning of the monitoring-and-logging droplet. 
+
+Another consideration we made before deploying any logging to production, was management of older logs to ensure we do not run out of disk space. As we have chosen Elasticsearch, which requires more storage space, in comparison to other tools like Loki https://signoz.io/blog/loki-vs-elasticsearch/, we need to configure a log lifetime cycle, wherein we specify how long we store logs for, and probably also a maximum amount of space logs can use on the droplet. 
+
+If you want to log to a txt file aswell as elasticsearch (locally), you do the following:
+In the compose.yaml file you add this volume: - ./logs:/app/logs, and in the appsettings.json you add the package Serilog.Sinks.File, to the Using section and you add the following to the WriteTo section:
+```json 
+"WriteTo": [
+      { 
+        "Name": "Console"},
+      {
+        "Name": "File",
+        "Args": {
+          "path": "logs/log.txt",
+          "rollingInterval": "Day" 
+        }
+      },
+```

@@ -53,8 +53,8 @@ Vagrant.configure("2") do |config|
   end
   
   # Configure test MiniTwit application
-  config.vm.define "minitwit-test-env", autostart: false, primary: true do |server|
-    server.vm.hostname = "minitwit-test-env"
+  config.vm.define "minitwit-test-env2", autostart: false, primary: true do |server|
+    server.vm.hostname = "minitwit-test-env2"
     server.vm.synced_folder "remote_files/test_env", "/minitwit", type: "rsync"
 
     server.vm.provision "shell", inline: <<-SHELL
@@ -66,8 +66,8 @@ Vagrant.configure("2") do |config|
   end
 
   # Configure test database
-  config.vm.define "minitwit-test-env-mysql", autostart: false, primary: true do |server|
-    server.vm.hostname = "minitwit-test-env-mysql"
+  config.vm.define "minitwit-test-env-mysql2", autostart: false, primary: true do |server|
+    server.vm.hostname = "minitwit-test-env-mysql2"
     server.vm.provision "shell", inline: <<-SHELL
       echo "export DB_PASSWORD='#{ENV['TEST_DB_PASSWORD']}'" > /etc/profile.d/db_env.sh
       echo "export APP_SERVER_IP='#{ENV['TEST_APP_SERVER_PRIVATE_IP']}'" >> /etc/profile.d/db_env.sh
@@ -78,8 +78,8 @@ Vagrant.configure("2") do |config|
   end
 
   # Configure monitoring and logging droplet
-  config.vm.define "minitwit-monitoring-and-logging", autostart: false, primary: true do |server|
-    server.vm.hostname = "minitwit-monitoring-and-logging"
+  config.vm.define "minitwit-monitoring-and-logging2", autostart: false, primary: true do |server|
+    server.vm.hostname = "minitwit-monitoring-and-logging2"
     server.vm.synced_folder "remote_files/monitoring_and_logging", "/deploy", type: "rsync"
     server.vm.synced_folder "monitoring", "/monitoring", type: "rsync" # For Grafana and Prometheus having the dashboard
     server.vm.synced_folder "logging", "/logging", type: "rsync" # For Grafana and Prometheus having the dashboard
@@ -140,6 +140,12 @@ $app_setup_script = <<-SHELL
   ufw allow 5035 && \
   ufw allow 22/tcp && \
   ufw allow 3000/tcp
+
+  # Only allow our monitoring's private IP to access the metrics port
+  if [ ! -z "$MONITOR_AND_LOGGING_PRIVATE_IP" ]; then
+    sudo ufw allow from "$MONITOR_AND_LOGGING_PRIVATE_IP" to any port 9091
+    echo "Firewall: Allowed 9091 for $MONITOR_AND_LOGGING_PRIVATE_IP"
+  fi
 
   echo ". $HOME/.bashrc" >> $HOME/.bash_profile
   echo -e "\nConfiguring credentials as environment variables...\n"
