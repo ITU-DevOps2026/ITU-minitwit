@@ -44,6 +44,8 @@ try
       options.UseMySql(DbPath, ServerVersion.AutoDetect(DbPath)));
   }
 
+  builder.Services.AddMetricServer(options => options.Port = 9091);
+
   builder.Services.AddScoped<MiniTwit>();
 
   var app = builder.Build();
@@ -72,7 +74,6 @@ try
   }
 
   // Add Prometheus metrics
-  app.UseMetricServer(port: 9091);
   app.UseHttpMetrics();
 
   app.UseHttpsRedirection();
