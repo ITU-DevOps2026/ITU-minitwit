@@ -27,7 +27,7 @@ services:
       - ./data:/app/data    
     environment:
       - DbPath=Server=mysql;Port=3306;Database=minitwit;Uid=root;Pwd=root;SslMode=None;AllowPublicKeyRetrieval=True;
-      - ELASTICSEARCH_URI=http://elasticsearch:9200
+      - Serilog__WriteTo__0__Args__nodes=http://${MONITOR_AND_LOGGING_PRIVATE_IP}:9200
     
   mysql:
     build:
