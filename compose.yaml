@@ -124,10 +124,34 @@ services:
       context: ./logging/elasticsearch
     ports:
       - 9200:9200
+    healthcheck: # Required so es-policy-setup knows when to run
+      test: ["CMD-SHELL", "curl -s http://localhost:9200/_cluster/health | grep -q '\"status\":\"green\"\\|\"status\":\"yellow\"'"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
     volumes:
       - elasticsearch-data:/usr/share/elasticsearch/data
     networks:
       - main
+  es-policy-setup:
+    image: curlimages/curl
+    container_name: elasticsearch-policy-setup
+    networks:
+      - main
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    entrypoint: >
+      sh -c "
+        echo 'Setting up ILM policy...' && 
+        curl -X PUT 'http://elasticsearch:9200/_ilm/policy/minitwit-policy' -H 'Content-Type: application/json' -d '{\"policy\":{\"phases\":{\"hot\":{\"actions\":{\"rollover\":{\"max_primary_shard_size\":\"2gb\",\"max_age\":\"7d\"}}},\"delete\":{\"min_age\":\"14d\",\"actions\":{\"delete\":{}}}}}}' && 
+        
+        echo 'Setting up index template...' && 
+        curl -X PUT 'http://elasticsearch:9200/_index_template/minitwit-template' -H 'Content-Type: application/json' -d '{\"index_patterns\":[\"minitwit-logs-*\"],\"template\":{\"settings\":{\"index.lifecycle.name\":\"minitwit-policy\",\"index.lifecycle.rollover_alias\":\"minitwit-logs\"}}}' && 
+        
+        echo 'Bootstrapping first index...' && 
+        curl -X PUT 'http://elasticsearch:9200/%3Cminitwit-logs-%7Bnow%2Fd%7D-000001%3E' -H 'Content-Type: application/json' -d '{\"aliases\":{\"minitwit-logs\":{\"is_write_index\":true}}}'
+      "
 
 volumes:
   grafana-storage: {}
