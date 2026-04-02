@@ -31,7 +31,7 @@ services:
   
   # Health check container inspired by: https://lours.me/posts/compose-tip-008-dhi-healthcheck/
   minitwit-health-check:
-    image: dhi.io/curl:8-debian13-dev
+    image: dhi.io/curl:8-alpine3.23
     entrypoint: ["sleep", "infinity"]
     network_mode: "service:minitwit"  # Shares app's network namespace!
     healthcheck:
