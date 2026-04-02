@@ -29,6 +29,7 @@ services:
       - DbPath=Server=mysql;Port=3306;Database=minitwit;Uid=root;Pwd=root;SslMode=None;AllowPublicKeyRetrieval=True;
       - Serilog__WriteTo__0__Args__nodes__0=http://${MONITOR_AND_LOGGING_PRIVATE_IP:-elasticsearch}:9200
   
+  # Health check container inspired by: https://lours.me/posts/compose-tip-008-dhi-healthcheck/
   minitwit-health-check:
     image: dhi.io/curl:8-debian13-dev
     entrypoint: ["sleep", "infinity"]
