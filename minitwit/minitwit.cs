@@ -17,6 +17,8 @@ try
     .ReadFrom.Configuration(builder.Configuration)
   );
 
+  builder.Services.AddHealthChecks();
+
   // Add services to the container.
   builder.Services.AddRazorPages();
 
@@ -89,6 +91,8 @@ try
     .WithStaticAssets();
 
   app.MapControllers();
+
+  app.MapHealthChecks("/healthz");
 
   app.Run();
 }

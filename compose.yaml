@@ -27,8 +27,19 @@ services:
       - ./data:/app/data    
     environment:
       - DbPath=Server=mysql;Port=3306;Database=minitwit;Uid=root;Pwd=root;SslMode=None;AllowPublicKeyRetrieval=True;
-      - Serilog__WriteTo__0__Args__nodes__0=http://${MONITOR_AND_LOGGING_PRIVATE_IP}:9200
-    
+      - Serilog__WriteTo__0__Args__nodes__0=http://${MONITOR_AND_LOGGING_PRIVATE_IP:-elasticsearch}:9200
+  
+  minitwit-health-check:
+    image: dhi.io/curl:8-debian13-dev
+    entrypoint: ["sleep", "infinity"]
+    network_mode: "service:minitwit"  # Shares app's network namespace!
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/healthz"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+
   mysql:
     build:
       context: .
@@ -55,7 +66,8 @@ services:
     networks:
       - main
     depends_on:
-      - minitwit
+      minitwit-health-check:
+        condition: service_healthy
     environment:
       - BaseUrl=http://minitwit:8080
 
@@ -66,7 +78,8 @@ services:
     networks:
       - main
     depends_on:
-      - minitwit
+      minitwit-health-check:
+        condition: service_healthy
     environment:
       - BaseUrl=http://minitwit:8080/api
 
@@ -77,7 +90,8 @@ services:
     networks:
       - main
     depends_on:
-      - minitwit
+      minitwit-health-check:
+        condition: service_healthy
     environment:
       - GUI_URL=http://minitwit:8080/register
       - DB_HOST=mysql
