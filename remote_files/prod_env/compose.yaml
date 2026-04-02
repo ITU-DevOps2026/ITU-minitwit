@@ -9,4 +9,4 @@ services:
       - ../data:/app/data
     environment:
       - DbPath=${db_connection}
-      - Serilog__WriteTo__0__Args__nodes__0=http://${MONITOR_AND_LOGGING_PRIVATE_IP}:9200
+      - Serilog__WriteTo__0__Args__nodes__0=http://${MONITOR_AND_LOGGING_PRIVATE_IP:-elasticsearch}:9200
