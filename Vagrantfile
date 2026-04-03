@@ -33,10 +33,12 @@ Vagrant.configure("2") do |config|
   config.vm.define "minitwit-3", autostart: false, primary: true do |server|
     server.vm.hostname = "minitwit-3"
     server.vm.synced_folder "remote_files/prod_env", "/minitwit", type: "rsync"
-    server.vm.synced_folder "monitoring", "/monitoring", type: "rsync" # For Grafana and Prometheus having the dashboard
-
-    server.vm.provision "shell", inline: "echo \"export DOCKER_USERNAME='#{ENV['DOCKER_USERNAME']}'\" > ~/.bash_profile"
-    server.vm.provision "shell", inline: "echo \"export db_connection='#{ENV['db_connection']}'\" >> ~/.bash_profile"
+    
+    server.vm.provision "shell", inline: <<-SHELL
+      echo "export DOCKER_USERNAME='#{ENV['DOCKER_USERNAME']}'" > /minitwit/.env
+      echo "db_connection='#{ENV['db_connection']}'" >> /minitwit/.env
+      echo "MONITOR_AND_LOGGING_PRIVATE_IP='#{ENV['MONITOR_AND_LOGGING_PRIVATE_IP']}'" >> /minitwit/.env
+    SHELL
     server.vm.provision "shell", inline: $app_setup_script
   end
 
@@ -82,7 +84,7 @@ Vagrant.configure("2") do |config|
     server.vm.hostname = "minitwit-monitoring-and-logging"
     server.vm.synced_folder "remote_files/monitoring_and_logging", "/deploy", type: "rsync"
     server.vm.synced_folder "monitoring", "/monitoring", type: "rsync" # For Grafana and Prometheus having the dashboard
-    server.vm.synced_folder "logging", "/logging", type: "rsync" # For Grafana and Prometheus having the dashboard
+    server.vm.synced_folder "logging", "/logging", type: "rsync"
     server.vm.provision "shell", inline: <<-SHELL
       if [ ! -f /swapfile ]; then
         echo "Creating 1GB Swap file for memory safety..."
@@ -106,8 +108,9 @@ Vagrant.configure("2") do |config|
 
       PROM_CONFIG="/monitoring/prometheus/prometheus.yml"
       if [ -f "$PROM_CONFIG" ]; then
-        sed -i "s/APP_IP_PLACEHOLDER/#{ENV['TEST_APP_SERVER_PRIVATE_IP']}/g" "$PROM_CONFIG"
-        echo "Successfully injected #{ENV['TEST_APP_SERVER_PRIVATE_IP']} into $PROM_CONFIG"
+        # REMEMBER TO CHANGE THESE TO APP_SERVER_PRIVATE_IP BEFORE IT IS MERGED INTO MAIN
+        sed -i "s/APP_IP_PLACEHOLDER/#{ENV['TEST_APP_SERVER_PRIVATE_IP']}/g" "$PROM_CONFIG" #These IP's should be for production application, but are currently pointing to the test application, to test the setup works
+        echo "Successfully injected #{ENV['TEST_APP_SERVER_PRIVATE_IP']} into $PROM_CONFIG" #These IP's should be for production application, but are currently pointing to the test application, to test the setup works
       fi
     SHELL
     server.vm.provision "shell", inline: $monitoring_and_logging_setup_script
