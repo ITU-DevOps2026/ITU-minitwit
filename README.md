@@ -180,6 +180,8 @@ DB_PASSWORD=<Secure Database Password>
 
 APP_SERVER_PRIVATE_IP=<Private IP of droplet containing production MiniTwit application>
 
+MONITOR_AND_LOGGING_PRIVATE_IP=<Private IP of droplet containing monitoring and logging>
+
 # Test environment secrets
 test_db_connection=Server=<Private IP of droplet containing test mysql database>;Port=3306;Database=minitwit;Uid=root;Pwd=<Secure Database Password (same as what you set as TEST_DB_PASSWORD)>;SslMode=None;AllowPublicKeyRetrieval=True;
 
@@ -212,6 +214,9 @@ The same applies to `TEST_DB_PASSWORD` and `TEST_APP_SERVER_PRIVATE_IP` these ar
 The Vagrantfiles that set up the application on both the production and test environments also require two more environment variables; the `DOCKER_USERNAME` (which should be set to `mathildegk`, as this is the username that our Docker images are saved at on Docker Hub, and the docker-compose file on the droplet needs to know this in order to pull the right images), and the `db_connection` (which is the connection string for the database that you want the application to connect to, likely either the minitwit-test-env-mysql or the minitwit-prod-env-mysql).
 
 You need to set the IP and port so that it matches the droplet running the database.
+
+### Step 7 
+The application and our monitoring and logging, also need to have the environment variable `MONITOR_AND_LOGGING_PRIVATE_IP` set. The application needs it to open up its port where we put our metrics, so prometheus can scrape it. The application also needs it, so it knows where to push the logs. The monitoring and logging droplet needs it, so it can bind prometheus and elasticsearch to a specific address instead of publicizing  it. 
 
 ### OBS: Dependencies
 As you see in step 5 and 6, there are some "circular" dependencies between the application droplets and the database droplets. The database needs to have the IP address of the application, which you don't know if your application droplet isn't running yet, and likewise the application needs to have the connection string for the database, which you don't know if your database droplet isn't running yet. 
@@ -279,3 +284,19 @@ This runs the sections of the vagrant file for the machines, marked with server.
 ./deploy.sh
 ```
 and you should now have a working MiniTwit application, which you access on the public ip of the droplet containing the application and adding :5035 at the end of it.
+
+#### Setup of monitoring and logging
+Assumption here is that there already exists a running application.
+
+First make sure the variables in your .env file are up to date. Then run:
+```Bash
+vagrant up minitwit-monitoring-and-logging
+```
+When the droplet have been created, update your .env file, the `MONITOR_AND_LOGGING_PRIVATE_IP`, with the corresponding private IP it was assigned, then run the following command:
+```Bash
+vagrant provision minitwit-3 minitwit-monitoring-and-logging
+```
+This runs the sections of the vagrant file for the machines, marked with server.vm.provision, which in this case updates things, such as the variables containing the Private IP's. When this command has finished, you should be able to ssh into the droplet containing monitoring and logging, and running
+```Bash
+./deploy.sh
+```

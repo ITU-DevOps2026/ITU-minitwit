@@ -42,6 +42,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Configure SSH
         run: |
           mkdir -p ~/.ssh/
@@ -49,6 +52,13 @@ jobs:
           chmod 600 ~/.ssh/do_ssh_key
         env:
           SSH_KEY: ${{ secrets.SSH_KEY }}
+      
+      - name: Copy configuration files to Droplet
+        run: |
+          scp -r -i ~/.ssh/do_ssh_key -o StrictHostKeyChecking=no ./remote_files/test_env/* $SSH_USER_TEST_ENV@$SSH_HOST_TEST_ENV:/minitwit/
+        env: 
+          SSH_USER_TEST_ENV: ${{ secrets.SSH_USER_TEST_ENV }}
+          SSH_HOST_TEST_ENV: ${{ secrets.SSH_HOST_TEST_ENV }}
 
       - name: Deploy to server
         run: >

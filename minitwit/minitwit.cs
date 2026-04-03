@@ -4,42 +4,56 @@ using minitwit;
 using minitwit.Model;
 using Microsoft.EntityFrameworkCore;
 using Prometheus;
+using Serilog;
+using System.Reflection;
 
-
-var builder = WebApplication.CreateBuilder(args);
-
-// Add services to the container.
-builder.Services.AddRazorPages();
-
-builder.Services.AddDistributedMemoryCache();
-
-builder.Services.AddSession(options =>
+try
 {
-  options.IdleTimeout = TimeSpan.FromMinutes(15);
-  options.Cookie.HttpOnly = true;
-  options.Cookie.IsEssential = true;
-});
+  Log.Information("Starting MiniTwit application");
 
-builder.Services.AddOpenApi();
+  var builder = WebApplication.CreateBuilder(args);
 
-string? DbPath = Environment.GetEnvironmentVariable("DbPath");
+  builder.Services.AddSerilog((services, loggerConfig) => loggerConfig
+    .ReadFrom.Configuration(builder.Configuration)
+  );
 
-if (string.IsNullOrEmpty(DbPath))
-{
-  builder.Services.AddDbContext<MinitwitContext>(options =>
-    options.UseSqlite("DataSource=../data/minitwit.db"));
-} else
-{
-  builder.Services.AddDbContext<MinitwitContext>(options =>
-    options.UseMySql(DbPath, ServerVersion.AutoDetect(DbPath)));
-}
+  builder.Services.AddHealthChecks();
 
-builder.Services.AddScoped<MiniTwit>();
+  // Add services to the container.
+  builder.Services.AddRazorPages();
 
-var app = builder.Build();
+  builder.Services.AddDistributedMemoryCache();
 
-using (var scope = app.Services.CreateScope())
-{
+  builder.Services.AddSession(options =>
+  {
+    options.IdleTimeout = TimeSpan.FromMinutes(15);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+  });
+
+  builder.Services.AddOpenApi();
+
+  string? DbPath = Environment.GetEnvironmentVariable("DbPath");
+
+  if (string.IsNullOrEmpty(DbPath))
+  {
+    builder.Services.AddDbContext<MinitwitContext>(options =>
+      options.UseSqlite("DataSource=../data/minitwit.db"));
+  }
+  else
+  {
+    builder.Services.AddDbContext<MinitwitContext>(options =>
+      options.UseMySql(DbPath, ServerVersion.AutoDetect(DbPath)));
+  }
+
+  builder.Services.AddMetricServer(options => options.Port = 9091);
+
+  builder.Services.AddScoped<MiniTwit>();
+
+  var app = builder.Build();
+
+  using (var scope = app.Services.CreateScope())
+  {
     var services = scope.ServiceProvider;
 
     var context = services.GetRequiredService<MinitwitContext>();
@@ -48,38 +62,49 @@ using (var scope = app.Services.CreateScope())
     //Start the metrics at the amount of tweets and users in the database
     var totalTweets = context.Messages.Count();
     var totalUsers = context.Users.Count();
-    
+
     MinitwitMetrics.TweetCounter.IncTo(totalTweets);
     MinitwitMetrics.UserRegistrationCounter.IncTo(totalUsers);
-}
+  }
 
-// Configure the HTTP request pipeline.
-if (!app.Environment.IsDevelopment())
+  // Configure the HTTP request pipeline.
+  if (!app.Environment.IsDevelopment())
+  {
+    app.UseExceptionHandler("/Error");
+    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+    app.UseHsts();
+  }
+
+  // Add Prometheus metrics
+  app.UseHttpMetrics();
+
+  app.UseHttpsRedirection();
+
+  app.UseRouting();
+
+  app.UseAuthorization();
+
+  app.UseSession();
+
+  app.MapStaticAssets();
+  app.MapRazorPages()
+    .WithStaticAssets();
+
+  app.MapControllers();
+
+  app.MapHealthChecks("/healthz");
+
+  app.Run();
+}
+catch (Exception ex)
 {
-  app.UseExceptionHandler("/Error");
-  // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-  app.UseHsts();
+  Log.Fatal($"Failed to start {Assembly.GetExecutingAssembly().GetName().Name}", ex);
+  throw;
 }
-
-// Add Prometheus metrics
-app.UseHttpMetrics();
-app.MapMetrics();
-
-app.UseHttpsRedirection();
-
-app.UseRouting();
-
-app.UseAuthorization();
-
-app.UseSession();
-
-app.MapStaticAssets();
-app.MapRazorPages()
-   .WithStaticAssets();
-
-app.MapControllers();
-
-app.Run();
+finally
+{
+  await Log.CloseAndFlushAsync();
+}
 
 namespace minitwit
 {
@@ -92,8 +117,8 @@ namespace minitwit
             .CreateCounter("minitwit_registrations_total", "Total number of user registrations.");
   }
   public class MiniTwit(MinitwitContext minitwitContext)
-    {
-    private readonly MinitwitContext minitwitContext = minitwitContext; 
+  {
+    private readonly MinitwitContext minitwitContext = minitwitContext;
     private int PER_PAGE = 30;
     private static int _latest = -1;
 
@@ -135,9 +160,9 @@ namespace minitwit
         .Where(m => m.Flagged == 0)
         .OrderByDescending(x => x.PubDate)
         .Take(PER_PAGE)
-        .Join(minitwitContext.Users, 
+        .Join(minitwitContext.Users,
           m => m.AuthorId,
-          u => u.UserId, 
+          u => u.UserId,
           (m, u) => new Org.OpenAPITools.Models.Message
           {
             Content = m.Text,
@@ -169,7 +194,7 @@ namespace minitwit
               PubDate = Format_datetime(m.PubDate ?? 0)
             })
             .ToListAsync();
-            
+
       return messages;
     }
 
@@ -189,8 +214,8 @@ namespace minitwit
 
       Follower? follows = await minitwitContext.Followers
         .Where(f => f.WhoId == who_user_id && f.WhomId == whom_user_id)
-        .FirstOrDefaultAsync(); 
-      
+        .FirstOrDefaultAsync();
+
       return follows != null;
     }
 
@@ -204,9 +229,9 @@ namespace minitwit
           .Where(m => m.Flagged == 0 && (m.AuthorId == u_ID || minitwitContext.Followers.Any(f => f.WhoId == u_ID && f.WhomId == m.AuthorId)))
           .OrderByDescending(m => m.PubDate)
           .Take(PER_PAGE)
-          .Join(minitwitContext.Users, 
+          .Join(minitwitContext.Users,
             m => m.AuthorId,
-            u => u.UserId, 
+            u => u.UserId,
             (m, u) => new Org.OpenAPITools.Models.Message
             {
               Content = m.Text,
@@ -229,6 +254,7 @@ namespace minitwit
         PwHash = Generate_password_hash(password)
       });
       await minitwitContext.SaveChangesAsync();
+      Log.Information("Registered user with name: {username} and email: {email}", username, email);
 
       //Increment the amount of users for the metrics:
       MinitwitMetrics.UserRegistrationCounter.Inc();
@@ -276,7 +302,7 @@ namespace minitwit
         .Where(u => u.Username == username)
         .Select(u => u.UserId)
         .FirstOrDefaultAsync();
-      
+
       return user_id == 0 ? null : user_id;
     }
 
@@ -295,6 +321,8 @@ namespace minitwit
           Flagged = 0
         });
         await minitwitContext.SaveChangesAsync();
+
+        Log.Information("User {username} posted a tweet, with length: {TextLength}", username, text.Length);
 
         //Increment the amount of users for the metrics:
         MinitwitMetrics.TweetCounter.Inc();
@@ -317,7 +345,7 @@ namespace minitwit
 
       bool already_following = await minitwitContext.Followers
         .AnyAsync(f => f.WhoId == who_user_id && f.WhomId == whom_user_id);
-      
+
       if (!already_following)
       {
         minitwitContext.Followers.Add(new Follower
@@ -370,7 +398,7 @@ namespace minitwit
         .Take(limit ?? PER_PAGE)
         .Select(u => u.Username)
         .ToListAsync();
-      
+
       Org.OpenAPITools.Models.FollowsResponse response = new Org.OpenAPITools.Models.FollowsResponse
       {
         Follows = followed_users
