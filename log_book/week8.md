@@ -3,7 +3,7 @@
 ### Different methods we have considered
 Here we discuss some different possibilities of logging, and discuss which one we see as the best for our case.
 
-*The one we deem most fit for our use case, (Due to us not having a full scale program with milling of users) is Serilog Sink, primarily due to it not having metrics and is very easy to integrate, without us having to change our business logic at all.* 
+*The one we deem most fit for our use case, (Due to us not having a full scale program with millions of users) is Serilog Sink, primarily due to it not having metrics and is very easy to integrate, without us having to change our business logic at all.* 
 
 #### Serilog Sink
 * Serilog Sink, is very easy to integrate, by just a NuGet package (and some short additions to the program.cs file), and it only supports logging, no metrics (which we already have integrated) . 
