@@ -103,14 +103,14 @@ Vagrant.configure("2") do |config|
       sudo sysctl vm.swappiness=1
     SHELL
     server.vm.provision "shell", inline: <<-SHELL
-      echo "export APP_SERVER_IP='#{ENV['TEST_APP_SERVER_PRIVATE_IP']}'" >> /etc/profile.d/env.sh #Private ip of application that will be allowed to get logs and monitor info
+      echo "export APP_SERVER_IP='#{ENV['APP_SERVER_PRIVATE_IP']}'" >> /etc/profile.d/env.sh #Private ip of application that will be allowed to get logs and monitor info
       chmod +x /etc/profile.d/env.sh
 
       PROM_CONFIG="/monitoring/prometheus/prometheus.yml"
       if [ -f "$PROM_CONFIG" ]; then
         # REMEMBER TO CHANGE THESE TO APP_SERVER_PRIVATE_IP BEFORE IT IS MERGED INTO MAIN
-        sed -i "s/APP_IP_PLACEHOLDER/#{ENV['TEST_APP_SERVER_PRIVATE_IP']}/g" "$PROM_CONFIG" #These IP's should be for production application, but are currently pointing to the test application, to test the setup works
-        echo "Successfully injected #{ENV['TEST_APP_SERVER_PRIVATE_IP']} into $PROM_CONFIG" #These IP's should be for production application, but are currently pointing to the test application, to test the setup works
+        sed -i "s/APP_IP_PLACEHOLDER/#{ENV['APP_SERVER_PRIVATE_IP']}/g" "$PROM_CONFIG" #These IP's should be for production application, but are currently pointing to the test application, to test the setup works
+        echo "Successfully injected #{ENV['APP_SERVER_PRIVATE_IP']} into $PROM_CONFIG" #These IP's should be for production application, but are currently pointing to the test application, to test the setup works
       fi
     SHELL
     server.vm.provision "shell", inline: $monitoring_and_logging_setup_script

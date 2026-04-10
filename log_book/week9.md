@@ -12,6 +12,7 @@ Another consideration we made before deploying any logging to production, was ma
 
 If you want to log to a txt file aswell as elasticsearch (locally), you do the following:
 In the compose.yaml file you add this volume: - ./logs:/app/logs, and in the appsettings.json you add the package Serilog.Sinks.File, to the Using section and you add the following to the WriteTo section:
+
 ```json 
 "WriteTo": [
       { 
@@ -23,7 +24,10 @@ In the compose.yaml file you add this volume: - ./logs:/app/logs, and in the app
           "rollingInterval": "Day" 
         }
       },
+...
+]
 ```
+
 Creating policies for managing logs in Elasticsearch are either done through the Kibana ui or through API calls https://www.elastic.co/docs/manage-data/lifecycle/index-lifecycle-management/configure-lifecycle-policy. Creating and adding our policies is handled through an intermediate docker container, that simply runs curl request against the Elasticsearch container. The current policy limits the primary shard size to 2GB. When any primary shard reaches this size, or if the index reaches a 7-day lifespan, a rollover occurs. This means the current index is marked as read-only (rolled over), and a new index is created for active writing. Finally, when an index reaches a total lifespan of 14 days, it is deleted to free up space. The size of the files were chosen, keeping in mind that Elasticsearch is running on a droplet with only 25GB disk space. These settings might need further configuration, as the logging system has not been stress tested, so we will need to monitor it when it is deployed to production. 
 
 ## Issues with tests and struggles of using Docker hardened images
