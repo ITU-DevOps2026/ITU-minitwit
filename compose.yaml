@@ -10,10 +10,12 @@ services:
       dockerfile: Dockerfile-minitwit
       target: final
     networks:
-      - main
+      main:
+        aliases:
+          - APP_IP_PLACEHOLDER
     ports:
       - 5035:8080
-      - 9091:9090
+      - 9091:9091
     depends_on:
       mysql:
         condition: service_healthy
@@ -22,10 +24,23 @@ services:
       prometheus:
         condition: service_started
     volumes:
-      - ./data:/app/data
+      - ./data:/app/data    
     environment:
       - DbPath=Server=mysql;Port=3306;Database=minitwit;Uid=root;Pwd=root;SslMode=None;AllowPublicKeyRetrieval=True;
-    
+      - Serilog__WriteTo__0__Args__nodes__0=http://${MONITOR_AND_LOGGING_PRIVATE_IP:-elasticsearch}:9200
+  
+  # Health check container inspired by: https://lours.me/posts/compose-tip-008-dhi-healthcheck/
+  minitwit-health-check:
+    image: curlimages/curl
+    entrypoint: ["sleep", "infinity"]
+    network_mode: "service:minitwit"  # Shares app's network namespace!
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/healthz"]
+      interval: 30s
+      timeout: 3s
+      retries: 15
+      start_period: 10s
+
   mysql:
     build:
       context: .
@@ -52,7 +67,8 @@ services:
     networks:
       - main
     depends_on:
-      - minitwit
+      minitwit-health-check:
+        condition: service_healthy
     environment:
       - BaseUrl=http://minitwit:8080
 
@@ -63,7 +79,8 @@ services:
     networks:
       - main
     depends_on:
-      - minitwit
+      minitwit-health-check:
+        condition: service_healthy
     environment:
       - BaseUrl=http://minitwit:8080/api
 
@@ -74,7 +91,8 @@ services:
     networks:
       - main
     depends_on:
-      - minitwit
+      minitwit-health-check:
+        condition: service_healthy
     environment:
       - GUI_URL=http://minitwit:8080/register
       - DB_HOST=mysql
@@ -114,5 +132,39 @@ services:
       - ./monitoring/grafana/dashboards/dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml
       - ./monitoring/grafana/dashboards:/etc/grafana/dashboards
 
+  elasticsearch:
+    container_name: elasticsearch
+    build:
+      dockerfile: ./Dockerfile
+      context: ./logging/elasticsearch
+    ports:
+      - 9200:9200
+    healthcheck: # Required so es-policy-setup knows when to run
+      test: ["CMD-SHELL", "curl -s http://localhost:9200/_cluster/health | grep -q '\"status\":\"green\"\\|\"status\":\"yellow\"'"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+    networks:
+      - main
+  es-policy-setup:
+    image: curlimages/curl
+    container_name: elasticsearch-policy-setup
+    networks:
+      - main
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    entrypoint: >
+      sh -c "
+        echo 'Setting up ILM policy...' && 
+        curl -X PUT 'http://elasticsearch:9200/_ilm/policy/minitwit-policy' -H 'Content-Type: application/json' -d '{\"policy\":{\"phases\":{\"hot\":{\"actions\":{\"rollover\":{\"max_primary_shard_size\":\"2gb\",\"max_age\":\"7d\"}}},\"delete\":{\"min_age\":\"14d\",\"actions\":{\"delete\":{}}}}}}' && 
+        
+        echo 'Setting up index template...' && 
+        curl -X PUT 'http://elasticsearch:9200/_index_template/minitwit-datastream-template' -H 'Content-Type: application/json' -d '{\"index_patterns\":[\"minitwit-logs*\"],\"data_stream\":{},\"priority\":500,\"template\":{\"settings\":{\"index.lifecycle.name\":\"minitwit-policy\"}}}'
+      "
+
 volumes:
   grafana-storage: {}
+  elasticsearch-data: {}
