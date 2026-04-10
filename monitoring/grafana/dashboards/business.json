@@ -87,6 +87,7 @@
         }
       ],
       "title": "Total Tweets",
+      "description": "The cumulative count of all messages posted to the platform. Indicates overall content volume.",
       "type": "stat"
     },
     {
@@ -183,7 +184,7 @@
         }
       ],
       "title": "Tweets in the last 24 hours",
-      "type": "timeseries"
+      "description": "Daily engagement velocity. Measures how many new tweets were created in the last 24-hour rolling window.",      "type": "timeseries"
     },
     {
       "datasource": {
@@ -247,6 +248,7 @@
         }
       ],
       "title": "Amount of users",
+      "description": "Total user base size. Represents the scale of the Minitwit community.",
       "type": "stat"
     },
     {
@@ -341,6 +343,7 @@
         }
       ],
       "title": "Amount of users registrered",
+      "description": "Registration rate per hour. Used to track the success of marketing efforts or onboarding health.",
       "type": "timeseries"
     },
     {
@@ -437,6 +440,7 @@
         }
       ],
       "title": "Duration of HTTP Requests (Latency)",
+      "description": "Average response time from a user's perspective. High latency directly correlates to poor user satisfaction.",
       "type": "timeseries"
     }
   ],
@@ -452,7 +456,7 @@
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "Minitwit_test-Business monitoring",
+  "title": "Minitwit Product Performance",
   "uid": "6bc906c7-d594-4af9-b85a-abe31af06e17",
   "version": 3
 }
