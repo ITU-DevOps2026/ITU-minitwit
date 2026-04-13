@@ -19,19 +19,6 @@ HEADERS = {'Connection': 'close',
            'Content-Type': 'application/json',
            f'Authorization': f'Basic {ENCODED_CREDENTIALS}'}
 
-@pytest.fixture(scope="session", autouse=True)
-def wait_for_api():
-    # Try to connect to the 'latest' endpoint for up to 15 seconds
-    for _ in range(15):
-        try:
-            response = requests.get(f"{BASE_URL}/latest")
-            if response.status_code < 500:
-                return  # API is open for connection
-        except requests.exceptions.ConnectionError:
-            pass
-        time.sleep(1)
-    pytest.fail("API failed to become ready within 15 seconds")
-
 def test_latest():
     # post something to update LATEST
     url = f"{BASE_URL}/register"
