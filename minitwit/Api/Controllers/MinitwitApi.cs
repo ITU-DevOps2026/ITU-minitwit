@@ -89,11 +89,11 @@ namespace Org.OpenAPITools.Controllers
         [EndpointSummary("GetLatestValue")]
         [ProducesResponseType(statusCode: 200, type: typeof(LatestValue), Description ="Success")]
         [ProducesResponseType(statusCode: 500, type: typeof(ErrorResponse), Description= "Internal Server Error")]
-        public virtual IActionResult GetLatestValue()
+        public virtual async Task<IActionResult> GetLatestValue()
         {
           try
           {
-            int latestValue = _mt.GetLatest();
+            int latestValue = await _mt.GetLatest();
 
             return Ok(new LatestValue{Latest = latestValue});
           }

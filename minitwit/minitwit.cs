@@ -120,7 +120,6 @@ namespace minitwit
   {
     private readonly MinitwitContext minitwitContext = minitwitContext;
     private int PER_PAGE = 30;
-    private static int _latest = -1;
 
     // Password hashing configurations
     const int keySize = 32;
@@ -376,14 +375,43 @@ namespace minitwit
         .ExecuteDeleteAsync();
     }
 
-    public void UpdateLatest(int? latest)
+    public async void UpdateLatest(int? latest)
     {
       if (latest.HasValue)
       {
-        _latest = latest.Value;
+        //Get the latest Database entry, so this can be updated
+        var latest_entry = minitwitContext.LatestInt.FirstOrDefault(l => l.Id == 1);
+
+        if (latest_entry != null)
+        {
+            // Overwrite the value
+            latest_entry.Value = latest.Value; 
+
+            // Persist to database
+            await minitwitContext.SaveChangesAsync();
+        }
+        else
+        {
+            // Handle the case where the entry doesn't exist yet
+            await minitwitContext.LatestInt.AddAsync(new Latest { Id = 1, Value = latest.Value });
+            await minitwitContext.SaveChangesAsync();
+        }
       }
     }
-    public int GetLatest() => _latest;
+    public async Task<int> GetLatest()
+    {
+      var latest_entry = await minitwitContext.LatestInt.FirstOrDefaultAsync(l => l.Id == 1);
+
+      if (latest_entry != null)
+      {
+        return latest_entry.Value;
+      }
+      else
+      {
+        //If we haven't gotten an latestValue yet
+        return -1;
+      }
+    }
 
     public async Task<Org.OpenAPITools.Models.FollowsResponse> Get_followed_users(string active_username, int? limit)
     {
