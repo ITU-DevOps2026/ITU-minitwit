@@ -375,7 +375,7 @@ namespace minitwit
         .ExecuteDeleteAsync();
     }
 
-    public async void UpdateLatest(int? latest)
+    public async Task UpdateLatest(int? latest)
     {
       if (latest.HasValue)
       {
