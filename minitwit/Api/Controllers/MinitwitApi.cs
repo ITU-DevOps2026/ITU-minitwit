@@ -57,7 +57,7 @@ namespace Org.OpenAPITools.Controllers
                     return BadRequest(new { status = 403, error_msg = "Unauthorized - Must include correct Authorization header" });
                 }
 
-                _mt.UpdateLatest(latest);
+                await _mt.UpdateLatest(latest);
 
                 if (await _mt.Get_user_id(username) == null)
                 {
@@ -89,11 +89,11 @@ namespace Org.OpenAPITools.Controllers
         [EndpointSummary("GetLatestValue")]
         [ProducesResponseType(statusCode: 200, type: typeof(LatestValue), Description ="Success")]
         [ProducesResponseType(statusCode: 500, type: typeof(ErrorResponse), Description= "Internal Server Error")]
-        public virtual IActionResult GetLatestValue()
+        public virtual async Task<IActionResult> GetLatestValue()
         {
           try
           {
-            int latestValue = _mt.GetLatest();
+            int latestValue = await _mt.GetLatest();
 
             return Ok(new LatestValue{Latest = latestValue});
           }
@@ -127,7 +127,7 @@ namespace Org.OpenAPITools.Controllers
                     return BadRequest(new { status = 403, error_msg = "Unauthorized - Must include correct Authorization header" });
                 }
 
-                _mt.UpdateLatest(latest);
+                await _mt.UpdateLatest(latest);
 
                 var messages = await _mt.Get_public_timeline();
 
@@ -166,7 +166,7 @@ namespace Org.OpenAPITools.Controllers
                     return BadRequest(new { status = 403, error_msg = "Unauthorized - Must include correct Authorization header" });
                 }
 
-                _mt.UpdateLatest(latest);
+                await _mt.UpdateLatest(latest);
 
                 if (await _mt.Get_user_id(username) == null)
                 {
@@ -216,7 +216,7 @@ namespace Org.OpenAPITools.Controllers
                     return BadRequest(new { status = 403, error_msg = "Unauthorized - Must include correct Authorization header" });
                 }
                 
-                _mt.UpdateLatest(latest);
+                await _mt.UpdateLatest(latest);
 
                 if (payload.Follow != null)
                 {
@@ -271,7 +271,7 @@ namespace Org.OpenAPITools.Controllers
                     return BadRequest(new { status = 403, error_msg = "Unauthorized - Must include correct Authorization header" });
                 }
 
-                _mt.UpdateLatest(latest);
+                await _mt.UpdateLatest(latest);
 
                 if (string.IsNullOrEmpty(payload.Content))
                 {
@@ -305,7 +305,7 @@ namespace Org.OpenAPITools.Controllers
         {
           try
           {
-              _mt.UpdateLatest(latest);
+              await _mt.UpdateLatest(latest);
 
               if (string.IsNullOrEmpty(payload.Username))
               {

@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 
 namespace minitwit.Model;
 
@@ -20,6 +18,8 @@ public partial class MinitwitContext : DbContext
     public virtual DbSet<Message> Messages { get; set; }
 
     public virtual DbSet<User> Users { get; set; }
+    
+    public virtual DbSet<Latest> LatestInt { get; set; } 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -60,6 +60,16 @@ public partial class MinitwitContext : DbContext
             entity.Property(e => e.Username)
                 .HasColumnType("string")
                 .HasColumnName("username");
+        });
+
+        modelBuilder.Entity<Latest>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            entity.ToTable("latest");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.Value).HasColumnName("value");
         });
 
         OnModelCreatingPartial(modelBuilder);

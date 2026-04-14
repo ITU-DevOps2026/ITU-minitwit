@@ -24,3 +24,8 @@ CREATE TABLE message (
   INDEX (author_id),
   INDEX (pub_date DESC)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE latest (
+  id integer primary key auto_increment, 
+  value integer not null
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
