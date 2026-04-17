@@ -69,9 +69,9 @@ Vagrant.configure("2") do |config|
       test_manager.vm.synced_folder "remote_files/test_env", "/minitwit", type: "rsync"
 
       test_manager.vm.provision "shell", inline: <<-SHELL
-        echo "export DOCKER_USERNAME='#{ENV['DOCKER_USERNAME']}'" > /minitwit/.env
-        echo "db_connection='#{ENV['test_db_connection']}'" >> /minitwit/.env
-        echo "MONITOR_AND_LOGGING_PRIVATE_IP='#{ENV['MONITOR_AND_LOGGING_PRIVATE_IP']}'" >> /minitwit/.env
+        echo "export DOCKER_USERNAME='#{ENV['DOCKER_USERNAME']}'" > ~/.bash_profile
+        echo "export db_connection='#{ENV['test_db_connection']}'" >> ~/.bash_profile
+        # Removed logging for test env
       SHELL
       test_manager.vm.provision "shell", path: "provision_scripts/app_setup_script.sh"
       test_manager.vm.provision "shell", path: "provision_scripts/configure_firewall_manager.sh"
@@ -79,19 +79,25 @@ Vagrant.configure("2") do |config|
       ## Set up everything for creating the manager
 
       # get the token for the workers to join the swarm
-      test_manager.trigger.after [:provision] do |t|
+      test_manager.trigger.after [:up, :provision] do |t|
         t.info = "Initializing swarm on manager and fetching worker token..."
 
         t.run = {
           inline: <<-SHELL
-            bash -c '
-              MANAGER_IP=$(vagrant ssh minitwit-test-env-manager-#{i} -c "curl -s http://169.254.169.254/metadata/v1/interfaces/private/0/ipv4/address" | tr -d '\r')
-              echo "$MANAGER_IP" > ./provision_scripts/.tokens/MANAGER_IP
+            bash -c "
+              mkdir -p ./provision_scripts/.tokens
+              MANAGER_IP=$(vagrant ssh minitwit-test-env-manager-#{i} -c 'curl -s http://169.254.169.254/metadata/v1/interfaces/private/0/ipv4/address' | tr -d '\\r')
+              echo \\"$MANAGER_IP\\" > ./provision_scripts/.tokens/MANAGER_IP
+              
+              echo \\"Manager IP is:\\"
+              echo $MANAGER_IP
 
-              vagrant ssh minitwit-test-env-manager-#{i} -c "docker swarm init --advertise-addr $MANAGER_IP || true"
+              vagrant ssh minitwit-test-env-manager-#{i} -c \\"docker swarm init --advertise-addr $MANAGER_IP || true\\"
 
-              vagrant ssh minitwit-test-env-manager-#{i} -c "docker swarm join-token -q worker" | tr -d '\r' > ./provision_scripts/.tokens/join_token
-            '
+              vagrant ssh minitwit-test-env-manager-#{i} -c 'docker swarm join-token -q worker' | tr -d '\\r' > ./provision_scripts/.tokens/join_token
+
+              vagrant ssh minitwit-test-env-manager-#{i} -c './deploy.sh'
+            "
           SHELL
         }
       end

@@ -18,5 +18,5 @@ sudo ufw allow from "$MONITOR_AND_LOGGING_PRIVATE_IP" to any port 9091
 echo "Firewall: Allowed 9091 for $MONITOR_AND_LOGGING_PRIVATE_IP"
 fi
 
-sudo reload 
+sudo ufw reload 
 sudo ufw --force enable
