@@ -221,27 +221,34 @@ namespace minitwit
     public async Task<List<Org.OpenAPITools.Models.Message>> Get_my_timeline(string username)
     {
       int? u_ID = await Get_user_id(username);
+      if (u_ID == null) return new List<Org.OpenAPITools.Models.Message>(); //Checking that the user exists
 
-      if (u_ID != null) //Checking that the user exists
-      {
-        List<Org.OpenAPITools.Models.Message> messages = await minitwitContext.Messages
-          .Where(m => m.Flagged == 0 && (m.AuthorId == u_ID || minitwitContext.Followers.Any(f => f.WhoId == u_ID && f.WhomId == m.AuthorId)))
-          .OrderByDescending(m => m.PubDate)
-          .Take(PER_PAGE)
-          .Join(minitwitContext.Users,
+      //Get followed user IDs once
+      var followedIds = await minitwitContext.Followers
+        .Where(f => f.WhoId == u_ID)
+        .Select(f => f.WhomId)
+        .ToListAsync();
+
+      //Add self to the list so we also get our own tweets
+      followedIds.Add(u_ID.Value);
+
+      //Get messages from the gathered IDs
+      var messages = await minitwitContext.Messages
+        .Where(m => m.Flagged == 0 && followedIds.Contains(m.AuthorId))
+        .OrderByDescending(m => m.PubDate)
+        .Take(PER_PAGE)
+        .Join(minitwitContext.Users,
             m => m.AuthorId,
             u => u.UserId,
             (m, u) => new Org.OpenAPITools.Models.Message
             {
-              Content = m.Text,
-              User = u.Username,
-              PubDate = Format_datetime(m.PubDate ?? 0)
+                Content = m.Text,
+                User = u.Username,
+                PubDate = Format_datetime(m.PubDate ?? 0)
             })
-          .ToListAsync();
+        .ToListAsync();
 
-        return messages;
-      }
-      return new List<Org.OpenAPITools.Models.Message>();
+      return messages;
     }
 
     public async Task Register(string username, string email, string password)
