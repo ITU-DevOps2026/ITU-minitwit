@@ -221,34 +221,32 @@ namespace minitwit
     public async Task<List<Org.OpenAPITools.Models.Message>> Get_my_timeline(string username)
     {
       int? u_ID = await Get_user_id(username);
-      if (u_ID == null) return new List<Org.OpenAPITools.Models.Message>(); //Checking that the user exists
 
-      //Get followed user IDs once
-      var followedIds = await minitwitContext.Followers
-        .Where(f => f.WhoId == u_ID)
-        .Select(f => f.WhomId)
-        .ToListAsync();
+      if (u_ID == null) return new List<Org.OpenAPITools.Models.Message>();
 
-      //Add self to the list so we also get our own tweets
-      followedIds.Add(u_ID.Value);
+      // Fetch messages of the people the user follows
+      var followedMessages = minitwitContext.Messages
+        .Where(m => m.Flagged == 0)
+        .Join(minitwitContext.Followers.Where(f => f.WhoId == u_ID), 
+          m => m.AuthorId, 
+          f => f.WhomId,
+          (m, f) => m);
+  
+      var myMessages = minitwitContext.Messages
+        .Where(m => m.Flagged == 0 && m.AuthorId == u_ID);
 
-      //Get messages from the gathered IDs
-      var messages = await minitwitContext.Messages
-        .Where(m => m.Flagged == 0 && followedIds.Contains(m.AuthorId))
+      return await followedMessages.Union(myMessages)
         .OrderByDescending(m => m.PubDate)
         .Take(PER_PAGE)
         .Join(minitwitContext.Users,
-            m => m.AuthorId,
-            u => u.UserId,
-            (m, u) => new Org.OpenAPITools.Models.Message
-            {
-                Content = m.Text,
-                User = u.Username,
-                PubDate = Format_datetime(m.PubDate ?? 0)
-            })
-        .ToListAsync();
-
-      return messages;
+          m => m.AuthorId,
+          u => u.UserId,
+          (m, u) => new Org.OpenAPITools.Models.Message
+          {
+            Content = m.Text,
+            User = u.Username,
+            PubDate = Format_datetime(m.PubDate ?? 0)
+          }).ToListAsync();
     }
 
     public async Task Register(string username, string email, string password)

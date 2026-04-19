@@ -1,0 +1,373 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": 5,
+  "links": [],
+  "panels": [
+    {
+      "datasource": {
+        "type": "elasticsearch",
+        "uid": "PAE1B8C8635429669"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto",
+              "wrapText": false
+            },
+            "filterable": false,
+            "inspect": true
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 79.9997
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 17,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "enablePagination": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true
+      },
+      "pluginVersion": "12.1.10",
+      "targets": [
+        {
+          "alias": "",
+          "bucketAggs": [],
+          "datasource": {
+            "type": "elasticsearch",
+            "uid": "PAE1B8C8635429669"
+          },
+          "metrics": [
+            {
+              "id": "1",
+              "settings": {
+                "limit": "500"
+              },
+              "type": "logs"
+            }
+          ],
+          "query": "$Search",
+          "refId": "A",
+          "timeField": "@timestamp"
+        }
+      ],
+      "title": "Log table",
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {},
+            "includeByName": {
+              "@timestamp": true,
+              "_id": true,
+              "_index": false,
+              "_source": false,
+              "_type": false,
+              "agent.type": false,
+              "agent.version": false,
+              "ecs.version": false,
+              "error.message": false,
+              "error.stack_trace": true,
+              "event.action": false,
+              "event.created": false,
+              "event.id": false,
+              "event.severity": false,
+              "event.timezone": false,
+              "highlight": false,
+              "host.architecture": false,
+              "host.os.full": false,
+              "host.os.platform": false,
+              "host.os.version": false,
+              "http.request.id": false,
+              "id": false,
+              "labels.ConnectionId": false,
+              "labels.MessageTemplate": true,
+              "labels.username": true,
+              "log.level": true,
+              "log.logger": false,
+              "message": true,
+              "metadata.TextLength": false,
+              "process.name": false,
+              "process.pid": false,
+              "process.thread.id": false,
+              "process.thread.name": false,
+              "process.title": false,
+              "service.name": false,
+              "service.type": false,
+              "service.version": false,
+              "span.id": false,
+              "trace.id": false,
+              "url.path": true,
+              "user.domain": false,
+              "user.name": false
+            },
+            "indexByName": {
+              "@timestamp": 0,
+              "_id": 5,
+              "_index": 7,
+              "_source": 8,
+              "_type": 9,
+              "agent.type": 10,
+              "agent.version": 11,
+              "ecs.version": 12,
+              "error.message": 40,
+              "error.stack_trace": 6,
+              "error.type": 41,
+              "event.action": 13,
+              "event.code": 42,
+              "event.created": 14,
+              "event.severity": 15,
+              "event.timezone": 16,
+              "highlight": 17,
+              "host.architecture": 18,
+              "host.hostname": 19,
+              "host.os.full": 20,
+              "host.os.platform": 21,
+              "host.os.version": 22,
+              "http.request.id": 23,
+              "id": 24,
+              "labels.ConnectionId": 25,
+              "labels.MessageTemplate": 3,
+              "log.level": 1,
+              "log.logger": 26,
+              "message": 2,
+              "process.name": 27,
+              "process.pid": 28,
+              "process.thread.id": 29,
+              "process.thread.name": 30,
+              "process.title": 31,
+              "service.name": 32,
+              "service.type": 33,
+              "service.version": 34,
+              "sort": 35,
+              "span.id": 36,
+              "trace.id": 37,
+              "url.path": 4,
+              "user.domain": 38,
+              "user.name": 39
+            },
+            "renameByName": {
+              "_id": "ID"
+            }
+          }
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "elasticsearch",
+        "uid": "PAE1B8C8635429669"
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 24,
+        "x": 0,
+        "y": 17
+      },
+      "id": 3,
+      "options": {
+        "dedupStrategy": "none",
+        "enableInfiniteScrolling": true,
+        "enableLogDetails": true,
+        "prettifyLogMessage": true,
+        "showCommonLabels": false,
+        "showLabels": true,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": true
+      },
+      "pluginVersion": "12.1.10",
+      "targets": [
+        {
+          "alias": "",
+          "bucketAggs": [],
+          "datasource": {
+            "type": "elasticsearch",
+            "uid": "PAE1B8C8635429669"
+          },
+          "metrics": [
+            {
+              "id": "1",
+              "settings": {
+                "limit": "500"
+              },
+              "type": "logs"
+            }
+          ],
+          "query": "$Search",
+          "refId": "A",
+          "timeField": "@timestamp"
+        }
+      ],
+      "title": "Log View",
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {},
+            "includeByName": {
+              "@timestamp": true,
+              "_id": true,
+              "error.message": true,
+              "error.stack_trace": true,
+              "event.action": true,
+              "event.created": false,
+              "event.severity": false,
+              "highlight": false,
+              "http.request.id": false,
+              "id": false,
+              "labels.ConnectionId": false,
+              "labels.MessageTemplate": true,
+              "labels.username": true,
+              "log.level": true,
+              "log.logger": false,
+              "message": true,
+              "service.name": false,
+              "service.type": false,
+              "service.version": false,
+              "trace.id": false,
+              "url.path": true,
+              "user.domain": false,
+              "user.name": false
+            },
+            "indexByName": {
+              "@timestamp": 0,
+              "_id": 7,
+              "_index": 8,
+              "_source": 9,
+              "_type": 10,
+              "agent.type": 11,
+              "agent.version": 12,
+              "ecs.version": 13,
+              "event.action": 6,
+              "event.created": 14,
+              "event.id": 15,
+              "event.severity": 16,
+              "event.timezone": 17,
+              "highlight": 18,
+              "host.architecture": 19,
+              "host.hostname": 20,
+              "host.os.full": 21,
+              "host.os.platform": 22,
+              "host.os.version": 23,
+              "http.request.id": 24,
+              "id": 25,
+              "labels.ConnectionId": 26,
+              "labels.MessageTemplate": 3,
+              "labels.username": 4,
+              "log.level": 1,
+              "log.logger": 27,
+              "message": 2,
+              "metadata.TextLength": 28,
+              "process.name": 29,
+              "process.pid": 30,
+              "process.thread.id": 31,
+              "process.thread.name": 32,
+              "process.title": 33,
+              "service.name": 34,
+              "service.type": 35,
+              "service.version": 36,
+              "sort": 37,
+              "span.id": 38,
+              "trace.id": 39,
+              "url.path": 5,
+              "user.domain": 40,
+              "user.name": 41
+            },
+            "orderByMode": "manual",
+            "renameByName": {
+              "@timestamp": "",
+              "_id": "ID"
+            }
+          }
+        }
+      ],
+      "type": "logs"
+    }
+  ],
+  "preload": false,
+  "refresh": "",
+  "schemaVersion": 41,
+  "tags": [],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "text": "",
+          "value": ""
+        },
+        "label": "Search",
+        "name": "Search",
+        "options": [
+          {
+            "selected": true,
+            "text": "",
+            "value": ""
+          }
+        ],
+        "query": "",
+        "type": "textbox"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Testing",
+  "uid": "daccc126-9cd2-453e-8a30-eff7eb8ede5e",
+  "version": 17
+}
