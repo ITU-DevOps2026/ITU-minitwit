@@ -18,13 +18,3 @@ sudo systemctl status docker
 echo -e "\nVerifying that docker works ...\n"
 docker run --rm hello-world
 docker rmi hello-world
-
-echo ". $HOME/.bashrc" >> $HOME/.bash_profile
-echo -e "\nConfiguring credentials as environment variables...\n"
-source $HOME/.bash_profile
-
-echo -e "\nSelecting Minitwit Folder as default folder when you ssh into the server...\n"
-echo "cd /minitwit" >> ~/.bash_profile
-
-sed -i 's/\r$//' /minitwit/deploy.sh
-chmod +x /minitwit/deploy.sh

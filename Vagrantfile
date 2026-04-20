@@ -73,12 +73,11 @@ Vagrant.configure("2") do |config|
         echo "export db_connection='#{ENV['test_db_connection']}'" >> ~/.bash_profile
         # Removed logging for test env
       SHELL
-      test_manager.vm.provision "shell", path: "provision_scripts/app_setup_script.sh"
+      test_manager.vm.provision "shell", path: "provision_scripts/docker_setup_script.sh"
+      test_manager.vm.provision "shell", path: "provision_scripts/manager_setup_script.sh"
       test_manager.vm.provision "shell", path: "provision_scripts/configure_firewall_manager.sh"
 
-      ## Set up everything for creating the manager
-
-      # get the token for the workers to join the swarm
+      # starting the swarm and getting the token for the workers to join the swarm
       test_manager.trigger.after [:up, :provision] do |t|
         t.info = "Initializing swarm on manager and fetching worker token..."
 
@@ -97,6 +96,40 @@ Vagrant.configure("2") do |config|
               vagrant ssh minitwit-test-env-manager-#{i} -c 'docker swarm join-token -q worker' | tr -d '\\r' > ./provision_scripts/.tokens/join_token
 
               vagrant ssh minitwit-test-env-manager-#{i} -c './deploy.sh'
+            "
+          SHELL
+        }
+      end
+    end
+  end
+
+
+  # Configure Test MiniTwit Manager application
+  (1..TEST_WORKER_COUNT).each do |i|
+    config.vm.define "minitwit-test-env-worker-#{i}", autostart: false, primary: true do |test_worker|
+      test_worker.vm.hostname = "minitwit-test-env-worker-#{i}"
+
+      test_worker.vm.provision "shell", path: "provision_scripts/docker_setup_script.sh"
+      test_worker.vm.provision "shell", path: "provision_scripts/configure_firewall_worker.sh"
+
+      # Join the swarm created by the manager
+      test_worker.trigger.after [:up, :provision] do |t|
+        t.info = "Joining swarm created by manager"
+
+        t.run = {
+          inline: <<-SHELL
+            bash -c "
+              #set manager_IP
+              MANAGER_IP="$(tr -d '\r\n' < ./provision_scripts/.tokens/MANAGER_IP)"
+              echo \\"Worker found Managers IP to be:\\"
+              echo $MANAGER_IP
+
+              #set the join-token
+              JOIN_TOKEN="$(tr -d '\r\n' < ./provision_scripts/.tokens/join_token)"
+              echo \\"Worker found the join-token to be:\\"
+              echo $JOIN_TOKEN
+
+              vagrant ssh minitwit-test-env-worker-#{i} -c \\"docker swarm join --token $JOIN_TOKEN $MANAGER_IP:2377\\"
             "
           SHELL
         }
