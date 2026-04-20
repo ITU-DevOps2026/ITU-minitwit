@@ -120,12 +120,12 @@ Vagrant.configure("2") do |config|
           inline: <<-SHELL
             bash -c "
               #set manager_IP
-              MANAGER_IP="$(tr -d '\r\n' < ./provision_scripts/.tokens/MANAGER_IP)"
+              MANAGER_IP=\\"$(tr -d '\r\n' < ./provision_scripts/.tokens/MANAGER_IP)\\"
               echo \\"Worker found Managers IP to be:\\"
               echo $MANAGER_IP
 
               #set the join-token
-              JOIN_TOKEN="$(tr -d '\r\n' < ./provision_scripts/.tokens/join_token)"
+              JOIN_TOKEN=\\"$(tr -d '\r\n' < ./provision_scripts/.tokens/join_token)\\"
               echo \\"Worker found the join-token to be:\\"
               echo $JOIN_TOKEN
 
