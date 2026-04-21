@@ -71,6 +71,7 @@ Vagrant.configure("2") do |config|
       test_manager.vm.provision "shell", inline: <<-SHELL
         echo "export DOCKER_USERNAME='#{ENV['DOCKER_USERNAME']}'" > ~/.bash_profile
         echo "export db_connection='#{ENV['test_db_connection']}'" >> ~/.bash_profile
+        echo "export TEST_MONITOR_AND_LOGGING_PRIVATE_IP='#{ENV['TEST_MONITOR_AND_LOGGING_PRIVATE_IP']}'" >> ~/.bash_profile
         # Removed logging for test env
       SHELL
       test_manager.vm.provision "shell", path: "provision_scripts/docker_setup_script.sh"
