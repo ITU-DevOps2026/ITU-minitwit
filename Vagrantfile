@@ -29,6 +29,13 @@ Vagrant.configure("2") do |config|
     provider.privatenetworking = true
   end
 
+  MANAGER_COUNT = 1
+  WORKER_COUNT = 2
+
+  TEST_MANAGER_COUNT = 1
+  TEST_WORKER_COUNT = 2
+
+
   # Configure production MiniTwit application
   config.vm.define "minitwit-3", autostart: false, primary: true do |server|
     server.vm.hostname = "minitwit-3"
@@ -39,7 +46,8 @@ Vagrant.configure("2") do |config|
       echo "db_connection='#{ENV['db_connection']}'" >> /minitwit/.env
       echo "MONITOR_AND_LOGGING_PRIVATE_IP='#{ENV['MONITOR_AND_LOGGING_PRIVATE_IP']}'" >> /minitwit/.env
     SHELL
-    server.vm.provision "shell", inline: $app_setup_script
+    server.vm.provision "shell", path:"provision_scripts/app_setup_script.sh"
+    server.vm.provision "shell", path: "provision_scripts/configure_firewall_manager.sh"
   end
 
   # Configure production database 
@@ -54,17 +62,80 @@ Vagrant.configure("2") do |config|
     server.vm.provision "shell", inline: $db_setup_script, args: "mathildegk/minitwit-mysql-prod"
   end
   
-  # Configure test MiniTwit application
-  config.vm.define "minitwit-test-env", autostart: false, primary: true do |server|
-    server.vm.hostname = "minitwit-test-env"
-    server.vm.synced_folder "remote_files/test_env", "/minitwit", type: "rsync"
+  # Configure Test MiniTwit Manager application
+  (1..TEST_MANAGER_COUNT).each do |i|
+    config.vm.define "minitwit-test-env-manager-#{i}", autostart: false, primary: true do |test_manager|
+      test_manager.vm.hostname = "minitwit-test-env-manager-#{i}"
+      test_manager.vm.synced_folder "remote_files/test_env", "/minitwit", type: "rsync"
 
-    server.vm.provision "shell", inline: <<-SHELL
-      echo "export DOCKER_USERNAME='#{ENV['DOCKER_USERNAME']}'" > /minitwit/.env
-      echo "db_connection='#{ENV['test_db_connection']}'" >> /minitwit/.env
-      echo "MONITOR_AND_LOGGING_PRIVATE_IP='#{ENV['MONITOR_AND_LOGGING_PRIVATE_IP']}'" >> /minitwit/.env
-    SHELL
-    server.vm.provision "shell", inline: $app_setup_script
+      test_manager.vm.provision "shell", inline: <<-SHELL
+        echo "export DOCKER_USERNAME='#{ENV['DOCKER_USERNAME']}'" > ~/.bash_profile
+        echo "export db_connection='#{ENV['test_db_connection']}'" >> ~/.bash_profile
+        echo "export TEST_MONITOR_AND_LOGGING_PRIVATE_IP='#{ENV['TEST_MONITOR_AND_LOGGING_PRIVATE_IP']}'" >> ~/.bash_profile
+        # Removed logging for test env
+      SHELL
+      test_manager.vm.provision "shell", path: "provision_scripts/docker_setup_script.sh"
+      test_manager.vm.provision "shell", path: "provision_scripts/manager_setup_script.sh"
+      test_manager.vm.provision "shell", path: "provision_scripts/configure_firewall_manager.sh"
+
+      # starting the swarm and getting the token for the workers to join the swarm
+      test_manager.trigger.after [:up, :provision] do |t|
+        t.info = "Initializing swarm on manager and fetching worker token..."
+
+        t.run = {
+          inline: <<-SHELL
+            bash -c "
+              mkdir -p ./provision_scripts/.tokens
+              MANAGER_IP=$(vagrant ssh minitwit-test-env-manager-#{i} -c 'curl -s http://169.254.169.254/metadata/v1/interfaces/private/0/ipv4/address' | tr -d '\\r')
+              echo \\"$MANAGER_IP\\" > ./provision_scripts/.tokens/MANAGER_IP
+              
+              echo \\"Manager IP is:\\"
+              echo $MANAGER_IP
+
+              vagrant ssh minitwit-test-env-manager-#{i} -c \\"docker swarm init --advertise-addr $MANAGER_IP || true\\"
+
+              vagrant ssh minitwit-test-env-manager-#{i} -c 'docker swarm join-token -q worker' | tr -d '\\r' > ./provision_scripts/.tokens/join_token
+
+              vagrant ssh minitwit-test-env-manager-#{i} -c './deploy.sh'
+            "
+          SHELL
+        }
+      end
+    end
+  end
+
+
+  # Configure Test MiniTwit Manager application
+  (1..TEST_WORKER_COUNT).each do |i|
+    config.vm.define "minitwit-test-env-worker-#{i}", autostart: false, primary: true do |test_worker|
+      test_worker.vm.hostname = "minitwit-test-env-worker-#{i}"
+
+      test_worker.vm.provision "shell", path: "provision_scripts/docker_setup_script.sh"
+      test_worker.vm.provision "shell", path: "provision_scripts/configure_firewall_worker.sh"
+
+      # Join the swarm created by the manager
+      test_worker.trigger.after [:up, :provision] do |t|
+        t.info = "Joining swarm created by manager"
+
+        t.run = {
+          inline: <<-SHELL
+            bash -c "
+              #set manager_IP
+              MANAGER_IP=\\"$(tr -d '\r\n' < ./provision_scripts/.tokens/MANAGER_IP)\\"
+              echo \\"Worker found Managers IP to be:\\"
+              echo $MANAGER_IP
+
+              #set the join-token
+              JOIN_TOKEN=\\"$(tr -d '\r\n' < ./provision_scripts/.tokens/join_token)\\"
+              echo \\"Worker found the join-token to be:\\"
+              echo $JOIN_TOKEN
+
+              vagrant ssh minitwit-test-env-worker-#{i} -c \\"docker swarm join --token $JOIN_TOKEN $MANAGER_IP:2377\\"
+            "
+          SHELL
+        }
+      end
+    end
   end
 
   # Configure test database
@@ -116,57 +187,6 @@ Vagrant.configure("2") do |config|
     server.vm.provision "shell", inline: $monitoring_and_logging_setup_script
   end
 end
-
-# Define scripts that are used for setting up application and database
-# to be able to reuse it for production environment and test environment
-$app_setup_script = <<-SHELL
-  set -e # Exit on error
-
-  while fuser /var/lib/apt/lists/lock >/dev/null 2>&1 ; do
-    echo "Waiting for other software managers to finish..."
-    sleep 5
-  done
-  # The following addresses an issue in DO's Ubuntu images, which still contain a lock file
-  sudo apt-get update
-
-  # Install docker and docker compose
-  sudo apt install -qq -y docker.io
-  sudo apt install -qq -y docker-compose-v2
-
-  sudo systemctl status docker
-
-  echo -e "\nVerifying that docker works ...\n"
-  docker run --rm hello-world
-  docker rmi hello-world
-
-  source /minitwit/.env
-
-  echo -e "\nOpening port for minitwit ...\n"
-  sudo ufw allow 5035/tcp && \
-  sudo ufw allow 22/tcp && \
-  sudo ufw allow 3000/tcp
-
-  # Only allow our monitoring's private IP to access the metrics port
-  echo "About to enter if statement for port 9091"
-  if [ ! -z "$MONITOR_AND_LOGGING_PRIVATE_IP" ]; then
-    echo "Entered if statement for port 9091"
-    sudo ufw allow from "$MONITOR_AND_LOGGING_PRIVATE_IP" to any port 9091
-    echo "Firewall: Allowed 9091 for $MONITOR_AND_LOGGING_PRIVATE_IP"
-  fi
-
-  sudo ufw --force enable
-
-  echo ". $HOME/.bashrc" >> $HOME/.bash_profile
-  echo -e "\nConfiguring credentials as environment variables...\n"
-  source $HOME/.bash_profile
-
-  echo -e "\nSelecting Minitwit Folder as default folder when you ssh into the server...\n"
-  echo "cd /minitwit" >> ~/.bash_profile
-
-  sed -i 's/\r$//' /minitwit/deploy.sh
-  chmod +x /minitwit/deploy.sh
-  echo -e "\nVagrant setup done ..."
-SHELL
 
 $db_setup_script = <<-SHELL
   set -e # Exit on error
