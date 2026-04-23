@@ -218,12 +218,15 @@ namespace minitwit
 
       if (u_ID == null) return new List<Org.OpenAPITools.Models.Message>();
 
-      var followedIds = minitwitContext.Followers
+      var followedIds = await minitwitContext.Followers
         .Where(f => f.WhoId == u_ID)
-        .Select(f => f.WhomId);
+        .Select(f => f.WhomId)
+        .ToListAsync();
+
+      followedIds.Add(u_ID.Value);
 
       return await minitwitContext.Messages
-        .Where(m => m.Flagged == 0 && (m.AuthorId == u_ID || followedIds.Contains(m.AuthorId)))
+        .Where(m => m.Flagged == 0 && followedIds.Contains(m.AuthorId))
         .OrderByDescending(m => m.PubDate)
         .Take(PER_PAGE)
         .Join(minitwitContext.Users,
