@@ -1,0 +1,14 @@
+services:
+  minitwit:
+    image: ${DOCKER_USERNAME}/minitwitimage
+    ports:
+      - 5035:8080
+      - 9091:9091
+    environment:
+      - DbPath=${db_connection}
+      - Serilog__WriteTo__0__Args__nodes__0=http://${MONITOR_AND_LOGGING_PRIVATE_IP:-elasticsearch}:9200
+    deploy:
+      replicas: 3
+      update_config:
+        delay: 10s
+        order: start-first
