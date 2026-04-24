@@ -36,18 +36,78 @@ Vagrant.configure("2") do |config|
   TEST_WORKER_COUNT = 2
 
 
-  # Configure production MiniTwit application
-  config.vm.define "minitwit-3", autostart: false, primary: true do |server|
-    server.vm.hostname = "minitwit-3"
-    server.vm.synced_folder "remote_files/prod_env", "/minitwit", type: "rsync"
-    
-    server.vm.provision "shell", inline: <<-SHELL
-      echo "export DOCKER_USERNAME='#{ENV['DOCKER_USERNAME']}'" > /minitwit/.env
-      echo "db_connection='#{ENV['db_connection']}'" >> /minitwit/.env
-      echo "MONITOR_AND_LOGGING_PRIVATE_IP='#{ENV['MONITOR_AND_LOGGING_PRIVATE_IP']}'" >> /minitwit/.env
-    SHELL
-    server.vm.provision "shell", path:"provision_scripts/app_setup_script.sh"
-    server.vm.provision "shell", path: "provision_scripts/configure_firewall_manager.sh"
+  # Create minitwit manager for docker swarm
+  (1..MANAGER_COUNT).each do |i|
+    config.vm.define "minitwit-manager-#{i}", autostart: false, primary: true do |manager|
+      manager.vm.hostname = "minitwit-manager-#{i}"
+      manager.vm.synced_folder "remote_files/prod_env", "/minitwit", type: "rsync"
+
+      manager.vm.provision "shell", inline: <<-SHELL
+        echo "export DOCKER_USERNAME='#{ENV['DOCKER_USERNAME']}'" > ~/.bash_profile
+        echo "export db_connection='#{ENV['db_connection']}'" >> ~/.bash_profile
+        echo "export MONITOR_AND_LOGGING_PRIVATE_IP='#{ENV['MONITOR_AND_LOGGING_PRIVATE_IP']}'" >> ~/.bash_profile
+      SHELL
+      manager.vm.provision "shell", path: "provision_scripts/docker_setup_script.sh"
+      manager.vm.provision "shell", path: "provision_scripts/manager_setup_script.sh"
+      manager.vm.provision "shell", path: "provision_scripts/configure_firewall_manager.sh"
+
+      # starting the swarm and getting the token for the workers to join the swarm
+      manager.trigger.after [:up, :provision] do |t|
+        t.info = "Initializing swarm on manager and fetching worker token..."
+
+        t.run = {
+          inline: <<-SHELL
+            bash -c "
+              mkdir -p ./provision_scripts/.tokens
+              MANAGER_IP=$(vagrant ssh minitwit-manager-#{i} -c 'curl -s http://169.254.169.254/metadata/v1/interfaces/private/0/ipv4/address' | tr -d '\\r')
+              echo \\"$MANAGER_IP\\" > ./provision_scripts/.tokens/MANAGER_IP
+              
+              echo \\"Manager IP is:\\"
+              echo $MANAGER_IP
+
+              vagrant ssh minitwit-manager-#{i} -c \\"docker swarm init --advertise-addr $MANAGER_IP || true\\"
+
+              vagrant ssh minitwit-manager-#{i} -c 'docker swarm join-token -q worker' | tr -d '\\r' > ./provision_scripts/.tokens/join_token
+
+              vagrant ssh minitwit-manager-#{i} -c './deploy.sh'
+            "
+          SHELL
+        }
+      end
+    end
+  end
+
+  # create minitwit workers for docker swarm
+  (1..WORKER_COUNT).each do |i|
+    config.vm.define "minitwit-worker-#{i}", autostart: false, primary: true do |worker|
+      worker.vm.hostname = "minitwit-worker-#{i}"
+
+      worker.vm.provision "shell", path: "provision_scripts/docker_setup_script.sh"
+      worker.vm.provision "shell", path: "provision_scripts/configure_firewall_worker.sh"
+
+      # Join the swarm created by the manager
+      worker.trigger.after [:up, :provision] do |t|
+        t.info = "Joining swarm created by manager"
+
+        t.run = {
+          inline: <<-SHELL
+            bash -c "
+              #set manager_IP
+              MANAGER_IP=\\"$(tr -d '\r\n' < ./provision_scripts/.tokens/MANAGER_IP)\\"
+              echo \\"Worker found Managers IP to be:\\"
+              echo $MANAGER_IP
+
+              #set the join-token
+              JOIN_TOKEN=\\"$(tr -d '\r\n' < ./provision_scripts/.tokens/join_token)\\"
+              echo \\"Worker found the join-token to be:\\"
+              echo $JOIN_TOKEN
+
+              vagrant ssh minitwit-worker-#{i} -c \\"docker swarm join --token $JOIN_TOKEN $MANAGER_IP:2377\\"
+            "
+          SHELL
+        }
+      end
+    end
   end
 
   # Configure production database 
@@ -71,8 +131,7 @@ Vagrant.configure("2") do |config|
       test_manager.vm.provision "shell", inline: <<-SHELL
         echo "export DOCKER_USERNAME='#{ENV['DOCKER_USERNAME']}'" > ~/.bash_profile
         echo "export db_connection='#{ENV['test_db_connection']}'" >> ~/.bash_profile
-        echo "export TEST_MONITOR_AND_LOGGING_PRIVATE_IP='#{ENV['TEST_MONITOR_AND_LOGGING_PRIVATE_IP']}'" >> ~/.bash_profile
-        # Removed logging for test env
+        echo "export MONITOR_AND_LOGGING_PRIVATE_IP='#{ENV['TEST_MONITOR_AND_LOGGING_PRIVATE_IP']}'" >> ~/.bash_profile
       SHELL
       test_manager.vm.provision "shell", path: "provision_scripts/docker_setup_script.sh"
       test_manager.vm.provision "shell", path: "provision_scripts/manager_setup_script.sh"
@@ -87,14 +146,14 @@ Vagrant.configure("2") do |config|
             bash -c "
               mkdir -p ./provision_scripts/.tokens
               MANAGER_IP=$(vagrant ssh minitwit-test-env-manager-#{i} -c 'curl -s http://169.254.169.254/metadata/v1/interfaces/private/0/ipv4/address' | tr -d '\\r')
-              echo \\"$MANAGER_IP\\" > ./provision_scripts/.tokens/MANAGER_IP
+              echo \\"$MANAGER_IP\\" > ./provision_scripts/.tokens/TEST_MANAGER_IP
               
               echo \\"Manager IP is:\\"
               echo $MANAGER_IP
 
               vagrant ssh minitwit-test-env-manager-#{i} -c \\"docker swarm init --advertise-addr $MANAGER_IP || true\\"
 
-              vagrant ssh minitwit-test-env-manager-#{i} -c 'docker swarm join-token -q worker' | tr -d '\\r' > ./provision_scripts/.tokens/join_token
+              vagrant ssh minitwit-test-env-manager-#{i} -c 'docker swarm join-token -q worker' | tr -d '\\r' > ./provision_scripts/.tokens/test_join_token
 
               vagrant ssh minitwit-test-env-manager-#{i} -c './deploy.sh'
             "
@@ -105,7 +164,7 @@ Vagrant.configure("2") do |config|
   end
 
 
-  # Configure Test MiniTwit Manager application
+  # Configure Test MiniTwit Workers application
   (1..TEST_WORKER_COUNT).each do |i|
     config.vm.define "minitwit-test-env-worker-#{i}", autostart: false, primary: true do |test_worker|
       test_worker.vm.hostname = "minitwit-test-env-worker-#{i}"
@@ -121,12 +180,12 @@ Vagrant.configure("2") do |config|
           inline: <<-SHELL
             bash -c "
               #set manager_IP
-              MANAGER_IP=\\"$(tr -d '\r\n' < ./provision_scripts/.tokens/MANAGER_IP)\\"
+              MANAGER_IP=\\"$(tr -d '\r\n' < ./provision_scripts/.tokens/TEST_MANAGER_IP)\\"
               echo \\"Worker found Managers IP to be:\\"
               echo $MANAGER_IP
 
               #set the join-token
-              JOIN_TOKEN=\\"$(tr -d '\r\n' < ./provision_scripts/.tokens/join_token)\\"
+              JOIN_TOKEN=\\"$(tr -d '\r\n' < ./provision_scripts/.tokens/test_join_token)\\"
               echo \\"Worker found the join-token to be:\\"
               echo $JOIN_TOKEN
 
