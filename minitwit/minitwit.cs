@@ -22,8 +22,6 @@ try
   // Add services to the container.
   builder.Services.AddRazorPages();
 
-  builder.Services.AddDistributedMemoryCache();
-
   builder.Services.AddSession(options =>
   {
     options.IdleTimeout = TimeSpan.FromMinutes(15);
@@ -43,7 +41,7 @@ try
   else
   {
     builder.Services.AddDbContext<MinitwitContext>(options =>
-      options.UseMySql(DbPath, ServerVersion.AutoDetect(DbPath)));
+      options.UseMySql(DbPath, new MySqlServerVersion(new Version(8, 0, 45))));
   }
 
   builder.Services.AddMetricServer(options => options.Port = 9091);
@@ -57,11 +55,11 @@ try
     var services = scope.ServiceProvider;
 
     var context = services.GetRequiredService<MinitwitContext>();
-    context.Database.EnsureCreated();
+    await context.Database.EnsureCreatedAsync();
 
     //Start the metrics at the amount of tweets and users in the database
-    var totalTweets = context.Messages.Count();
-    var totalUsers = context.Users.Count();
+    var totalTweets = await context.Messages.CountAsync();
+    var totalUsers = await context.Users.CountAsync();
 
     MinitwitMetrics.TweetCounter.IncTo(totalTweets);
     MinitwitMetrics.UserRegistrationCounter.IncTo(totalUsers);
@@ -94,7 +92,7 @@ try
 
   app.MapHealthChecks("/healthz");
 
-  app.Run();
+  await app.RunAsync();
 }
 catch (Exception ex)
 {
@@ -380,7 +378,7 @@ namespace minitwit
       if (latest.HasValue)
       {
         //Get the latest Database entry, so this can be updated
-        var latest_entry = minitwitContext.LatestInt.FirstOrDefault(l => l.Id == 1);
+        var latest_entry = await minitwitContext.LatestInt.FirstOrDefaultAsync(l => l.Id == 1);
 
         if (latest_entry != null)
         {
