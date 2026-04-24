@@ -1,0 +1,52 @@
+services:
+  # The Traefik Service
+  traefik:
+    image: traefik:v3.6 # One of the newest versions of Traefik
+    command:
+      - "--api.insecure=true" # A flag to tell this is unsecure, but should be removed inour prod enviroment
+      - "--providers.docker=true"
+      - "--providers.swarm=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80" ## for unencrypted HTTP traffic
+      - "--entrypoints.websecure.address=:443" ## For encrypted HTTPS traffic
+      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
+      - "--certificatesresolvers.myresolver.acme.email=csfr@itu.dk"
+      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "letsencrypt:/letsencrypt"
+    networks:
+      - web-public
+    deploy:
+      labels:
+        - "traefik.enable=false" # to silence the "port missing" errors
+
+  minitwit:
+    image: ${DOCKER_USERNAME}/minitwit-dev
+    # removed ports, now handled by Traefik
+    environment:
+      - DbPath=${db_connection}
+      - Serilog__WriteTo__0__Args__nodes__0=http://${TEST_MONITOR_AND_LOGGING_PRIVATE_IP:-elasticsearch}:9200
+    networks:
+      - web-public
+    deploy:
+      replicas: 3
+      update_config:
+        delay: 10s
+        order: start-first
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.minitwit.rule=Host(`bigtwit.app`) || Host(`www.bigtwit.app`)"
+        - "traefik.http.routers.minitwit.entrypoints=websecure"
+        - "traefik.http.routers.minitwit.tls.certresolver=myresolver"
+        - "traefik.http.services.minitwit.loadbalancer.server.port=8080" # the internal port of Minitwit
+
+networks:
+  web-public:
+    driver: overlay
+
+volumes:
+  letsencrypt:
