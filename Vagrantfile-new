@@ -46,38 +46,41 @@ Vagrant.configure("2") do |config|
         t.info = "Writing private ip to file"
         t.run = {
           inline: <<-SHELL 
-            bash -c '
-              MANAGER_IP=$(vagrant ssh minitwit-manager-#{i} -c "curl -s http://169.254.169.254/metadata/v1/interfaces/private/0/ipv4/address" | tr -d "\r")
-              echo "$MANAGER_IP" > ./provision_scripts/manager_IP 
-              echo "Manager IP is: $MANAGER_IP"
-            '
+            bash -c "
+              MANAGER_IP=$(vagrant ssh minitwit-manager-#{i} -c 'curl -s http://169.254.169.254/metadata/v1/interfaces/private/0/ipv4/address' | tr -d '\\r')
+              echo \\"$MANAGER_IP\\" > ./provision_scripts/manager_IP 
+              echo \\"Manager IP is: $MANAGER_IP\\"
+            "
           SHELL
         }
       end
       
       # Ensure that database and monitoring droplets has been created and collect their IP's
-      manager.trigger.before :provision do |t|
+      manager.trigger.before :"Vagrant::Action::Builtin::Provision", type: :action do |t|
         t.info = "Collecting database and monitoring IP's and injecting them into manager"
         t.run = {
           inline: <<-SHELL
             bash -c "
+              # Wait for IP files
               while [ ! -f ./provision_scripts/db_IP ] || [ ! -f ./provision_scripts/monitoring_IP ]; do
-                echo 'Files containing ip's not found, retrying loop'
+                echo 'sleeping'
                 sleep 2
               done
 
-              echo 'IP Files found, writing them to txt files'
               DB_IP_VAL=$(cat ./provision_scripts/db_IP)
-              MONITORING_IP=$(cat ./provision_scripts/monitoring_IP)
+              MONITOR_IP=$(cat ./provision_scripts/monitoring_IP)
               
               DB_TEMPLATE='#{ENV['test_db_connection']}'
-              FINAL_DB_CONN=${DB_TEMPLATE//<db_IP>/$DB_IP_VAL}
+              FINAL_DB_CONN=$(echo \"$DB_TEMPLATE\" | sed \"s/<db_IP>/$DB_IP_VAL/g\")
 
-              echo 'Injecting connection string and monitoring ip into remote minitwit-manager-#{i}'
-
-              vagrant ssh minitwit-manager-#{i} -c "
-                grep -q 'db_connection=' ~/.bash_profile || echo 'export db_connection=\'$FINAL_DB_CONN\'' > ~/.bash_profile
-                grep -q 'TEST_MONITOR_AND_LOGGING_PRIVATE_IP=' ~/.bash_profile || echo 'export TEST_MONITOR_AND_LOGGING_PRIVATE_IP=\'$MONITORING_IP\'' >> ~/.bash_profile
+              vagrant ssh minitwit-manager-#{i} -c \"
+                if ! grep -q 'db_connection=' ~/.bash_profile; then
+                  echo 'export db_connection=\"$FINAL_DB_CONN\"' > ~/.bash_profile
+                fi
+                if ! grep -q 'TEST_MONITOR_AND_LOGGING_PRIVATE_IP=' ~/.bash_profile; then
+                  echo 'export TEST_MONITOR_AND_LOGGING_PRIVATE_IP=\"$MONITOR_IP\"' >> ~/.bash_profile
+                fi
+              \"
             "
           SHELL
         }
@@ -94,7 +97,7 @@ Vagrant.configure("2") do |config|
       manager.vm.provision "shell", path: "provision_scripts/manager_setup_script.sh"
       manager.vm.provision "shell", path: "provision_scripts/configure_firewall_manager.sh"
 
-      manager.trigger.after :provision do |t|
+      manager.trigger.after :"Vagrant::Action::Builtin::Provision", type: :action do |t|
         t.info = "Initializing swarm on manager and fetching worker token..."
         t.run = {
           inline: <<-SHELL
