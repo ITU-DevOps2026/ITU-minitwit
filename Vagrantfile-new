@@ -1,0 +1,112 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# Load environment variables from .env file if it exists
+if File.exist?(".env")
+  File.readlines(".env").each do |line|
+    line.strip!
+    next if line.empty? || line.start_with?("#")
+    key, value = line.split("=", 2)
+    ENV[key] = value if key && value
+  end
+end
+
+require 'droplet_kit'
+
+Vagrant.configure("2") do |config|
+  # Configuring global settings that all droplets use
+  config.vm.box = 'digital_ocean'
+  config.vm.box_url = "https://github.com/devopsgroup-io/vagrant-digitalocean/raw/master/box/digital_ocean.box"
+  config.ssh.private_key_path = '~/.ssh/id_ed25519'
+  config.vm.synced_folder ".", "/vagrant", disabled: true
+
+  config.vm.provider :digital_ocean do |provider|
+    provider.ssh_key_name = ENV["SSH_KEY_NAME"]
+    provider.token = ENV["TEST_DIGITAL_OCEAN_TOKEN"]
+    provider.image = 'ubuntu-22-04-x64'
+    provider.region = 'fra1'
+    provider.size = 's-1vcpu-1gb'
+    provider.privatenetworking = true
+  end
+
+  MANAGER_COUNT = 1
+  WORKER_COUNT = 2
+
+  TEST_MANAGER_COUNT = 1
+  TEST_WORKER_COUNT = 2
+
+  # Create minitwit manager for docker swarm
+  (1..MANAGER_COUNT).each do |i|
+    config.vm.define "minitwit-manager-#{i}", autostart: true, primary: true do |manager|
+      manager.vm.hostname = "minitwit-manager-#{i}"
+      manager.vm.synced_folder "remote_files/prod_env", "/minitwit", type: "rsync"
+
+      # Collecting IP of manager after its creation
+      manager.trigger.after :up do |t|
+        t.info = "Writing private ip to file"
+        t.run = {
+          inline: <<-SHELL 
+            bash -c '
+              MANAGER_IP=$(vagrant ssh minitwit-manager-#{i} -c "curl -s http://169.254.169.254/metadata/v1/interfaces/private/0/ipv4/address" | tr -d "\r")
+              echo "$MANAGER_IP" > ./provision_scripts/manager_IP 
+              echo "Manager IP is: $MANAGER_IP"
+            '
+          SHELL
+        }
+      end
+      
+      # Ensure that database and monitoring droplets has been created and collect their IP's
+      manager.trigger.before :provision do |t|
+        t.info = "Collecting database and monitoring IP's and injecting them into manager"
+        t.run = {
+          inline: <<-SHELL
+            bash -c "
+              while [ ! -f ./provision_scripts/db_IP ] || [ ! -f ./provision_scripts/monitoring_IP ]; do
+                echo 'Files containing ip's not found, retrying loop'
+                sleep 2
+              done
+
+              echo 'IP Files found, writing them to txt files'
+              DB_IP_VAL=$(cat ./provision_scripts/db_IP)
+              MONITORING_IP=$(cat ./provision_scripts/monitoring_IP)
+              
+              DB_TEMPLATE='#{ENV['test_db_connection']}'
+              FINAL_DB_CONN=${DB_TEMPLATE//<db_IP>/$DB_IP_VAL}
+
+              echo 'Injecting connection string and monitoring ip into remote minitwit-manager-#{i}'
+
+              vagrant ssh minitwit-manager-#{i} -c "
+                grep -q 'db_connection=' ~/.bash_profile || echo 'export db_connection=\'$FINAL_DB_CONN\'' > ~/.bash_profile
+                grep -q 'TEST_MONITOR_AND_LOGGING_PRIVATE_IP=' ~/.bash_profile || echo 'export TEST_MONITOR_AND_LOGGING_PRIVATE_IP=\'$MONITORING_IP\'' >> ~/.bash_profile
+            "
+          SHELL
+        }
+      end
+
+      manager.vm.provision "shell", inline: <<-SHELL
+        bash -c "
+          if ! grep -q 'DOCKER_USERNAME' ~/.bash_profile; then
+          echo 'export DOCKER_USERNAME='#{ENV['DOCKER_USERNAME']}'' >> ~/.bash_profile
+          fi
+        "
+      SHELL
+      manager.vm.provision "shell", path: "provision_scripts/docker_setup_script.sh"
+      manager.vm.provision "shell", path: "provision_scripts/manager_setup_script.sh"
+      manager.vm.provision "shell", path: "provision_scripts/configure_firewall_manager.sh"
+
+      manager.trigger.after :provision do |t|
+        t.info = "Initializing swarm on manager and fetching worker token..."
+        t.run = {
+          inline: <<-SHELL
+            bash -c "
+              MANAGER_IP=$(vagrant ssh minitwit-manager-#{i} -c 'curl -s http://169.254.169.254/metadata/v1/interfaces/private/0/ipv4/address' | tr -d '\\r')
+              vagrant ssh minitwit-manager-#{i} -c 'docker swarm init --advertise-addr $MANAGER_IP || true'
+              vagrant ssh minitwit-manager-#{i} -c 'docker swarm join-token -q worker' | tr -d '\\r' > ./provision_scripts/join_token
+              vagrant ssh minitwit-manager-#{i} -c './deploy.sh'
+            "
+          SHELL
+        }
+      end
+    end
+  end
+end
