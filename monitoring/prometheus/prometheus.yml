@@ -22,9 +22,9 @@ scrape_configs:
 
     # Override the global default and scrape targets from this job every 5 seconds.
     scrape_interval: 5s
-
+    scheme: https
     static_configs:
-      - targets: ['APP_IP_PLACEHOLDER:9091']
+      - targets: ['monitor-test.bigtwit.app']
         labels:
           group: 'production'
 
