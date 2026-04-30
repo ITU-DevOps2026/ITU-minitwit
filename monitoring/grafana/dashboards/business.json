@@ -175,7 +175,7 @@
         {
           "editorMode": "code",
           "exemplar": false,
-          "expr": "increase(minitwit_tweets_total[24h])",
+          "expr": "minitwit_tweets_total - minitwit_tweets_total offset 24h",
           "format": "table",
           "instant": false,
           "legendFormat": "__auto",
@@ -241,7 +241,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "minitwit_registrations_total",
+          "expr": "minitwit_users_total",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
@@ -335,14 +335,14 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "increase(minitwit_registrations_total[1h])",
+          "expr": "minitwit_users_total - minitwit_users_total offset 1h",
           "format": "table",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "Amount of users registrered",
+      "title": "Amount of users registrered in the last hour",
       "description": "Registration rate per hour. Used to track the success of marketing efforts or onboarding health.",
       "type": "timeseries"
     },
@@ -440,7 +440,7 @@
         }
       ],
       "title": "Duration of HTTP Requests (Latency)",
-      "description": "Average response time from a user's perspective. High latency directly correlates to poor user satisfaction.",
+      "description": "Average response time over the last 5 minutes from a user's perspective. High latency directly correlates to poor user satisfaction.",
       "type": "timeseries"
     }
   ],
