@@ -20,6 +20,14 @@ sudo ufw default deny incoming
 sudo ufw default allow outgoing
 sudo ufw allow ssh
 
+# Change configurations in the sshd_config file to limit ssh retries, the graceperiod of a non authorized connection
+# and disabling password authentication to reduce brute force attacks
+echo "Setting a higher security baseline for SSH"
+sudo sed -i 's/#PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
+sudo sed -i 's/#LoginGraceTime 2m/LoginGraceTime 30/' /etc/ssh/sshd_config
+sudo sed -i 's/#MaxAuthTries 6/MaxAuthTries 3/' /etc/ssh/sshd_config
+sudo sed -i 's/#MaxSessions 10/MaxSessions 5/' /etc/ssh/sshd_config
+
 source /etc/profile.d/env.sh
 
 # Allow Grafana UI (Public) - fine to allow since grafana is locked behind a user
@@ -31,6 +39,9 @@ if [ ! -z "$APP_SERVER_IP" ]; then
     sudo ufw allow from "$APP_SERVER_IP" to any port 9090
     echo "Firewall: Monitoring ports opened for $APP_SERVER_IP"
 fi
+
+sudo ufw reload 
+sudo ufw --force enable
 
 echo -e "\nSelecting deploy Folder as default folder when you ssh into the server...\n"
 echo "cd /deploy" >> ~/.bash_profile
