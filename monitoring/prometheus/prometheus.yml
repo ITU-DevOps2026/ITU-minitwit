@@ -24,7 +24,7 @@ scrape_configs:
     scrape_interval: 5s
     scheme: https
     static_configs:
-      - targets: ['monitor-test.bigtwit.app']
+      - targets: ['monitor.bigtwit.app']
         labels:
           group: 'production'
 
