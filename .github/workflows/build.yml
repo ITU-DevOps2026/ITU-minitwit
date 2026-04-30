@@ -54,7 +54,7 @@ jobs:
             /d:sonar.c.file.suffixes=- \
             /d:sonar.cpp.file.suffixes=- \
             /d:sonar.objc.file.suffixes=- \
-            /d:sonar.exclusions="**/bin/**,**/obj/**,**/wwwroot/lib/**"
+            /d:sonar.exclusions="**/bin/**,**/obj/**,**/wwwroot/lib/**" \
             /d:sonar.coverage.exclusions="**/*"
 
           dotnet restore minitwit/minitwit.sln
