@@ -1,14 +1,79 @@
 services:
+  # The Traefik Service
+  traefik:
+    image: traefik:v3.6 # One of the newest versions of Traefik
+    command:
+      - "--api.insecure=true" # A flag to tell this is unsecure, but should be removed inour prod enviroment
+      - "--providers.docker=true"
+      - "--providers.swarm=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80" ## for unencrypted HTTP traffic
+      - "--entrypoints.websecure.address=:443" ## For encrypted HTTPS traffic
+      - "--entrypoints.alt.address=:5035"   ## OBS!! WE TRY FIX TO MAKE OLD IP WORK
+      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
+      - "--certificatesresolvers.myresolver.acme.email=csfr@itu.dk"
+      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+    ports:
+      - "80:80"
+      - "443:443"
+      - "5035:5035"  # OBS!! WE TRY FIX TO MAKE OLD IP WORK
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "letsencrypt:/letsencrypt"
+    networks:
+      - web-public
+    deploy:
+      labels:
+        - "traefik.enable=false" # to silence the "port missing" errors
+
   minitwit:
     image: ${DOCKER_USERNAME}/minitwit-dev
-    ports:
-      - 5035:8080
-      - 9091:9091
+    # removed ports, now handled by Traefik
     environment:
       - DbPath=${db_connection}
       - Serilog__WriteTo__0__Args__nodes__0=http://${TEST_MONITOR_AND_LOGGING_PRIVATE_IP:-elasticsearch}:9200
+    networks:
+      - web-public
     deploy:
       replicas: 3
       update_config:
         delay: 10s
         order: start-first
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.minitwit.rule=Host(`test.bigtwit.app`) || Host(`www.test.bigtwit.app`)"
+        - "traefik.http.routers.minitwit.entrypoints=websecure"
+        - "traefik.http.routers.minitwit.tls.certresolver=myresolver"
+        - "traefik.http.services.minitwit-app-svc.loadbalancer.server.port=8080" # define the service
+        - "traefik.http.routers.minitwit.service=minitwit-app-svc" # the internal port of Minitwit
+
+        ## Ensure that www.bigtwit.app redirects to bigtwit.app
+        - "traefik.http.routers.minitwit.middlewares=www-redirect"
+        - "traefik.http.middlewares.www-redirect.redirectregex.regex=^https?://www.test.bigtwit.app/(.*)"
+        - "traefik.http.middlewares.www-redirect.redirectregex.replacement=https://test.bigtwit.app/$${1}"
+        - "traefik.http.middlewares.www-redirect.redirectregex.permanent=true"
+
+        # Add access via IP also:
+        - "traefik.http.routers.minitwit-ip.rule=Host(`161.35.25.12`)"
+        - "traefik.http.routers.minitwit-ip.entrypoints=alt"
+        - "traefik.http.routers.minitwit-ip.service=minitwit-app-svc"
+
+        # Monitoring
+        - "traefik.http.routers.minitwit-metrics.rule=Host(`monitor-test.bigtwit.app`)"
+        - "traefik.http.routers.minitwit-metrics.entrypoints=websecure"
+        - "traefik.http.routers.minitwit-metrics.tls.certresolver=myresolver"
+        - "traefik.http.services.minitwit-metrics-svc.loadbalancer.server.port=9091"  # define the service for monitoring
+        - "traefik.http.routers.minitwit-metrics.service=minitwit-metrics-svc" # Define the local port this url looks at
+
+        # ADD STICKY SESSIONS FIX
+        - "traefik.http.services.minitwit-app-svc.loadbalancer.sticky.cookie=true"   # Add the cookie on the containers
+        - "traefik.http.services.minitwit-app-svc.loadbalancer.sticky.cookie.httponly=true" # Secure the cookie so we only can acess it via http and not JAVASCRIPT for example
+        - "traefik.http.services.minitwit-app-svc.loadbalancer.sticky.cookie.secure=true" # Secure the cookie only by sending it over http
+        - "traefik.http.services.minitwit-app-svc.loadbalancer.sticky.cookie.name=minitwit_sticky" # Rename the cookie so it is not conflicting with other 
+
+networks:
+  web-public:
+    driver: overlay # For communication across droplets.
+
+volumes:
+  letsencrypt:
