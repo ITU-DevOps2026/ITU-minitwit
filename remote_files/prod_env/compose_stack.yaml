@@ -61,6 +61,9 @@ services:
         - "traefik.http.routers.minitwit-metrics.tls.certresolver=myresolver"
         - "traefik.http.services.minitwit-metrics-svc.loadbalancer.server.port=9091"  # define the service for monitoring
         - "traefik.http.routers.minitwit-metrics.service=minitwit-metrics-svc" # Define the local port this url looks at
+        # Restrict access to the monitoring endpoint to only the monitor IP
+        - "traefik.http.middlewares.monitor-ip-whitelist.ipallowlist.sourcerange=${MONITOR_AND_LOGGING_PRIVATE_IP}"
+        - "traefik.http.routers.minitwit-metrics.middlewares=monitor-ip-whitelist"
 
         # ADD STICKY SESSIONS FIX
         - "traefik.http.services.minitwit-app-svc.loadbalancer.sticky.cookie=true"   # Add the cookie on the containers
