@@ -3,7 +3,6 @@ services:
   traefik:
     image: traefik:v3.6 # One of the newest versions of Traefik
     command:
-      - "--api.insecure=true" # A flag to tell this is unsecure, but should be removed inour prod enviroment
       - "--providers.docker=true"
       - "--providers.swarm=true"
       - "--providers.docker.exposedbydefault=false"
