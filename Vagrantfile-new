@@ -43,168 +43,184 @@ Vagrant.configure("2") do |config|
       
       manager.trigger.before :"Vagrant::Action::Builtin::Provision", type: :action do |t|
         t.info = "Write own ip to file"
-        t.run = {
-          inline: <<-SHELL
-            bash -c "
-              MANAGER_IP=$(vagrant ssh minitwit-manager-#{i} -c 'curl -s http://169.254.169.254/metadata/v1/interfaces/private/0/ipv4/address' | tr -d '\\r')
-              echo \"$MANAGER_IP\" > ./provision_scripts/manager_IP 
-              echo \"Manager IP is: $MANAGER_IP\"
-            "
-          SHELL
-        }
+        t.ruby do |env, machine|
+          # This block is NATIVE Ruby. It works on Windows and Mac.
+          # We use machine.communicate.execute to run commands on the droplet
+          
+          # 1. Get the IP from the droplet
+          command = "curl -s http://169.254.169.254/metadata/v1/interfaces/private/0/ipv4/address"
+          ip = ""
+          machine.communicate.execute(command) do |type, data|
+            ip << data if type == :stdout
+          end
+          ip = ip.strip
+    
+          # 2. Write to the host file (Windows/Mac local folder)
+          File.write("./provision_scripts/manager_IP", ip)
+          puts "Successfully saved Manager IP: #{ip}"
+        end
+          # t.run {
+          # inline: <<-SHELL
+          #   bash -c "
+          #     MANAGER_IP=$(vagrant ssh minitwit-manager-#{i} -c 'curl -s http://169.254.169.254/metadata/v1/interfaces/private/0/ipv4/address' | tr -d '\\r')
+          #     echo \"$MANAGER_IP\" > ./provision_scripts/manager_IP 
+          #     echo \"Manager IP is: $MANAGER_IP\"
+          #   "
+          # SHELL
+          # }
       end
-      # Ensure that database and monitoring droplets has been created and collect their IP's
-      manager.trigger.before :"Vagrant::Action::Builtin::Provision", type: :action do |t|
-        t.info = "Collecting database and monitoring IP's and injecting them into manager"
-        t.run = {
-          inline: <<-SHELL
-            bash -c "
-              # 1. Wait for local files
-              while [ ! -f ./provision_scripts/db_IP ] || [ ! -f ./provision_scripts/monitoring_IP ]; do
-                echo 'Host: Waiting for db_IP and monitoring_IP files...'
-                sleep 2
-              done
+    #   # Ensure that database and monitoring droplets has been created and collect their IP's
+    #   manager.trigger.before :"Vagrant::Action::Builtin::Provision", type: :action do |t|
+    #     t.info = "Collecting database and monitoring IP's and injecting them into manager"
+    #     t.run = {
+    #       inline: <<-SHELL
+    #         bash -c "
+    #           # 1. Wait for local files
+    #           while [ ! -f ./provision_scripts/db_IP ] || [ ! -f ./provision_scripts/monitoring_IP ]; do
+    #             echo 'Host: Waiting for db_IP and monitoring_IP files...'
+    #             sleep 2
+    #           done
 
-              # 2. Read values
-              DB_IP_VAL=$(cat ./provision_scripts/db_IP)
-              MONITOR_IP=$(cat ./provision_scripts/monitoring_IP)
+    #           # 2. Read values
+    #           DB_IP_VAL=$(cat ./provision_scripts/db_IP)
+    #           MONITOR_IP=$(cat ./provision_scripts/monitoring_IP)
               
-              # 3. Inject them into the VM
-              # Note: We use single quotes around the remote command to prevent local expansion
-              vagrant ssh minitwit-manager-#{i} -c \"echo 'export db_connection=#{ENV['test_db_connection']}' | sed 's/<db_IP>/$DB_IP_VAL/g' > ~/.bash_profile\"
-              vagrant ssh minitwit-manager-#{i} -c \"echo 'export TEST_MONITOR_AND_LOGGING_PRIVATE_IP=$MONITOR_IP' >> ~/.bash_profile\"
-              vagrant ssh minitwit-manager-#{i} -c \"echo 'export DOCKER_USERNAME=#{ENV['DOCKER_USERNAME']}' >> ~/.bash_profile\"
-            "
-          SHELL
-        }
-      end
+    #           # 3. Inject them into the VM
+    #           # Note: We use single quotes around the remote command to prevent local expansion
+    #           vagrant ssh minitwit-manager-#{i} -c \"echo 'export db_connection=#{ENV['test_db_connection']}' | sed 's/<db_IP>/$DB_IP_VAL/g' > ~/.bash_profile\"
+    #           vagrant ssh minitwit-manager-#{i} -c \"echo 'export TEST_MONITOR_AND_LOGGING_PRIVATE_IP=$MONITOR_IP' >> ~/.bash_profile\"
+    #           vagrant ssh minitwit-manager-#{i} -c \"echo 'export DOCKER_USERNAME=#{ENV['DOCKER_USERNAME']}' >> ~/.bash_profile\"
+    #         "
+    #       SHELL
+    #     }
+    #   end
 
-      #manager.vm.provision "file", source: "./provision_scripts/db_IP", destination: "/tmp/db_IP"
-      #manager.vm.provision "file", source: "./provision_scripts/monitoring_IP", destination: "/tmp/monitoring_IP"
-      #manager.vm.provision "shell", inline: <<-SHELL
-       # DB_IP_VAL=$(cat /tmp/db_IP)
-        #MONITOR_IP=$(cat /tmp/monitoring_IP)
-        #DB_TEMPLATE='#{ENV['test_db_connection']}'
+    #   #manager.vm.provision "file", source: "./provision_scripts/db_IP", destination: "/tmp/db_IP"
+    #   #manager.vm.provision "file", source: "./provision_scripts/monitoring_IP", destination: "/tmp/monitoring_IP"
+    #   #manager.vm.provision "shell", inline: <<-SHELL
+    #    # DB_IP_VAL=$(cat /tmp/db_IP)
+    #     #MONITOR_IP=$(cat /tmp/monitoring_IP)
+    #     #DB_TEMPLATE='#{ENV['test_db_connection']}'
 
-        #FINAL_DB_CONN=$(echo "$DB_TEMPLATE" | sed "s/<db_IP>/$DB_IP_VAL/g")
+    #     #FINAL_DB_CONN=$(echo "$DB_TEMPLATE" | sed "s/<db_IP>/$DB_IP_VAL/g")
 
-        #echo "export db_connection=\"$FINAL_DB_CONN\"" > ~/.bash_profile
-        #echo "export TEST_MONITOR_AND_LOGGING_PRIVATE_IP=\"$MONITOR_IP\"" >> ~/.bash_profile
-        #echo "export DOCKER_USERNAME=\"#{ENV['DOCKER_USERNAME']}\"" >> ~/.bash_profile
-      #SHELL
-      manager.vm.provision "shell", path: "provision_scripts/docker_setup_script.sh"
-      manager.vm.provision "shell", path: "provision_scripts/manager_setup_script.sh"
-      manager.vm.provision "shell", path: "provision_scripts/configure_firewall_manager.sh"
+    #     #echo "export db_connection=\"$FINAL_DB_CONN\"" > ~/.bash_profile
+    #     #echo "export TEST_MONITOR_AND_LOGGING_PRIVATE_IP=\"$MONITOR_IP\"" >> ~/.bash_profile
+    #     #echo "export DOCKER_USERNAME=\"#{ENV['DOCKER_USERNAME']}\"" >> ~/.bash_profile
+    #   #SHELL
+    #   manager.vm.provision "shell", path: "provision_scripts/docker_setup_script.sh"
+    #   manager.vm.provision "shell", path: "provision_scripts/manager_setup_script.sh"
+    #   manager.vm.provision "shell", path: "provision_scripts/configure_firewall_manager.sh"
 
-      manager.trigger.after :up do |t|
-        t.info = "Initializing swarm on manager and fetching worker token..."
-        t.run = {
-          inline: <<-SHELL
-            bash -c "
-              MANAGER_IP=$(vagrant ssh minitwit-manager-#{i} -c 'curl -s http://169.254.169.254/metadata/v1/interfaces/private/0/ipv4/address' | tr -d '\\r')
-              vagrant ssh minitwit-manager-#{i} -c 'docker swarm init --advertise-addr \$MANAGER_IP || true'
-              vagrant ssh minitwit-manager-#{i} -c 'docker swarm join-token -q worker' | tr -d '\\r' > ./provision_scripts/join_token
-              vagrant ssh minitwit-manager-#{i} -c './deploy.sh'
-            "
-          SHELL
-        }
-      end
+    #   manager.trigger.after :up do |t|
+    #     t.info = "Initializing swarm on manager and fetching worker token..."
+    #     t.run = {
+    #       inline: <<-SHELL
+    #         bash -c "
+    #           MANAGER_IP=$(vagrant ssh minitwit-test-manager-#{i} -c 'curl -s http://169.254.169.254/metadata/v1/interfaces/private/0/ipv4/address' | tr -d '\\r')
+    #           vagrant ssh minitwit-manager-#{i} -c 'docker swarm init --advertise-addr \$MANAGER_IP || true'
+    #           vagrant ssh minitwit-manager-#{i} -c 'docker swarm join-token -q worker' | tr -d '\\r' > ./provision_scripts/join_token
+    #           vagrant ssh minitwit-manager-#{i} -c './deploy.sh'
+    #         "
+    #       SHELL
+    #     }
+    #   end
     end
   end
 
   # Configure production database 
-  config.vm.define "minitwit-prod-env-mysql", autostart: true, primary: true do |server|
-    server.vm.hostname = "minitwit-prod-env-mysql"
-    server.vm.provision "shell", inline: <<-SHELL
-      echo "export DB_PASSWORD='#{ENV['DB_PASSWORD']}'" >> /etc/profile.d/db_env.sh
-      chmod +x /etc/profile.d/db_env.sh
-    SHELL
+  # config.vm.define "minitwit-prod-env-mysql", autostart: true, primary: true do |server|
+  #   server.vm.hostname = "minitwit-prod-env-mysql"
+  #   server.vm.provision "shell", inline: <<-SHELL
+  #     echo "export DB_PASSWORD='#{ENV['DB_PASSWORD']}'" >> /etc/profile.d/db_env.sh
+  #     chmod +x /etc/profile.d/db_env.sh
+  #   SHELL
 
-    # This runs the reusable DB script and tells it which image to use
-    server.vm.provision "shell", path: "provision_scripts/database_setup_script.sh", args: "mathildegk/minitwit-mysql-prod"
+  #   # This runs the reusable DB script and tells it which image to use
+  #   server.vm.provision "shell", path: "provision_scripts/database_setup_script.sh", args: "mathildegk/minitwit-mysql-prod"
 
-    server.trigger.before :"Vagrant::Action::Builtin::Provision", type: :action do |t|
-        t.info = "Writing own IP to file, and fetching app manager's IP"
-        t.run = {
-          inline: <<-SHELL
-            bash -c "
-              DB_IP=$(vagrant ssh minitwit-prod-env-mysql -c 'curl -s http://169.254.169.254/metadata/v1/interfaces/private/0/ipv4/address' | tr -d '\\r')
-              echo \\"$DB_IP\\" > ./provision_scripts/db_IP
-              echo \\"Database IP is: $DB_IP\\"
+  #   server.trigger.before :"Vagrant::Action::Builtin::Provision", type: :action do |t|
+  #       t.info = "Writing own IP to file, and fetching app manager's IP"
+  #       t.run = {
+  #         inline: <<-SHELL
+  #           bash -c "
+  #             DB_IP=$(vagrant ssh minitwit-prod-env-mysql -c 'curl -s http://169.254.169.254/metadata/v1/interfaces/private/0/ipv4/address' | tr -d '\\r')
+  #             echo \\"$DB_IP\\" > ./provision_scripts/db_IP
+  #             echo \\"Database IP is: $DB_IP\\"
               
-              # Wait for manager's IP file
-              while [ ! -f ./provision_scripts/manager_IP ]; do
-                echo 'DB waiting for manager IP'
-                sleep 2
-              done
+  #             # Wait for manager's IP file
+  #             while [ ! -f ./provision_scripts/manager_IP ]; do
+  #               echo 'DB waiting for manager IP'
+  #               sleep 2
+  #             done
 
-              MANAGER_IP_VAL=$(cat ./provision_scripts/manager_IP)
+  #             MANAGER_IP_VAL=$(cat ./provision_scripts/manager_IP)
               
-              vagrant ssh minitwit-prod-env-mysql -c \"echo 'export APP_SERVER_IP=\"$MANAGER_IP_VAL\"' > /etc/profile.d/db_env.sh\"
-            "
-          SHELL
-        }
-      end
-  end
+  #             vagrant ssh minitwit-prod-env-mysql -c \"echo 'export APP_SERVER_IP=\"$MANAGER_IP_VAL\"' > /etc/profile.d/db_env.sh\"
+  #           "
+  #         SHELL
+  #       }
+  #     end
+  # end
 
-  config.vm.define "minitwit-monitoring-and-logging", autostart: true, primary: true do |server|
-    server.vm.hostname = "minitwit-monitoring-and-logging"
-    server.vm.synced_folder "remote_files/monitoring_and_logging", "/deploy", type: "rsync"
-    server.vm.synced_folder "monitoring", "/monitoring", type: "rsync" # For Grafana and Prometheus having the dashboard
-    server.vm.synced_folder "logging", "/logging", type: "rsync"
+  # config.vm.define "minitwit-monitoring-and-logging", autostart: true, primary: true do |server|
+  #   server.vm.hostname = "minitwit-monitoring-and-logging"
+  #   server.vm.synced_folder "remote_files/monitoring_and_logging", "/deploy", type: "rsync"
+  #   server.vm.synced_folder "monitoring", "/monitoring", type: "rsync" # For Grafana and Prometheus having the dashboard
+  #   server.vm.synced_folder "logging", "/logging", type: "rsync"
 
-    server.trigger.before :"Vagrant::Action::Builtin::Provision", type: :action do |t|
-        t.info = "Writing own IP to file, and fetching app manager's IP"
-        t.run = {
-          inline: <<-SHELL
-            bash -c "
-              MONITORING_IP=$(vagrant ssh minitwit-monitoring-and-logging -c 'curl -s http://169.254.169.254/metadata/v1/interfaces/private/0/ipv4/address' | tr -d '\\r')
-              echo \\"$MONITORING_IP\\" > ./provision_scripts/monitoring_IP
-              echo \\"Monitoring IP is: $MONITORING_IP\\"
+  #   server.trigger.before :"Vagrant::Action::Builtin::Provision", type: :action do |t|
+  #       t.info = "Writing own IP to file, and fetching app manager's IP"
+  #       t.run = {
+  #         inline: <<-SHELL
+  #           bash -c "
+  #             MONITORING_IP=$(vagrant ssh minitwit-monitoring-and-logging -c 'curl -s http://169.254.169.254/metadata/v1/interfaces/private/0/ipv4/address' | tr -d '\\r')
+  #             echo \\"$MONITORING_IP\\" > ./provision_scripts/monitoring_IP
+  #             echo \\"Monitoring IP is: $MONITORING_IP\\"
               
-              # Wait for manager's IP file
-              while [ ! -f ./provision_scripts/manager_IP ]; do
-                echo 'DB waiting for manager IP'
-                sleep 2
-              done
+  #             # Wait for manager's IP file
+  #             while [ ! -f ./provision_scripts/manager_IP ]; do
+  #               echo 'DB waiting for manager IP'
+  #               sleep 2
+  #             done
 
-              MANAGER_IP_VAL=$(cat ./provision_scripts/manager_IP)
+  #             MANAGER_IP_VAL=$(cat ./provision_scripts/manager_IP)
 
-              vagrant ssh minitwit-monitoring-and-logging -c \"echo 'export APP_SERVER_IP=\"$MANAGER_IP_VAL\"' | sudo tee /etc/profile.d/env.sh\"
-            "
-          SHELL
-        }
-      end
+  #             vagrant ssh minitwit-monitoring-and-logging -c \"echo 'export APP_SERVER_IP=\"$MANAGER_IP_VAL\"' | sudo tee /etc/profile.d/env.sh\"
+  #           "
+  #         SHELL
+  #       }
+  #     end
 
-    server.vm.provision "shell", inline: <<-SHELL
-      if [ ! -f /swapfile ]; then
-        echo "Creating 1GB Swap file for memory safety..."
-        sudo fallocate -l 1G /swapfile
-        sudo chmod 600 /swapfile
-        sudo mkswap /swapfile
-        sudo swapon /swapfile
-        # Make it permanent across reboots
-        echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
-        echo "Swap created successfully."
-      else
-        echo "Swap file already exists."
-      fi
+  #   server.vm.provision "shell", inline: <<-SHELL
+  #     if [ ! -f /swapfile ]; then
+  #       echo "Creating 1GB Swap file for memory safety..."
+  #       sudo fallocate -l 1G /swapfile
+  #       sudo chmod 600 /swapfile
+  #       sudo mkswap /swapfile
+  #       sudo swapon /swapfile
+  #       # Make it permanent across reboots
+  #       echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+  #       echo "Swap created successfully."
+  #     else
+  #       echo "Swap file already exists."
+  #     fi
       
-      # Set swappiness to 1 (tells the OS to only use swap as a last resort)
-      sudo sysctl vm.swappiness=1
-    SHELL
-    server.vm.provision "shell", inline: <<-SHELL
-      #echo "export APP_SERVER_IP='#{ENV['APP_SERVER_PRIVATE_IP']}'" >> /etc/profile.d/env.sh #Private ip of application that will be allowed to get logs and monitor info
-      chmod +x /etc/profile.d/env.sh
-      source /etc/profile.d/env.sh
+  #     # Set swappiness to 1 (tells the OS to only use swap as a last resort)
+  #     sudo sysctl vm.swappiness=1
+  #   SHELL
+  #   server.vm.provision "shell", inline: <<-SHELL
+  #     #echo "export APP_SERVER_IP='#{ENV['APP_SERVER_PRIVATE_IP']}'" >> /etc/profile.d/env.sh #Private ip of application that will be allowed to get logs and monitor info
+  #     chmod +x /etc/profile.d/env.sh
+  #     source /etc/profile.d/env.sh
 
-      PROM_CONFIG="/monitoring/prometheus/prometheus.yml"
-      if [ -f "$PROM_CONFIG" ]; then
-        # REMEMBER TO CHANGE THESE TO APP_SERVER_PRIVATE_IP BEFORE IT IS MERGED INTO MAIN
-        sed -i "s/APP_IP_PLACEHOLDER/$APP_SERVER_IP/g" "$PROM_CONFIG" #These IP's should be for production application, but are currently pointing to the test application, to test the setup works
-        echo "Successfully injected $APP_SERVER_IP into $PROM_CONFIG" #These IP's should be for production application, but are currently pointing to the test application, to test the setup works
-      fi
-    SHELL
-    server.vm.provision "shell", path: "provision_scripts/monitoring_setup_script.sh"
-  end
+  #     PROM_CONFIG="/monitoring/prometheus/prometheus.yml"
+  #     if [ -f "$PROM_CONFIG" ]; then
+  #       # REMEMBER TO CHANGE THESE TO APP_SERVER_PRIVATE_IP BEFORE IT IS MERGED INTO MAIN
+  #       sed -i "s/APP_IP_PLACEHOLDER/$APP_SERVER_IP/g" "$PROM_CONFIG" #These IP's should be for production application, but are currently pointing to the test application, to test the setup works
+  #       echo "Successfully injected $APP_SERVER_IP into $PROM_CONFIG" #These IP's should be for production application, but are currently pointing to the test application, to test the setup works
+  #     fi
+  #   SHELL
+  #   server.vm.provision "shell", path: "provision_scripts/monitoring_setup_script.sh"
+  # end
 end
