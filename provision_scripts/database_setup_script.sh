@@ -11,7 +11,7 @@ sudo apt install -qq -y docker.io docker-compose-v2 ufw
 
 # 1. GET THE PRIVATE IP
 # In DigitalOcean, eth1 is typically the private network interface
-PRIVATE_IP=$(ip -4 addr show eth1 | grep -oP '(?<=inet\\s)\\d+(\\.\\d+){3}')
+PRIVATE_IP=$(ip -4 addr show eth1 | grep -oP '(?<=inet\s)\d+(\.\d+){3}')
 echo "Detected Private IP: $PRIVATE_IP"
 source /etc/profile.d/db_env.sh
 
