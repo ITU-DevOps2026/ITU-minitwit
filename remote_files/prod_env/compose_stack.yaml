@@ -9,20 +9,21 @@ services:
       - "--providers.docker.exposedbydefault=false"
       - "--entrypoints.web.address=:80" ## for unencrypted HTTP traffic
       - "--entrypoints.websecure.address=:443" ## For encrypted HTTPS traffic
-      - "--entrypoints.alt.address=:5035"   ## OBS!! WE TRY FIX TO MAKE OLD IP WORK
       - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
       - "--certificatesresolvers.myresolver.acme.email=csfr@itu.dk"
       - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
     ports:
       - "80:80"
       - "443:443"
-      - "5035:5035"  # OBS!! WE TRY FIX TO MAKE OLD IP WORK
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
       - "letsencrypt:/letsencrypt"
     networks:
       - web-public
     deploy:
+      placement:
+        constraints:
+          - node.role == manager
       labels:
         - "traefik.enable=false" # to silence the "port missing" errors
 
@@ -40,7 +41,7 @@ services:
       update_config:
         delay: 10s
         order: start-first
-    labels:
+      labels:
         - "traefik.enable=true"
         - "traefik.http.routers.minitwit.rule=Host(`bigtwit.app`) || Host(`www.bigtwit.app`)"
         - "traefik.http.routers.minitwit.entrypoints=websecure"
@@ -53,11 +54,6 @@ services:
         - "traefik.http.middlewares.www-redirect.redirectregex.regex=^https?://www.bigtwit.app/(.*)"
         - "traefik.http.middlewares.www-redirect.redirectregex.replacement=https://bigtwit.app/$${1}"
         - "traefik.http.middlewares.www-redirect.redirectregex.permanent=true"
-
-        # Add access via IP also:
-        - "traefik.http.routers.minitwit-ip.rule=Host(`209.38.114.224`)"
-        - "traefik.http.routers.minitwit-ip.entrypoints=alt"
-        - "traefik.http.routers.minitwit-ip.service=minitwit-app-svc"
 
         # Monitoring
         - "traefik.http.routers.minitwit-metrics.rule=Host(`monitor.bigtwit.app`)"
