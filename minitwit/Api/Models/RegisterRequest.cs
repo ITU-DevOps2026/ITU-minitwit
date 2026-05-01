@@ -20,9 +20,9 @@ using System.Text.Json.Serialization;
 using Org.OpenAPITools.Converters; */
 
 namespace Org.OpenAPITools.Models
-{ 
+{
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public partial class RegisterRequest : IEquatable<RegisterRequest>
     {
@@ -96,21 +96,18 @@ namespace Org.OpenAPITools.Models
             if (other is null) return false;
             if (ReferenceEquals(this, other)) return true;
 
-            return 
+            return
                 (
                     Username == other.Username ||
-                    Username != null &&
-                    Username.Equals(other.Username)
-                ) && 
+                    (Username?.Equals(other.Username) == true)
+                ) &&
                 (
                     Email == other.Email ||
-                    Email != null &&
-                    Email.Equals(other.Email)
-                ) && 
+                    (Email?.Equals(other.Email) == true)
+                ) &&
                 (
                     Pwd == other.Pwd ||
-                    Pwd != null &&
-                    Pwd.Equals(other.Pwd)
+                    (Pwd?.Equals(other.Pwd) == true)
                 );
         }
 
@@ -125,11 +122,11 @@ namespace Org.OpenAPITools.Models
                 var hashCode = 41;
                 // Suitable nullity checks etc, of course :)
                     if (Username != null)
-                    hashCode = hashCode * 59 + Username.GetHashCode();
+                    hashCode = (hashCode * 59) + Username.GetHashCode();
                     if (Email != null)
-                    hashCode = hashCode * 59 + Email.GetHashCode();
+                    hashCode = (hashCode * 59) + Email.GetHashCode();
                     if (Pwd != null)
-                    hashCode = hashCode * 59 + Pwd.GetHashCode();
+                    hashCode = (hashCode * 59) + Pwd.GetHashCode();
                 return hashCode;
             }
         }

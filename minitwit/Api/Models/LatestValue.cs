@@ -20,9 +20,9 @@ using System.Text.Json.Serialization;
 using Org.OpenAPITools.Converters; */
 
 namespace Org.OpenAPITools.Models
-{ 
+{
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public partial class LatestValue : IEquatable<LatestValue>
     {
@@ -77,12 +77,12 @@ namespace Org.OpenAPITools.Models
             if (other is null) return false;
             if (ReferenceEquals(this, other)) return true;
 
-            return 
-                (
+            return
+
                     Latest == other.Latest ||
-                    
+
                     Latest.Equals(other.Latest)
-                );
+                ;
         }
 
         /// <summary>
@@ -93,11 +93,10 @@ namespace Org.OpenAPITools.Models
         {
             unchecked // Overflow is fine, just wrap
             {
-                var hashCode = 41;
+                const int hashCode = 41;
                 // Suitable nullity checks etc, of course :)
-                    
-                    hashCode = hashCode * 59 + Latest.GetHashCode();
-                return hashCode;
+
+                return (hashCode * 59) + Latest.GetHashCode();
             }
         }
 

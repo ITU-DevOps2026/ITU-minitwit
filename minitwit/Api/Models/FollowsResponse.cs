@@ -21,9 +21,9 @@ using System.Text.Json.Serialization;
 using Org.OpenAPITools.Converters; */
 
 namespace Org.OpenAPITools.Models
-{ 
+{
     /// <summary>
-    /// 
+    ///
     /// </summary>
     //[DataContract]
     public partial class FollowsResponse : IEquatable<FollowsResponse>
@@ -81,13 +81,13 @@ namespace Org.OpenAPITools.Models
             if (other is null) return false;
             if (ReferenceEquals(this, other)) return true;
 
-            return 
-                (
+            return
+
                     Follows == other.Follows ||
-                    Follows != null &&
+                    (Follows != null &&
                     other.Follows != null &&
-                    Follows.SequenceEqual(other.Follows)
-                );
+                    Follows.SequenceEqual(other.Follows))
+                ;
         }
 
         /// <summary>
@@ -101,7 +101,7 @@ namespace Org.OpenAPITools.Models
                 var hashCode = 41;
                 // Suitable nullity checks etc, of course :)
                     if (Follows != null)
-                    hashCode = hashCode * 59 + Follows.GetHashCode();
+                    hashCode = (hashCode * 59) + Follows.GetHashCode();
                 return hashCode;
             }
         }

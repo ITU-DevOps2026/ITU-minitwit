@@ -18,9 +18,9 @@ using System.Text.Json;
 using Org.OpenAPITools.Attributes;
 using Org.OpenAPITools.Models;
 namespace Org.OpenAPITools.Controllers
-{ 
+{
     /// <summary>
-    /// 
+    ///
     /// </summary>
     [Route("api")]
     [ApiController]
@@ -29,7 +29,7 @@ namespace Org.OpenAPITools.Controllers
       private readonly minitwit.MiniTwit _mt = mt;
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <remarks>Get list of users followed by the given user.  - Query param &#x60;?no&#x3D;&#x60; limits result count. - Optionally updates a &#39;latest&#39; global value via &#x60;?latest&#x3D;&#x60; query param.</remarks>
         /// <param name="username"></param>
@@ -63,7 +63,7 @@ namespace Org.OpenAPITools.Controllers
                 {
                     return BadRequest(new { status = 404, error_msg = "User not found (no response body)" });
                 }
-                
+
                 var followed_users = await _mt.Get_followed_users(username, no);
 
                 FollowsResponse followsResponse = followed_users;
@@ -78,7 +78,7 @@ namespace Org.OpenAPITools.Controllers
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <remarks>Returns the latest ID saved</remarks>
         /// <response code="200">Success</response>
@@ -104,7 +104,7 @@ namespace Org.OpenAPITools.Controllers
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <remarks>Get recent messages.  - Filters out flagged messages - Returns a list of recent messages (max defined by &#x60;?no&#x3D;&#x60; param) - Optionally updates a &#39;latest&#39; global value via &#x60;?latest&#x3D;&#x60; query param.</remarks>
         /// <param name="authorization">Authorization string of the form &#x60;Basic c2ltdWxhdG9yOnN1cGVyX3NhZmUh&#x60;. Used to authenticate as simulator</param>
@@ -141,7 +141,7 @@ namespace Org.OpenAPITools.Controllers
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <remarks>Get messages for a specific user.  - Returns messages authored by the specified user - Filtered by unflagged - Returns a list of recent messages for the user (max defined by &#x60;?no&#x3D;&#x60; param) - Optionally updates a &#39;latest&#39; global value via &#x60;?latest&#x3D;&#x60; query param.</remarks>
         /// <param name="username"></param>
@@ -191,7 +191,7 @@ namespace Org.OpenAPITools.Controllers
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <remarks>Follow or unfollow a user on behalf of &#x60;username&#x60;.  - Body must contain either &#x60;follow: &lt;user&gt;&#x60; or &#x60;unfollow: &lt;user&gt;&#x60;</remarks>
         /// <param name="username"></param>
@@ -215,7 +215,7 @@ namespace Org.OpenAPITools.Controllers
                 {
                     return BadRequest(new { status = 403, error_msg = "Unauthorized - Must include correct Authorization header" });
                 }
-                
+
                 await _mt.UpdateLatest(latest);
 
                 if (payload.Follow != null)
@@ -247,7 +247,7 @@ namespace Org.OpenAPITools.Controllers
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <remarks>Post a new message as a specific user.  - Message must include &#x60;content&#x60; in the body - Stored with timestamp and &#x60;flagged&#x3D;0&#x60; - Returns empty body on success - Optionally updates a &#39;latest&#39; global value via &#x60;?latest&#x3D;&#x60; query param.</remarks>
         /// <param name="username"></param>
@@ -277,7 +277,7 @@ namespace Org.OpenAPITools.Controllers
                 {
                     return BadRequest(new { status = 400, error_msg = "You have to enter a message"});
                 }
-                
+
                 await _mt.Add_Message(username, payload.Content);
                 return StatusCode(204);
             }
@@ -288,7 +288,7 @@ namespace Org.OpenAPITools.Controllers
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <remarks>Register a new user. - Optionally updates a &#39;latest&#39; global value via &#x60;?latest&#x3D;&#x60; query param.</remarks>
         /// <param name="payload"></param>

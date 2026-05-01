@@ -13,7 +13,7 @@ try
 
   var builder = WebApplication.CreateBuilder(args);
 
-  builder.Services.AddSerilog((services, loggerConfig) => loggerConfig
+  builder.Services.AddSerilog((_, loggerConfig) => loggerConfig
     .ReadFrom.Configuration(builder.Configuration)
   );
 
@@ -77,7 +77,7 @@ try
       using (var scope = app.Services.CreateScope()) //The DbContext is a scoped service, so we need to create a scope to get it
       {
           var context = scope.ServiceProvider.GetRequiredService<MinitwitContext>();
-          
+
           // Query the database for the absolute latest numbers
           var totalTweets = await context.Messages.CountAsync(cancel);
           var totalUsers = await context.Users.CountAsync(cancel);
@@ -130,12 +130,12 @@ namespace minitwit
   public class MiniTwit(MinitwitContext minitwitContext)
   {
     private readonly MinitwitContext minitwitContext = minitwitContext;
-    private int PER_PAGE = 30;
+    private readonly int PER_PAGE = 30;
 
     // Password hashing configurations
     const int keySize = 32;
     const int iterations = 50000;
-    HashAlgorithmName hashAlgorithm = HashAlgorithmName.SHA256;
+    readonly HashAlgorithmName hashAlgorithm = HashAlgorithmName.SHA256;
     //tz id which Linux uses for our timezone https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
     private static readonly TimeZoneInfo dkTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Europe/Copenhagen");
 
@@ -143,10 +143,10 @@ namespace minitwit
     {
       // Convert timestamp to UTC object
       DateTimeOffset utcTime = DateTimeOffset.FromUnixTimeSeconds(timestamp);
-      
+
       // Convert from utc to our timezone
       DateTimeOffset dkTime = TimeZoneInfo.ConvertTime(utcTime, dkTimeZone);
-      
+
       //Formatting
       return dkTime.ToString("yyyy-MM-dd @ HH:mm");
     }
@@ -388,7 +388,7 @@ namespace minitwit
         if (latest_entry != null)
         {
             // Overwrite the value
-            latest_entry.Value = latest.Value; 
+            latest_entry.Value = latest.Value;
 
             // Persist to database
             await minitwitContext.SaveChangesAsync();

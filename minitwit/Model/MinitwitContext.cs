@@ -18,15 +18,15 @@ public partial class MinitwitContext : DbContext
     public virtual DbSet<Message> Messages { get; set; }
 
     public virtual DbSet<User> Users { get; set; }
-    
-    public virtual DbSet<Latest> LatestInt { get; set; } 
+
+    public virtual DbSet<Latest> LatestInt { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Follower>(entity =>
         {
             entity.HasKey(e => new { e.WhoId, e.WhomId });
-            
+
             entity.ToTable("follower");
 
             entity.Property(e => e.WhoId).HasColumnName("who_id");
