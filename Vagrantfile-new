@@ -59,74 +59,78 @@ Vagrant.configure("2") do |config|
           File.write("./provision_scripts/manager_IP", ip)
           puts "Successfully saved Manager IP: #{ip}"
         end
-          # t.run {
-          # inline: <<-SHELL
-          #   bash -c "
-          #     MANAGER_IP=$(vagrant ssh minitwit-manager-#{i} -c 'curl -s http://169.254.169.254/metadata/v1/interfaces/private/0/ipv4/address' | tr -d '\\r')
-          #     echo \"$MANAGER_IP\" > ./provision_scripts/manager_IP 
-          #     echo \"Manager IP is: $MANAGER_IP\"
-          #   "
-          # SHELL
-          # }
       end
-    #   # Ensure that database and monitoring droplets has been created and collect their IP's
-    #   manager.trigger.before :"Vagrant::Action::Builtin::Provision", type: :action do |t|
-    #     t.info = "Collecting database and monitoring IP's and injecting them into manager"
-    #     t.run = {
-    #       inline: <<-SHELL
-    #         bash -c "
-    #           # 1. Wait for local files
-    #           while [ ! -f ./provision_scripts/db_IP ] || [ ! -f ./provision_scripts/monitoring_IP ]; do
-    #             echo 'Host: Waiting for db_IP and monitoring_IP files...'
-    #             sleep 2
-    #           done
+      # Ensure that database and monitoring droplets has been created and collect their IP's
+      manager.trigger.before :"Vagrant::Action::Builtin::Provision", type: :action do |t|
+        t.info = "Collecting database and monitoring IP's and injecting them into manager"
+        t.ruby do |env, machine|
+          db_ip_file = "./provision_scripts/db_IP"
+          monitoring_ip_file = "./provision_scripts/monitoring_IP"
 
-    #           # 2. Read values
-    #           DB_IP_VAL=$(cat ./provision_scripts/db_IP)
-    #           MONITOR_IP=$(cat ./provision_scripts/monitoring_IP)
-              
-    #           # 3. Inject them into the VM
-    #           # Note: We use single quotes around the remote command to prevent local expansion
-    #           vagrant ssh minitwit-manager-#{i} -c \"echo 'export db_connection=#{ENV['test_db_connection']}' | sed 's/<db_IP>/$DB_IP_VAL/g' > ~/.bash_profile\"
-    #           vagrant ssh minitwit-manager-#{i} -c \"echo 'export TEST_MONITOR_AND_LOGGING_PRIVATE_IP=$MONITOR_IP' >> ~/.bash_profile\"
-    #           vagrant ssh minitwit-manager-#{i} -c \"echo 'export DOCKER_USERNAME=#{ENV['DOCKER_USERNAME']}' >> ~/.bash_profile\"
-    #         "
-    #       SHELL
-    #     }
-    #   end
+          until File.exist?(db_ip_file) && File.exist?(monitoring_ip_file)
+            puts "Host: Waiting for db_IP and monitoring_IP files..."
+            sleep 2
+          end
 
-    #   #manager.vm.provision "file", source: "./provision_scripts/db_IP", destination: "/tmp/db_IP"
-    #   #manager.vm.provision "file", source: "./provision_scripts/monitoring_IP", destination: "/tmp/monitoring_IP"
-    #   #manager.vm.provision "shell", inline: <<-SHELL
-    #    # DB_IP_VAL=$(cat /tmp/db_IP)
-    #     #MONITOR_IP=$(cat /tmp/monitoring_IP)
-    #     #DB_TEMPLATE='#{ENV['test_db_connection']}'
+          DB_IP_VAL = File.read(db_ip_file).strip
+          MONITOR_IP_VAL = File.read(monitoring_ip_file).strip
 
-    #     #FINAL_DB_CONN=$(echo "$DB_TEMPLATE" | sed "s/<db_IP>/$DB_IP_VAL/g")
+          DB_TEMP_CONN = ENV['test_db_connection'] || ""
+          DOCKER_USER = ENV['DOCKER_USERNAME'] || ""
 
-    #     #echo "export db_connection=\"$FINAL_DB_CONN\"" > ~/.bash_profile
-    #     #echo "export TEST_MONITOR_AND_LOGGING_PRIVATE_IP=\"$MONITOR_IP\"" >> ~/.bash_profile
-    #     #echo "export DOCKER_USERNAME=\"#{ENV['DOCKER_USERNAME']}\"" >> ~/.bash_profile
-    #   #SHELL
-    #   manager.vm.provision "shell", path: "provision_scripts/docker_setup_script.sh"
-    #   manager.vm.provision "shell", path: "provision_scripts/manager_setup_script.sh"
-    #   manager.vm.provision "shell", path: "provision_scripts/configure_firewall_manager.sh"
+          FINAL_DB_CONN = DB_TEMP_CONN.gsub("<db_IP>", DB_IP_VAL)
 
-    #   manager.trigger.after :up do |t|
-    #     t.info = "Initializing swarm on manager and fetching worker token..."
-    #     t.run = {
-    #       inline: <<-SHELL
-    #         bash -c "
-    #           MANAGER_IP=$(vagrant ssh minitwit-test-manager-#{i} -c 'curl -s http://169.254.169.254/metadata/v1/interfaces/private/0/ipv4/address' | tr -d '\\r')
-    #           vagrant ssh minitwit-manager-#{i} -c 'docker swarm init --advertise-addr \$MANAGER_IP || true'
-    #           vagrant ssh minitwit-manager-#{i} -c 'docker swarm join-token -q worker' | tr -d '\\r' > ./provision_scripts/join_token
-    #           vagrant ssh minitwit-manager-#{i} -c './deploy.sh'
-    #         "
-    #       SHELL
-    #     }
-    #   end
+          commands = [
+            "echo 'export db_connection=\"#{FINAL_DB_CONN}\"' > ~/.bash_profile",
+            "echo 'export TEST_MONITOR_AND_LOGGING_PRIVATE_IP=\"#{MONITOR_IP_VAL}\"' >> ~/.bash_profile",
+            "echo 'export DOCKER_USERNAME=\"#{DOCKER_USER}\"' >> ~/.bash_profile"
+          ]
+
+          # Execute each command on the manager droplet
+          commands.each do |cmd|
+            machine.communicate.execute(cmd)
+          end
+          puts "Successfully injected DB and Monitoring IPs into ~/.bash_profile"
+        end
+      end
+
+      manager.vm.provision "shell", path: "provision_scripts/docker_setup_script.sh"
+      manager.vm.provision "shell", path: "provision_scripts/manager_setup_script.sh"
+      manager.vm.provision "shell", path: "provision_scripts/configure_firewall_manager.sh"
+
+      manager.trigger.after :up do |t|
+        t.info = "Initializing swarm on manager and fetching worker token..."
+        t.ruby do |env, machine|
+          command = "curl -s http://169.254.169.254/metadata/v1/interfaces/private/0/ipv4/address"
+          MANAGER_IP = ""
+          machine.communicate.execute(command) do |type, data|
+            MANAGER_IP << data if type == :stdout
+          end
+          MANAGER_IP = MANAGER_IP.strip
+          
+          # Initialize the swarm
+          command = "docker swarm init --advertise-addr #{MANAGER_IP} || true"
+          machine.communicate.execute(command)
+
+          # Get the join token for the swarm
+          command = "docker swarm join-token -q worker"
+          join_token = ""
+          machine.communicate.execute(command) do |type, data|
+            join_token << data if type == :stdout
+          end
+          join_token = join_token.strip
+    
+          # Write the join token to local file (Windows/Mac local folder)
+          File.write("./provision_scripts/join_token", join_token)
+          puts "Successfully saved join token: #{join_token}"
+
+          # Initialize the swarm
+          command = "./deploy.sh"
+          machine.communicate.execute(command)
+      end
     end
   end
+end
 
   # Configure production database 
   # config.vm.define "minitwit-prod-env-mysql", autostart: true, primary: true do |server|
