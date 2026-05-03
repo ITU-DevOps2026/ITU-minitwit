@@ -1,13 +1,10 @@
 set -e # Exit on error
 
+# Wait for any remaining locks
 while fuser /var/lib/apt/lists/lock >/dev/null 2>&1 ; do
     echo "Waiting for other software managers to finish..."
     sleep 5
 done
-
-sudo apt-get update
-
-sudo apt install -qq -y docker.io docker-compose-v2 ufw
 
 # 1. GET THE PRIVATE IP
 # In DigitalOcean, eth1 is typically the private network interface
