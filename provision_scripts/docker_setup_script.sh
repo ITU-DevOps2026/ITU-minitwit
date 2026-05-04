@@ -2,12 +2,21 @@
 
 set -e # Exit on error
 
+# Disable potential background upgrades that might aqcuire the lock when we spin up a droplet
+sudo systemctl stop apt-daily.timer apt-daily-upgrade.timer
+sudo systemctl stop apt-daily.service apt-daily-upgrade.service
+sudo systemctl kill --kill-who=all apt-daily.service || true
+
+# temporarily add a known DNS server to your system - might fix connection issue we have?
+# source: https://askubuntu.com/questions/91543/apt-get-update-fails-to-fetch-files-temporary-failure-resolving-error
+echo "nameserver 8.8.8.8" | sudo tee /etc/resolv.conf > /dev/null
+
 wait_for_apt() {
-  sleep 1
+  sleep 3
   echo "Waiting for APT locks..."
   while sudo fuser /var/lib/dpkg/lock-frontend /var/lib/apt/lists/lock /var/lib/dpkg/lock >/dev/null 2>&1; do
-    echo "APT is busy, sleeping 2s..."
-    sleep 2
+    echo "APT is busy, sleeping 5s..."
+    sleep 5
   done
   # A small extra buffer to let the process fully exit
   sleep 3
@@ -44,3 +53,6 @@ sudo systemctl status docker
 echo -e "\nVerifying that docker works ...\n"
 docker run --rm hello-world
 docker rmi hello-world
+
+# Restart daily update services
+sudo systemctl start apt-daily.timer apt-daily-upgrade.timer

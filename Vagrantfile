@@ -183,9 +183,6 @@ Vagrant.configure("2") do |config|
 
   # Configure production database 
   config.vm.define "minitwit-test-env-mysql", autostart: true, primary: true do |server|
-      server.vm.provider :digital_ocean do |provider, override|
-        provider.reserved_ips = '165.227.245.116'
-      end
     server.vm.hostname = "minitwit-test-env-mysql"
     server.vm.provision "shell", inline: <<-SHELL
       echo "export DB_PASSWORD='#{ENV['TEST_DB_PASSWORD']}'" >> /etc/profile.d/db_env.sh
@@ -240,9 +237,6 @@ Vagrant.configure("2") do |config|
   end
   
   config.vm.define "minitwit-test-monitoring-and-logging", autostart: true, primary: true do |server|
-      server.vm.provider :digital_ocean do |provider, override|
-        provider.reserved_ip = '209.38.184.144'
-      end
     server.vm.hostname = "minitwit-test-monitoring-and-logging"
     server.vm.synced_folder "remote_files/monitoring_and_logging", "/deploy", type: "rsync"
     server.vm.synced_folder "monitoring", "/monitoring", type: "rsync" # For Grafana and Prometheus having the dashboard
