@@ -2,13 +2,20 @@
 
 set -e # Exit on error
 
-while fuser /var/lib/apt/lists/lock >/dev/null 2>&1 ; do
-echo "Waiting for other software managers to finish..."
-sleep 5
-done
+wait_for_apt() {
+  echo "Waiting for APT locks..."
+  while sudo fuser /var/lib/dpkg/lock-frontend /var/lib/apt/lists/lock /var/lib/dpkg/lock >/dev/null 2>&1; do
+    echo "APT is busy, sleeping 5s..."
+    sleep 5
+  done
+  # A small extra buffer to let the process fully exit
+  sleep 2
+}
 
 # Add Docker's official GPG key:
+wait_for_apt
 sudo apt-get update
+wait_for_apt
 sudo apt install -y ca-certificates curl
 sudo install -m 0755 -d /etc/apt/keyrings
 sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
@@ -24,14 +31,11 @@ Architectures: $(dpkg --print-architecture)
 Signed-By: /etc/apt/keyrings/docker.asc
 EOF
 
-while fuser /var/lib/apt/lists/lock >/dev/null 2>&1 ; do
-echo "Waiting for other software managers to finish..."
-sleep 5
-done
-
+wait_for_apt
 sudo apt-get update
 
 # Install docker and docker compose
+wait_for_apt
 sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
 sudo systemctl status docker
