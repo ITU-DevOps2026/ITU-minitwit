@@ -39,7 +39,7 @@ Vagrant.configure("2") do |config|
   (1..TEST_MANAGER_COUNT).each do |i|
     config.vm.define "minitwit-test-manager-#{i}", autostart: true, primary: true do |manager|
       manager.vm.hostname = "minitwit-test-manager-#{i}"
-      manager.vm.synced_folder "remote_files/prod_env", "/minitwit", type: "rsync"
+      manager.vm.synced_folder "remote_files/test_env", "/minitwit", type: "rsync"
       
       manager.trigger.before :"Vagrant::Action::Builtin::Provision", type: :action do |t|
         t.info = "Write own ip to file"
@@ -61,14 +61,16 @@ Vagrant.configure("2") do |config|
 
           # 3. Assign reserved ip to droplet
           command = "curl -s http://169.254.169.254/metadata/v1/id"
-          id = ""
+          DROPLET_ID = ""
           machine.communicate.execute(command) do |type, data|
-            id << data if type == :stdout
+            DROPLET_ID << data if type == :stdout
           end
-          id = id.strip
-          RESERVED_IP = "144.126.244.214"
+          DROPLET_ID = DROPLET_ID.strip
+          puts "Found ID of Manager: #{DROPLET_ID}"
+          
+          RESERVED_IP = ENV['TEST_MANAGER_RES_IP'] || ""
           TOKEN = ENV['DIGITAL_OCEAN_TOKEN'] || ""
-          command = "curl -X POST -H \"Content-Type: application/json\" -H \"Authorization: Bearer #{TOKEN}\" -d \"{\"type\":\"assign\",\"droplet_id\":#{DROPLET_ID}}\" \"https://api.digitalocean.com/v2/reserved_ips/#{RESERVED_IP}/actions\""
+          command = "curl -X POST -H 'Content-Type: application/json' -H 'Authorization: Bearer #{TOKEN}' -d '{\"type\":\"assign\",\"droplet_id\":#{DROPLET_ID}}' 'https://api.digitalocean.com/v2/reserved_ips/#{RESERVED_IP}/actions'"
 
           machine.communicate.execute(command)
           puts "Succesfully assigned reserved ip: #{RESERVED_IP} to droplet"
@@ -217,6 +219,22 @@ Vagrant.configure("2") do |config|
 
           machine.communicate.execute("echo 'export APP_SERVER_IP=\"#{MANAGER_IP_VAL}\"' | sudo tee /etc/profile.d/db_env.sh")
           puts "Successfully injected Manager IP into db_env.sh"
+
+          # Assign reserved ip to droplet
+          command = "curl -s http://169.254.169.254/metadata/v1/id"
+          DROPLET_ID = ""
+          machine.communicate.execute(command) do |type, data|
+            DROPLET_ID << data if type == :stdout
+          end
+          DROPLET_ID = DROPLET_ID.strip
+          puts "Found ID of DB: #{DROPLET_ID}"
+          
+          RESERVED_IP = ENV['TEST_DB_RES_IP'] || ""
+          TOKEN = ENV['DIGITAL_OCEAN_TOKEN'] || ""
+          command = "curl -X POST -H 'Content-Type: application/json' -H 'Authorization: Bearer #{TOKEN}' -d '{\"type\":\"assign\",\"droplet_id\":#{DROPLET_ID}}' 'https://api.digitalocean.com/v2/reserved_ips/#{RESERVED_IP}/actions'"
+
+          machine.communicate.execute(command)
+          puts "Succesfully assigned reserved ip: #{RESERVED_IP} to droplet"
       end   
     end
   end
@@ -253,6 +271,22 @@ Vagrant.configure("2") do |config|
 
           machine.communicate.execute("echo 'export APP_SERVER_IP=\"#{MANAGER_IP_VAL}\"' | sudo tee /etc/profile.d/env.sh")
           puts "Successfully injected Manager IP into env.sh"
+
+          # Assign reserved ip to droplet
+          command = "curl -s http://169.254.169.254/metadata/v1/id"
+          DROPLET_ID = ""
+          machine.communicate.execute(command) do |type, data|
+            DROPLET_ID << data if type == :stdout
+          end
+          DROPLET_ID = DROPLET_ID.strip
+          puts "Found ID of Monitoring droplet: #{DROPLET_ID}"
+          
+          RESERVED_IP = ENV['TEST_MONITORING_RES_IP'] || ""
+          TOKEN = ENV['DIGITAL_OCEAN_TOKEN'] || ""
+          command = "curl -X POST -H 'Content-Type: application/json' -H 'Authorization: Bearer #{TOKEN}' -d '{\"type\":\"assign\",\"droplet_id\":#{DROPLET_ID}}' 'https://api.digitalocean.com/v2/reserved_ips/#{RESERVED_IP}/actions'"
+
+          machine.communicate.execute(command)
+          puts "Succesfully assigned reserved ip: #{RESERVED_IP} to droplet"
       end
     end
 

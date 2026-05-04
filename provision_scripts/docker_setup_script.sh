@@ -3,13 +3,14 @@
 set -e # Exit on error
 
 wait_for_apt() {
+  sleep 1
   echo "Waiting for APT locks..."
   while sudo fuser /var/lib/dpkg/lock-frontend /var/lib/apt/lists/lock /var/lib/dpkg/lock >/dev/null 2>&1; do
-    echo "APT is busy, sleeping 5s..."
-    sleep 5
+    echo "APT is busy, sleeping 2s..."
+    sleep 2
   done
   # A small extra buffer to let the process fully exit
-  sleep 2
+  sleep 3
 }
 
 # Add Docker's official GPG key:
