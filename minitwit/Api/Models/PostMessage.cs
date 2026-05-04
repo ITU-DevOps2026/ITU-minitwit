@@ -79,11 +79,7 @@ namespace Org.OpenAPITools.Models
             if (other is null) return false;
             if (ReferenceEquals(this, other)) return true;
 
-            return
-
-                    Content == other.Content ||
-                    (Content?.Equals(other.Content) == true)
-                ;
+            return Content == other.Content || (Content?.Equals(other.Content) == true);
         }
 
         /// <summary>
