@@ -44,7 +44,7 @@ Vagrant.configure("2") do |config|
       manager.trigger.before :"Vagrant::Action::Builtin::Provision", type: :action do |t|
         t.info = "Write own ip to file"
         t.ruby do |env, machine|
-          # This block is NATIVE Ruby. It works on Windows and Mac.
+          # This block is NATIVE Ruby to make it work on different OS.
           # We use machine.communicate.execute to run commands on the droplet
           
           # 1. Get the IP from the droplet
@@ -68,7 +68,7 @@ Vagrant.configure("2") do |config|
           monitoring_ip_file = "./provision_scripts/monitoring_IP"
 
           until File.exist?(db_ip_file) && File.exist?(monitoring_ip_file)
-            puts "Host: Waiting for db_IP and monitoring_IP files..."
+            puts "Manager: Waiting for db_IP and monitoring_IP files..."
             sleep 2
           end
 
@@ -203,6 +203,7 @@ Vagrant.configure("2") do |config|
       end   
     end
   end
+  
   config.vm.define "minitwit-test-monitoring-and-logging", autostart: true, primary: true do |server|
     server.vm.hostname = "minitwit-test-monitoring-and-logging"
     server.vm.synced_folder "remote_files/monitoring_and_logging", "/deploy", type: "rsync"

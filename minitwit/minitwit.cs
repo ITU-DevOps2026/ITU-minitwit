@@ -56,13 +56,6 @@ try
 
     var context = services.GetRequiredService<MinitwitContext>();
     await context.Database.EnsureCreatedAsync();
-
-    //Start the metrics at the amount of tweets and users in the database
-    var totalTweets = await context.Messages.CountAsync();
-    var totalUsers = await context.Users.CountAsync();
-
-    MinitwitMetrics.TweetCounter.IncTo(totalTweets);
-    MinitwitMetrics.UserRegistrationCounter.IncTo(totalUsers);
   }
 
   // Configure the HTTP request pipeline.
@@ -75,6 +68,26 @@ try
 
   // Add Prometheus metrics
   app.UseHttpMetrics();
+
+  // Before collecting metrics, we want to update the total amount of tweets and users, so we get the latest values when scraping
+  DateTime _lastUpdate = DateTime.MinValue;
+  Metrics.DefaultRegistry.AddBeforeCollectCallback(async (cancel) =>
+  {
+      if ((DateTime.Now - _lastUpdate).TotalSeconds < 30) return; // Skip if too recent
+      using (var scope = app.Services.CreateScope()) //The DbContext is a scoped service, so we need to create a scope to get it
+      {
+          var context = scope.ServiceProvider.GetRequiredService<MinitwitContext>();
+          
+          // Query the database for the absolute latest numbers
+          var totalTweets = await context.Messages.CountAsync(cancel);
+          var totalUsers = await context.Users.CountAsync(cancel);
+
+          // Update the Gauges
+          MinitwitMetrics.TotalTweets.Set(totalTweets);
+          MinitwitMetrics.TotalUsers.Set(totalUsers);
+          _lastUpdate = DateTime.Now;
+      }
+  });
 
   app.UseHttpsRedirection();
 
@@ -108,11 +121,11 @@ namespace minitwit
 {
   public static class MinitwitMetrics
   {
-    public static readonly Counter TweetCounter = Metrics
-            .CreateCounter("minitwit_tweets_total", "Total number of tweets posted.");
+    public static readonly Gauge TotalTweets = Metrics
+            .CreateGauge("minitwit_tweets_total", "Total number of tweets in db");
 
-    public static readonly Counter UserRegistrationCounter = Metrics
-            .CreateCounter("minitwit_registrations_total", "Total number of user registrations.");
+    public static readonly Gauge TotalUsers = Metrics
+            .CreateGauge("minitwit_users_total", "Total number of users in db");
   }
   public class MiniTwit(MinitwitContext minitwitContext)
   {
@@ -250,9 +263,6 @@ namespace minitwit
       });
       await minitwitContext.SaveChangesAsync();
       Log.Information("Registered user with name: {username} and email: {email}", username, email);
-
-      //Increment the amount of users for the metrics:
-      MinitwitMetrics.UserRegistrationCounter.Inc();
     }
 
 
@@ -318,9 +328,6 @@ namespace minitwit
         await minitwitContext.SaveChangesAsync();
 
         Log.Information("User {username} posted a tweet, with length: {TextLength}", username, text.Length);
-
-        //Increment the amount of users for the metrics:
-        MinitwitMetrics.TweetCounter.Inc();
       }
     }
 

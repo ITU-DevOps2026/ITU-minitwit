@@ -32,6 +32,19 @@ See [Docker readme](/README.Docker.md) for instructions on how to run using Dock
 - dotnet 10.0
 - A terminal capable of running sh if you want to run the control.sh script
 
+### How to build minitwit C# application
+Navigate to the `/minitwit` folder and run the following command in the terminal:
+```bash
+dotnet build
+```
+This will build the application and run .NET code analysis on the project.
+.NET code analysis will only display warnings on the newly built code. 
+If you want to build the whole application run the following commands in the terminal:
+```bash
+dotnet clean
+dotnet build
+```
+
 ### How to run minitwit C# application
 Navigate to the `/minitwit` folder and run the following command in the terminal:
 ```bash
