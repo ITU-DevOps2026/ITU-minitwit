@@ -1,11 +1,5 @@
 set -e # Exit on error
 
-# Wait for any remaining locks
-while fuser /var/lib/apt/lists/lock >/dev/null 2>&1 ; do
-    echo "Waiting for other software managers to finish..."
-    sleep 5
-done
-
 # 1. GET THE PRIVATE IP
 # In DigitalOcean, eth1 is typically the private network interface
 PRIVATE_IP=$(ip -4 addr show eth1 | grep -oP '(?<=inet\s)\d+(\.\d+){3}')
