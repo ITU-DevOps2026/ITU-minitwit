@@ -22,7 +22,7 @@ Vagrant.configure("2") do |config|
 
   config.vm.provider :digital_ocean do |provider|
     provider.ssh_key_name = ENV["SSH_KEY_NAME"]
-    provider.token = ENV["TEST_DIGITAL_OCEAN_TOKEN"]
+    provider.token = ENV["DIGITAL_OCEAN_TOKEN"]
     provider.image = 'ubuntu-22-04-x64'
     provider.region = 'fra1'
     provider.size = 's-1vcpu-1gb'
@@ -58,6 +58,20 @@ Vagrant.configure("2") do |config|
           # 2. Write to the host file (Windows/Mac local folder)
           File.write("./provision_scripts/manager_IP", ip)
           puts "Successfully saved Manager IP: #{ip}"
+
+          # 3. Assign reserved ip to droplet
+          command = "curl -s http://169.254.169.254/metadata/v1/id"
+          id = ""
+          machine.communicate.execute(command) do |type, data|
+            id << data if type == :stdout
+          end
+          id = id.strip
+          RESERVED_IP = "144.126.244.214"
+          TOKEN = ENV['DIGITAL_OCEAN_TOKEN'] || ""
+          command = "curl -X POST -H \"Content-Type: application/json\" -H \"Authorization: Bearer #{TOKEN}\" -d \"{\"type\":\"assign\",\"droplet_id\":#{DROPLET_ID}}\" \"https://api.digitalocean.com/v2/reserved_ips/#{RESERVED_IP}/actions\""
+
+          machine.communicate.execute(command)
+          puts "Succesfully assigned reserved ip: #{RESERVED_IP} to droplet"
         end
       end
       # Ensure that database and monitoring droplets has been created and collect their IP's
@@ -167,6 +181,9 @@ Vagrant.configure("2") do |config|
 
   # Configure production database 
   config.vm.define "minitwit-test-env-mysql", autostart: true, primary: true do |server|
+      server.vm.provider :digital_ocean do |provider, override|
+        provider.reserved_ips = '165.227.245.116'
+      end
     server.vm.hostname = "minitwit-test-env-mysql"
     server.vm.provision "shell", inline: <<-SHELL
       echo "export DB_PASSWORD='#{ENV['TEST_DB_PASSWORD']}'" >> /etc/profile.d/db_env.sh
@@ -205,6 +222,9 @@ Vagrant.configure("2") do |config|
   end
   
   config.vm.define "minitwit-test-monitoring-and-logging", autostart: true, primary: true do |server|
+      server.vm.provider :digital_ocean do |provider, override|
+        provider.reserved_ip = '209.38.184.144'
+      end
     server.vm.hostname = "minitwit-test-monitoring-and-logging"
     server.vm.synced_folder "remote_files/monitoring_and_logging", "/deploy", type: "rsync"
     server.vm.synced_folder "monitoring", "/monitoring", type: "rsync" # For Grafana and Prometheus having the dashboard
@@ -254,15 +274,13 @@ Vagrant.configure("2") do |config|
       sudo sysctl vm.swappiness=1
     SHELL
     server.vm.provision "shell", inline: <<-SHELL
-      #echo "export APP_SERVER_IP='#{ENV['APP_SERVER_PRIVATE_IP']}'" >> /etc/profile.d/env.sh #Private ip of application that will be allowed to get logs and monitor info
       chmod +x /etc/profile.d/env.sh
       source /etc/profile.d/env.sh
 
       PROM_CONFIG="/monitoring/prometheus/prometheus.yml"
       if [ -f "$PROM_CONFIG" ]; then
-        # REMEMBER TO CHANGE THESE TO APP_SERVER_PRIVATE_IP BEFORE IT IS MERGED INTO MAIN
-        sed -i "s/APP_IP_PLACEHOLDER/$APP_SERVER_IP/g" "$PROM_CONFIG" #These IP's should be for production application, but are currently pointing to the test application, to test the setup works
-        echo "Successfully injected $APP_SERVER_IP into $PROM_CONFIG" #These IP's should be for production application, but are currently pointing to the test application, to test the setup works
+        sed -i "s/APP_IP_PLACEHOLDER/$APP_SERVER_IP/g" "$PROM_CONFIG" 
+        echo "Successfully injected $APP_SERVER_IP into $PROM_CONFIG"
       fi
     SHELL
     server.vm.provision "shell", path: "provision_scripts/docker_setup_script.sh", binary: false
