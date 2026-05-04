@@ -81,7 +81,7 @@ namespace Org.OpenAPITools.Models
             if (other is null) return false;
             if (ReferenceEquals(this, other)) return true;
 
-            return 
+            return
                 Follows == other.Follows ||
                 (Follows != null &&
                 other.Follows != null &&
