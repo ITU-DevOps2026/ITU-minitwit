@@ -20,9 +20,9 @@ using System.Text.Json.Serialization;
 using Org.OpenAPITools.Converters; */
 
 namespace Org.OpenAPITools.Models
-{ 
+{
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public partial class ErrorResponse : IEquatable<ErrorResponse>
     {
@@ -89,16 +89,15 @@ namespace Org.OpenAPITools.Models
             if (other is null) return false;
             if (ReferenceEquals(this, other)) return true;
 
-            return 
+            return
                 (
                     Status == other.Status ||
-                    
+
                     Status.Equals(other.Status)
-                ) && 
+                ) &&
                 (
                     ErrorMsg == other.ErrorMsg ||
-                    ErrorMsg != null &&
-                    ErrorMsg.Equals(other.ErrorMsg)
+                    (ErrorMsg?.Equals(other.ErrorMsg) == true)
                 );
         }
 
@@ -112,10 +111,10 @@ namespace Org.OpenAPITools.Models
             {
                 var hashCode = 41;
                 // Suitable nullity checks etc, of course :)
-                    
-                    hashCode = hashCode * 59 + Status.GetHashCode();
+
+                    hashCode = (hashCode * 59) + Status.GetHashCode();
                     if (ErrorMsg != null)
-                    hashCode = hashCode * 59 + ErrorMsg.GetHashCode();
+                    hashCode = (hashCode * 59) + ErrorMsg.GetHashCode();
                 return hashCode;
             }
         }
