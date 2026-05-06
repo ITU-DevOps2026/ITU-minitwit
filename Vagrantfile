@@ -27,6 +27,7 @@ Vagrant.configure("2") do |config|
     provider.region = 'fra1'
     provider.size = 's-1vcpu-1gb'
     provider.privatenetworking = true
+    provider.ssh_keys = ENV[""]
   end
 
   MANAGER_COUNT = 1
