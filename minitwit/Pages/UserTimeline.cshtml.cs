@@ -25,7 +25,6 @@ public class UserTimelineModel(MiniTwit minitwit) : PageModel
     } 
     catch (Exception ex) when (ex.Message.Contains("User doesn't exist"))
     {
-        // This returns a 404 status code instead of a 500
         return NotFound("404: User not found");
     }
   }
