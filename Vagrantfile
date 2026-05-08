@@ -82,15 +82,17 @@ Vagrant.configure("2") do |config|
         t.info = "Collecting database and monitoring IP's and injecting them into manager"
         t.ruby do |env, machine|
           db_ip_file = "./provision_scripts/db_IP"
-          monitoring_ip_file = "./provision_scripts/monitoring_IP"
+          monitoring_private_ip_file = "./provision_scripts/monitoring_private_IP"
+          monitoring_public_ip_file = "./provision_scripts/monitoring_public_IP"
 
-          until File.exist?(db_ip_file) && File.exist?(monitoring_ip_file)
+          until File.exist?(db_ip_file) && File.exist?(monitoring_private_ip_file) && File.exist?(monitoring_public_ip_file)
             puts "Manager: Waiting for db_IP and monitoring_IP files..."
             sleep 2
           end
 
           DB_IP_VAL = File.read(db_ip_file).strip
-          MONITOR_IP_VAL = File.read(monitoring_ip_file).strip
+          MONITOR_PRIVATE_IP_VAL = File.read(monitoring_private_ip_file).strip
+          MONITOR_PUBLIC_IP_VAL = File.read(monitoring_public_ip_file).strip
 
           DB_TEMP_CONN = ENV['test_db_connection'] || ""
           DOCKER_USER = ENV['DOCKER_USERNAME'] || ""
@@ -99,7 +101,8 @@ Vagrant.configure("2") do |config|
 
           commands = [
             "echo 'export db_connection=\"#{FINAL_DB_CONN}\"' > ~/.bash_profile",
-            "echo 'export TEST_MONITOR_AND_LOGGING_PRIVATE_IP=\"#{MONITOR_IP_VAL}\"' >> ~/.bash_profile",
+            "echo 'export TEST_MONITOR_AND_LOGGING_PRIVATE_IP=\"#{MONITOR_PRIVATE_IP_VAL}\"' >> ~/.bash_profile",
+            "echo 'export TEST_MONITOR_AND_LOGGING_PUBLIC_IP=\"#{MONITOR_PUBLIC_IP_VAL}\"' >> ~/.bash_profile",
             "echo 'export DOCKER_USERNAME=\"#{DOCKER_USER}\"' >> ~/.bash_profile"
           ]
 
@@ -247,14 +250,22 @@ Vagrant.configure("2") do |config|
         t.info = "Writing own IP to file, and fetching app manager's IP"
         t.ruby do |env, machine|
           command = "curl -s http://169.254.169.254/metadata/v1/interfaces/private/0/ipv4/address"
-          MONITORING_IP = ""
+          MONITORING_PRIVATE_IP = ""
           machine.communicate.execute(command) do |type, data|
-            MONITORING_IP << data if type == :stdout
+            MONITORING_PRIVATE_IP << data if type == :stdout
           end
-          MONITORING_IP = MONITORING_IP.strip
-
-          File.write("./provision_scripts/monitoring_IP", MONITORING_IP)
-          puts "Successfully saved Monitoring IP: #{MONITORING_IP}"
+          MONITORING_PRIVATE_IP = MONITORING_PRIVATE_IP.strip
+          File.write("./provision_scripts/monitoring_private_IP", MONITORING_PRIVATE_IP)
+          puts "Successfully saved Monitoring Private IP: #{MONITORING_PRIVATE_IP}"
+          
+          public_ip_command = "curl -s http://169.254.169.254/metadata/v1/interfaces/public/0/ipv4/address"
+          MONITORING_PUBLIC_IP = ""
+          machine.communicate.execute(public_ip_command) do |type, data|
+            MONITORING_PUBLIC_IP << data if type == :stdout
+          end
+          MONITORING_PUBLIC_IP = MONITORING_PUBLIC_IP.strip
+          File.write("./provision_scripts/monitoring_public_IP", MONITORING_PUBLIC_IP)
+          puts "Successfully saved Monitoring Public IP: #{MONITORING_PUBLIC_IP}"
 
           manager_ip_file = "./provision_scripts/manager_IP"
 
