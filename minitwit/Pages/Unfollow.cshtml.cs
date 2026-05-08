@@ -22,7 +22,7 @@ public class UnfollowModel(MiniTwit minitwit) : PageModel
       }
 
       return RedirectToPage("UserTimeline", new { username });
-    } 
+    }
     catch (Exception ex) when (ex.Message.Contains("User doesn't exist"))
     {
         return NotFound("404: User not found");
