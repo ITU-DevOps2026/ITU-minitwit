@@ -1,5 +1,15 @@
 root = true
 
 [*.cs]
+# Default to warnings
 dotnet_analyzer_diagnostic.severity = warning
+
+# Roslynator (RCS*) as warnings
+dotnet_diagnostic.RCS*.severity = warning
+
+# Microsoft analyzers (CA*) as warnings
+dotnet_diagnostic.CA*.severity = warning
+
+# Security Code Scan as errors
+dotnet_diagnostic.SCS*.severity = error
 ``
