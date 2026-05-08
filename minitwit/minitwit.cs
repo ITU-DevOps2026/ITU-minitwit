@@ -73,20 +73,20 @@ try
   DateTime _lastUpdate = DateTime.MinValue;
   Metrics.DefaultRegistry.AddBeforeCollectCallback(async (cancel) =>
   {
-      if ((DateTime.Now - _lastUpdate).TotalSeconds < 30) return; // Skip if too recent
-      using (var scope = app.Services.CreateScope()) //The DbContext is a scoped service, so we need to create a scope to get it
-      {
-          var context = scope.ServiceProvider.GetRequiredService<MinitwitContext>();
+    if ((DateTime.Now - _lastUpdate).TotalSeconds < 30) return; // Skip if too recent
+    using (var scope = app.Services.CreateScope()) //The DbContext is a scoped service, so we need to create a scope to get it
+    {
+      var context = scope.ServiceProvider.GetRequiredService<MinitwitContext>();
 
-          // Query the database for the absolute latest numbers
-          var totalTweets = await context.Messages.CountAsync(cancel);
-          var totalUsers = await context.Users.CountAsync(cancel);
+      // Query the database for the absolute latest numbers
+      var totalTweets = await context.Messages.CountAsync(cancel);
+      var totalUsers = await context.Users.CountAsync(cancel);
 
-          // Update the Gauges
-          MinitwitMetrics.TotalTweets.Set(totalTweets);
-          MinitwitMetrics.TotalUsers.Set(totalUsers);
-          _lastUpdate = DateTime.Now;
-      }
+      // Update the Gauges
+      MinitwitMetrics.TotalTweets.Set(totalTweets);
+      MinitwitMetrics.TotalUsers.Set(totalUsers);
+      _lastUpdate = DateTime.Now;
+    }
   });
 
   app.UseHttpsRedirection();
@@ -251,7 +251,7 @@ namespace minitwit
             User = u.Username,
             PubDate = Format_datetime(m.PubDate ?? 0)
           }).ToListAsync();
-      }
+    }
 
     public async Task Register(string username, string email, string password)
     {
@@ -387,17 +387,17 @@ namespace minitwit
 
         if (latest_entry != null)
         {
-            // Overwrite the value
-            latest_entry.Value = latest.Value;
+          // Overwrite the value
+          latest_entry.Value = latest.Value;
 
-            // Persist to database
-            await minitwitContext.SaveChangesAsync();
+          // Persist to database
+          await minitwitContext.SaveChangesAsync();
         }
         else
         {
-            // Handle the case where the entry doesn't exist yet
-            await minitwitContext.LatestInt.AddAsync(new Latest { Id = 1, Value = latest.Value });
-            await minitwitContext.SaveChangesAsync();
+          // Handle the case where the entry doesn't exist yet
+          await minitwitContext.LatestInt.AddAsync(new Latest { Id = 1, Value = latest.Value });
+          await minitwitContext.SaveChangesAsync();
         }
       }
     }
