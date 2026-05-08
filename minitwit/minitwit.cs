@@ -189,17 +189,17 @@ namespace minitwit
       }
 
       List<Org.OpenAPITools.Models.Message> messages = await minitwitContext.Messages
-          .Where(m => m.AuthorId == profile_user_id)
-          .OrderByDescending(m => m.PubDate)
-          .Take(PER_PAGE)
-          .Select(
-            m => new Org.OpenAPITools.Models.Message
-            {
-              Content = m.Text,
-              User = username,
-              PubDate = Format_datetime(m.PubDate ?? 0)
-            })
-            .ToListAsync();
+        .Where(m => m.AuthorId == profile_user_id)
+        .OrderByDescending(m => m.PubDate)
+        .Take(PER_PAGE)
+        .Select(
+          m => new Org.OpenAPITools.Models.Message
+          {
+            Content = m.Text,
+            User = username,
+            PubDate = Format_datetime(m.PubDate ?? 0)
+          })
+        .ToListAsync();
 
       return messages;
     }

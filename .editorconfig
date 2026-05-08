@@ -1,15 +1,22 @@
 root = true
 
 [*.cs]
-# Default to warnings
+
+# Default baseline
 dotnet_analyzer_diagnostic.severity = warning
 
-# Roslynator (RCS*) as warnings
-dotnet_diagnostic.RCS*.severity = warning
+# Style: Ignore
+dotnet_analyzer_diagnostic.category-Style.severity = none
 
-# Microsoft analyzers (CA*) as warnings
-dotnet_diagnostic.CA*.severity = warning
+# Code quality: warnings
+dotnet_analyzer_diagnostic.category-Reliability.severity = warning
+dotnet_analyzer_diagnostic.category-Maintainability.severity = warning
+dotnet_analyzer_diagnostic.category-Performance.severity = warning
+dotnet_analyzer_diagnostic.category-Usage.severity = warning
 
-# Security Code Scan as errors
-dotnet_diagnostic.SCS*.severity = error
-``
+# Security: errors
+dotnet_analyzer_diagnostic.category-Security.severity = error
+
+# Ignore specific error for unsecure cryptographic algorithm, since we use MD5 only for the avatar generation
+dotnet_diagnostic.CA5351.severity = none 
+`` 
