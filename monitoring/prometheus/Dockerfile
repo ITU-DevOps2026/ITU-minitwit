@@ -1,6 +1,6 @@
 FROM prom/prometheus:v3.5.1
 
-COPY --chown=65534:65534 prometheus.yml /etc/prometheus/prometheus.yml
+COPY --chown=root:root --chmod=755 prometheus.yml /etc/prometheus/prometheus.yml
 
 EXPOSE 9090
 
