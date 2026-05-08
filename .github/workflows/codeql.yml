@@ -40,10 +40,10 @@ jobs:
           dotnet-version: 10.0.x
 
       - name: Restore
-        run: dotnet restore
+        run: dotnet restore minitwit/minitwit.csproj
 
       - name: Build
-        run: dotnet build --no-restore
+        run: dotnet build minitwit/minitwit.csproj --no-restore
 
       - name: Run CodeQL analysis
         uses: github/codeql-action/analyze@v3
