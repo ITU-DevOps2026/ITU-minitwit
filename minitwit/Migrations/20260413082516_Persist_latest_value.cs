@@ -18,10 +18,7 @@ namespace minitwit.Migrations
                         .Annotation("Sqlite:Autoincrement", true),
                     value = table.Column<int>(type: "INTEGER", nullable: false)
                 },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_latest", x => x.id);
-                });
+                constraints: table => table.PrimaryKey("PK_latest", x => x.id));
         }
 
         /// <inheritdoc />

@@ -20,9 +20,9 @@ using System.Text.Json.Serialization;
 using Org.OpenAPITools.Converters; */
 
 namespace Org.OpenAPITools.Models
-{ 
+{
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public partial class Message : IEquatable<Message>
     {
@@ -96,21 +96,18 @@ namespace Org.OpenAPITools.Models
             if (other is null) return false;
             if (ReferenceEquals(this, other)) return true;
 
-            return 
+            return
                 (
                     Content == other.Content ||
-                    Content != null &&
-                    Content.Equals(other.Content)
-                ) && 
+                    (Content?.Equals(other.Content) == true)
+                ) &&
                 (
                     PubDate == other.PubDate ||
-                    PubDate != null &&
-                    PubDate.Equals(other.PubDate)
-                ) && 
+                    (PubDate?.Equals(other.PubDate) == true)
+                ) &&
                 (
                     User == other.User ||
-                    User != null &&
-                    User.Equals(other.User)
+                    (User?.Equals(other.User) == true)
                 );
         }
 
@@ -125,11 +122,11 @@ namespace Org.OpenAPITools.Models
                 var hashCode = 41;
                 // Suitable nullity checks etc, of course :)
                     if (Content != null)
-                    hashCode = hashCode * 59 + Content.GetHashCode();
+                    hashCode = (hashCode * 59) + Content.GetHashCode();
                     if (PubDate != null)
-                    hashCode = hashCode * 59 + PubDate.GetHashCode();
+                    hashCode = (hashCode * 59) + PubDate.GetHashCode();
                     if (User != null)
-                    hashCode = hashCode * 59 + User.GetHashCode();
+                    hashCode = (hashCode * 59) + User.GetHashCode();
                 return hashCode;
             }
         }

@@ -27,7 +27,7 @@ public class LoginModel(MiniTwit minitwit) : PageModel
     {
       ModelState.AddModelError("Password", "Invalid password");
     }
-    
+
     if (!ModelState.IsValid)
     {
       return Page();

@@ -20,9 +20,9 @@ using System.Text.Json.Serialization;
 using Org.OpenAPITools.Converters; */
 
 namespace Org.OpenAPITools.Models
-{ 
+{
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public partial class FollowAction : IEquatable<FollowAction>
     {
@@ -87,16 +87,14 @@ namespace Org.OpenAPITools.Models
             if (other is null) return false;
             if (ReferenceEquals(this, other)) return true;
 
-            return 
+            return
                 (
                     Follow == other.Follow ||
-                    Follow != null &&
-                    Follow.Equals(other.Follow)
-                ) && 
+                    (Follow?.Equals(other.Follow) == true)
+                ) &&
                 (
                     Unfollow == other.Unfollow ||
-                    Unfollow != null &&
-                    Unfollow.Equals(other.Unfollow)
+                    (Unfollow?.Equals(other.Unfollow) == true)
                 );
         }
 
@@ -111,9 +109,9 @@ namespace Org.OpenAPITools.Models
                 var hashCode = 41;
                 // Suitable nullity checks etc, of course :)
                     if (Follow != null)
-                    hashCode = hashCode * 59 + Follow.GetHashCode();
+                    hashCode = (hashCode * 59) + Follow.GetHashCode();
                     if (Unfollow != null)
-                    hashCode = hashCode * 59 + Unfollow.GetHashCode();
+                    hashCode = (hashCode * 59) + Unfollow.GetHashCode();
                 return hashCode;
             }
         }

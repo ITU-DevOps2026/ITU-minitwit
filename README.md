@@ -33,17 +33,24 @@ See [Docker readme](/README.Docker.md) for instructions on how to run using Dock
 - A terminal capable of running sh if you want to run the control.sh script
 
 ### How to build minitwit C# application
-Navigate to the `/minitwit` folder and run the following command in the terminal:
+Navigate to the `/minitwit` directory and run the following command in the terminal:
 ```bash
 dotnet build
 ```
-This will build the application and run .NET code analysis on the project.
+This will build the application and run .NET code analysis and Roslynator on the project, displaying errors and warnings in the terminal.
 .NET code analysis will only display warnings on the newly built code. 
 If you want to build the whole application run the following commands in the terminal:
 ```bash
 dotnet clean
 dotnet build
 ```
+
+#### How to have Roslynator automatically fix linting warnings and errors
+Roslynator can automatically fix some warnings and errors by running the following command in `/minitwit` directory:
+```bash
+dotnet roslynator fix MiniTwit.csproj
+```
+There are some warnings that cannot be fixed automatically, these will need to be handled manually. 
 
 ### How to run minitwit C# application
 Navigate to the `/minitwit` folder and run the following command in the terminal:
