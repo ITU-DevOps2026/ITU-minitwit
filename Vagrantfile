@@ -27,7 +27,14 @@ Vagrant.configure("2") do |config|
     provider.region = 'fra1'
     provider.size = 's-1vcpu-1gb'
     provider.privatenetworking = true
-    provider.ssh_keys = ENV[""]
+    provider.ssh_keys = [
+      ENV["FINGERPRINTS_CARMEN"],
+      ENV["FINGERPRINTS_CASPER"],
+      ENV["FINGERPRINTS_MADS"],
+      ENV["FINGERPRINTS_MATHILDE"],
+      ENV["FINGERPRINTS_MAX"]
+    ].compact
+    .flat_map { |fp| fp.split(",").map(&:strip)}
   end
 
   MANAGER_COUNT = 1
