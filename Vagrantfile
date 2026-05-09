@@ -7,6 +7,7 @@ if File.exist?(".env")
     line.strip!
     next if line.empty? || line.start_with?("#")
     key, value = line.split("=", 2)
+    value = value.strip.gsub(/\A["']|["']\z/, '') if value
     ENV[key] = value if key && value
   end
 end
@@ -19,6 +20,13 @@ keys_data = JSON.parse(response)
 team_public_keys = keys_data["ssh_keys"]
   .map { |k| k["public_key"].strip }
   .join("\n")
+
+# Create tags
+client = DropletKit::Client.new(access_token: ENV['DIGITAL_OCEAN_TOKEN'])
+client.tags.create(DropletKit::Tag.new(name: 'minitwit-swarm'))
+client.tags.create(DropletKit::Tag.new(name: 'minitwit-swarm-test'))
+client.tags.create(DropletKit::Tag.new(name: 'Prod-DB'))
+client.tags.create(DropletKit::Tag.new(name: 'Test-DB'))
 
 Vagrant.configure("2") do |config|
   # Configuring global settings that all droplets use
@@ -45,6 +53,9 @@ Vagrant.configure("2") do |config|
   # Create minitwit manager for docker swarm
   (1..TEST_MANAGER_COUNT).each do |i|
     config.vm.define "minitwit-test-manager-#{i}", autostart: true, primary: true do |manager|
+      manager.vm.provider :digital_ocean do |provider|
+        provider.tags = ["minitwit-swarm-test"]
+      end
       manager.vm.hostname = "minitwit-test-manager-#{i}"
       manager.vm.synced_folder "remote_files/test_env", "/minitwit", type: "rsync"
       
@@ -165,10 +176,17 @@ Vagrant.configure("2") do |config|
   # create minitwit workers for docker swarm
   (1..WORKER_COUNT).each do |i|
     config.vm.define "minitwit-test-worker-#{i}", autostart: true, primary: true do |worker|
+      worker.vm.provider :digital_ocean do |provider|
+        provider.tags = ["minitwit-swarm-test"]
+      end
       worker.vm.hostname = "minitwit-test-worker-#{i}"
 
       worker.vm.provision "shell", path: "provision_scripts/docker_setup_script.sh", binary: false
       worker.vm.provision "shell", path: "provision_scripts/configure_firewall_worker.sh", binary: false
+      worker.vm.provision "shell", name: "inject_ssh_keys", inline: <<-SHELL
+        echo "#{team_public_keys}" >> /root/.ssh/authorized_keys
+        echo "SSH keys injected"
+      SHELL
 
       # Join the swarm created by the manager
       worker.trigger.after [:up, :provision] do |t|
@@ -197,6 +215,9 @@ Vagrant.configure("2") do |config|
 
   # Configure production database 
   config.vm.define "minitwit-test-env-mysql", autostart: true, primary: true do |server|
+    server.vm.provider :digital_ocean do |provider|
+      provider.tags = ["Test-DB"]
+    end
     server.vm.hostname = "minitwit-test-env-mysql"
     server.vm.provision "shell", inline: <<-SHELL
       echo "export DB_PASSWORD='#{ENV['TEST_DB_PASSWORD']}'" >> /etc/profile.d/db_env.sh
@@ -206,6 +227,10 @@ Vagrant.configure("2") do |config|
     server.vm.provision "shell", path: "provision_scripts/docker_setup_script.sh", binary: false
     # This runs the reusable DB script and tells it which image to use
     server.vm.provision "shell", path: "provision_scripts/database_setup_script.sh", binary: false, args: "mathildegk/minitwit-mysql-prod"
+    server.vm.provision "shell", name: "inject_ssh_keys", inline: <<-SHELL
+      echo "#{team_public_keys}" >> /root/.ssh/authorized_keys
+      echo "SSH keys injected"
+    SHELL
 
     server.trigger.before :"Vagrant::Action::Builtin::Provision", type: :action do |t|
       t.info = "Writing own IP to file, and fetching app manager's IP"
@@ -335,6 +360,10 @@ Vagrant.configure("2") do |config|
     SHELL
     server.vm.provision "shell", path: "provision_scripts/docker_setup_script.sh", binary: false
     server.vm.provision "shell", path: "provision_scripts/monitoring_setup_script.sh", binary: false
+    server.vm.provision "shell", name: "inject_ssh_keys", inline: <<-SHELL
+      echo "#{team_public_keys}" >> /root/.ssh/authorized_keys
+      echo "SSH keys injected"
+    SHELL
     server.trigger.after :up do |t|
       t.ruby do |env, machine|
         command = "./deploy.sh"
