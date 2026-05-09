@@ -11,7 +11,14 @@ if File.exist?(".env")
   end
 end
 
-require 'droplet_kit'
+require 'json'
+
+token = ENV["DIGITAL_OCEAN_TOKEN"]
+response = `curl -s -H "Authorization: Bearer #{token}" https://api.digitalocean.com/v2/account/keys?per_page=200`
+keys_data = JSON.parse(response)
+team_public_keys = keys_data["ssh_keys"]
+  .map { |k| k["public_key"].strip }
+  .join("\n")
 
 Vagrant.configure("2") do |config|
   # Configuring global settings that all droplets use
@@ -27,14 +34,6 @@ Vagrant.configure("2") do |config|
     provider.region = 'fra1'
     provider.size = 's-1vcpu-1gb'
     provider.privatenetworking = true
-    provider.ssh_keys = [
-      ENV["FINGERPRINTS_CARMEN"],
-      ENV["FINGERPRINTS_CASPER"],
-      ENV["FINGERPRINTS_MADS"],
-      ENV["FINGERPRINTS_MATHILDE"],
-      ENV["FINGERPRINTS_MAX"]
-    ].compact
-    .flat_map { |fp| fp.split(",").map(&:strip)}
   end
 
   MANAGER_COUNT = 1
@@ -124,6 +123,10 @@ Vagrant.configure("2") do |config|
       manager.vm.provision "shell", path: "provision_scripts/docker_setup_script.sh", binary: false
       manager.vm.provision "shell", path: "provision_scripts/manager_setup_script.sh", binary: false
       manager.vm.provision "shell", path: "provision_scripts/configure_firewall_manager.sh", binary: false
+      manager.vm.provision "shell", name: "inject_ssh_keys", inline: <<-SHELL
+        echo "#{team_public_keys}" >> /root/.ssh/authorized_keys
+        echo "SSH keys injected"
+      SHELL
 
       manager.trigger.after :up do |t|
         t.info = "Initializing swarm on manager and fetching worker token..."
