@@ -31,7 +31,7 @@ source /etc/profile.d/env.sh
 sudo ufw allow 3000/tcp
 
 # Allow applications private ip to access ports containing logs and monitoring
-if [ ! -z "$APP_SERVER_IP" ]; then
+if [[ ! -z "$APP_SERVER_IP" ]]; then
     sudo ufw allow from "$APP_SERVER_IP" to any port 9200
     sudo ufw allow from "$APP_SERVER_IP" to any port 9090
     echo "Firewall: Monitoring ports opened for $APP_SERVER_IP"

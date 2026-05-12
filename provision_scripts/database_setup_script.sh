@@ -20,7 +20,7 @@ sudo sed -i 's/#MaxAuthTries 6/MaxAuthTries 3/' /etc/ssh/sshd_config
 sudo sed -i 's/#MaxSessions 10/MaxSessions 5/' /etc/ssh/sshd_config
 
 # Only allow your application's private IP to access the DB port
-if [ ! -z "$APP_SERVER_IP" ]; then
+if [[ ! -z "$APP_SERVER_IP" ]]; then
     sudo ufw allow from "$APP_SERVER_IP" to any port 3306
     echo "Firewall: Allowed 3306 for $APP_SERVER_IP"
 fi
