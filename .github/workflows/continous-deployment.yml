@@ -37,6 +37,18 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      # Build image locally (needed for Dockle)
+      - name: Build Docker image locally
+        run: docker build -t minitwitimage:scan -f Dockerfile-minitwit .
+
+      # Run Dockle scan  push
+      - name: Run Dockle
+        uses: goodwithtech/dockle-action@e30e6af832aad6ea7dca2a248d31a85eab6dbd68
+        with:
+          image: minitwitimage:scan
+          exit-code: '1'
+          exit-level: 'warn'
+
       - name: Build and push minitwitimage
         uses: docker/build-push-action@v6
         with:
