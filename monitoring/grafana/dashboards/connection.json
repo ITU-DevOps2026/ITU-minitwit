@@ -18,7 +18,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 2,
+  "id": 3,
   "links": [],
   "panels": [
     {
@@ -26,6 +26,7 @@
         "type": "prometheus",
         "uid": "P1809F7CD0C75ACF3"
       },
+      "description": "Binary liveness check. 1 = Up (healthy), 0 = Down (unreachable). Triggered via Prometheus 'up' metric.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -88,7 +89,7 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "12.1.9",
+      "pluginVersion": "12.1.10",
       "targets": [
         {
           "editorMode": "code",
@@ -99,8 +100,7 @@
           "refId": "A"
         }
       ],
-      "title": "Status",
-      "description": "Binary liveness check. 1 = Up (healthy), 0 = Down (unreachable). Triggered via Prometheus 'up' metric.",
+      "title": "Service health (Status)",
       "type": "stat"
     },
     {
@@ -108,6 +108,7 @@
         "type": "prometheus",
         "uid": "P1809F7CD0C75ACF3"
       },
+      "description": "The percentage of successful HTTP responses (non-5xx) over a 5-minute rolling window. It measures the overall reliability of the service by comparing successful requests to the total number of requests. (A drop below 100% indicates server-side errors (5xx))",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -183,18 +184,17 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.1.9",
+      "pluginVersion": "12.1.10",
       "targets": [
         {
           "editorMode": "code",
-          "expr": "sum(rate(http_requests_received_total{status=~\"5..\"}[5m]))",
+          "expr": "(sum(rate(http_requests_received_total{code!~\"5..\"}[5m])) / sum(rate(http_requests_received_total[5m]))) * 100",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "Error rate",
-      "description": "Rate of HTTP 5xx errors per second over a 5-minute window. Indicates server-side code or DB failures.",
+      "title": "HTTP Success Rate",
       "type": "timeseries"
     },
     {
@@ -202,6 +202,7 @@
         "type": "prometheus",
         "uid": "P1809F7CD0C75ACF3"
       },
+      "description": "Instantaneous throughput (1m window). Used to identify traffic spikes or DDoS attempts.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -277,18 +278,17 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.1.9",
+      "pluginVersion": "12.1.10",
       "targets": [
         {
           "editorMode": "code",
-          "expr": "rate(http_requests_received_total[1m])",
+          "expr": "sum by (code) (rate(http_requests_received_total[1m]))",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
         }
       ],
       "title": "Requests per second",
-      "description": "Instantaneous throughput (1m window). Used to identify traffic spikes or DDoS attempts.",
       "type": "timeseries"
     },
     {
@@ -296,6 +296,7 @@
         "type": "prometheus",
         "uid": "P1809F7CD0C75ACF3"
       },
+      "description": "The raw counter of all processed HTTP requests since the last application restart.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -360,7 +361,9 @@
       "id": 1,
       "options": {
         "legend": {
-          "calcs": [],
+          "calcs": [
+            "sum"
+          ],
           "displayMode": "list",
           "placement": "bottom",
           "showLegend": true
@@ -371,7 +374,7 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.1.9",
+      "pluginVersion": "12.1.10",
       "targets": [
         {
           "datasource": {
@@ -391,7 +394,6 @@
         }
       ],
       "title": "Total HTTP requests recieved",
-      "description": "The raw counter of all processed HTTP requests since the last application restart.",
       "type": "timeseries"
     },
     {
@@ -399,6 +401,7 @@
         "type": "prometheus",
         "uid": "P1809F7CD0C75ACF3"
       },
+      "description": "The maximum latency experienced by the 95% fastest requests. This metric effectively filters out noise and shows the performance for the vast majority of users. A rising P95 often indicates resource contention, slow database queries, or bottlenecks in specific API endpoints.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -452,7 +455,23 @@
             ]
           }
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "histogram_quantile(0.95, sum by (le, endpoint) (rate(http_request_duration_seconds_bucket[5m])))"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#73BF69",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
         "h": 8,
@@ -474,18 +493,25 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.1.9",
+      "pluginVersion": "12.1.10",
       "targets": [
         {
-          "editorMode": "code",
-          "expr": "rate(http_request_duration_seconds_sum[5m]) / rate(http_request_duration_seconds_count[5m])",
-          "legendFormat": "__auto",
+          "disableTextWrap": false,
+          "editorMode": "builder",
+          "exemplar": false,
+          "expr": "histogram_quantile(0.95, sum by(le, endpoint) (rate(http_request_duration_seconds_bucket[5m])))",
+          "format": "time_series",
+          "fullMetaSearch": false,
+          "includeNullMetadata": true,
+          "instant": false,
+          "interval": "",
+          "legendFormat": "/{{endpoint}}",
           "range": true,
-          "refId": "A"
+          "refId": "A",
+          "useBackend": false
         }
       ],
-      "title": "Duration of HTTP Requests (Latency)",
-      "description": "Average request processing time. Helps identify bottlenecking in middleware or database queries.",
+      "title": "Response time - P95 latency",
       "type": "timeseries"
     }
   ],
@@ -496,12 +522,12 @@
     "list": []
   },
   "time": {
-    "from": "now-3h",
+    "from": "now-6h",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "browser",
   "title": "Minitwit Infrastructure Health",
   "uid": "45447965-71a2-4f95-ae96-7b42fe7185dc",
-  "version": 9
+  "version": 11
 }
