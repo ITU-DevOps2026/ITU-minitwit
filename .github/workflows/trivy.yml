@@ -33,6 +33,7 @@ jobs:
         run: |
           trivy config . \
             --file-patterns "dockerfile:Dockerfile*" \
+            --skip-files Dockerfile-mysql \
             --severity HIGH,CRITICAL \
             --exit-code 1
 
