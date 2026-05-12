@@ -28,15 +28,13 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y trivy
 
+      
       - name: Scan Dockerfiles
         run: |
-          for file in Dockerfile-*; do
-            echo "Scanning config $file"
-            trivy config . \
-              --file-patterns "dockerfile:Dockerfile-*" \
-              --severity HIGH,CRITICAL \
-              --exit-code 1
-          done
+          trivy config . \
+            --file-patterns "dockerfile:Dockerfile*" \
+            --severity HIGH,CRITICAL \
+            --exit-code 1
 
       - name: Build and scan all Docker images
         run: |
