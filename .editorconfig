@@ -1,5 +1,22 @@
 root = true
 
 [*.cs]
+
+# Default baseline
 dotnet_analyzer_diagnostic.severity = warning
-``
+
+# Style: Ignore
+dotnet_analyzer_diagnostic.category-Style.severity = none
+
+# Code quality: warnings
+dotnet_analyzer_diagnostic.category-Reliability.severity = warning
+dotnet_analyzer_diagnostic.category-Maintainability.severity = warning
+dotnet_analyzer_diagnostic.category-Performance.severity = warning
+dotnet_analyzer_diagnostic.category-Usage.severity = warning
+
+# Security: errors
+dotnet_analyzer_diagnostic.category-Security.severity = error
+
+# Ignore specific error for unsecure cryptographic algorithm, since we use MD5 only for the avatar generation
+dotnet_diagnostic.CA5351.severity = none 
+`` 
