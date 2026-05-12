@@ -1,0 +1,12 @@
+---
+title: | 
+  "DevOps"
+
+  ![](./images/front.png){ width=50% }
+author: "Group K - Pat Myaz"
+date: "18-05-2026"
+toc: true
+numbersections: true
+geometry: margin=2.5cm
+include-before-body: ./frontpage.pdf
+---
