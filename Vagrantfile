@@ -193,6 +193,7 @@ Vagrant.configure("2") do |config|
       manager.vm.provision "shell", path: "provision_scripts/docker_setup_script.sh", binary: false
       manager.vm.provision "shell", path: "provision_scripts/manager_setup_script.sh", binary: false
       manager.vm.provision "shell", path: "provision_scripts/configure_firewall_manager.sh", binary: false
+      manager.vm.provision "shell", path: "provision_scripts/fail2ban_setup_script.sh", binary: false
       manager.vm.provision "shell", name: "inject_ssh_keys", inline: <<-SHELL
         echo "#{team_public_keys}" >> /root/.ssh/authorized_keys
         echo "SSH keys injected"
@@ -230,6 +231,7 @@ Vagrant.configure("2") do |config|
 
       worker.vm.provision "shell", path: "provision_scripts/docker_setup_script.sh", binary: false
       worker.vm.provision "shell", path: "provision_scripts/configure_firewall_worker.sh", binary: false
+      worker.vm.provision "shell", path: "provision_scripts/fail2ban_setup_script.sh", binary: false
       worker.vm.provision "shell", name: "inject_ssh_keys", inline: <<-SHELL
         echo "#{team_public_keys}" >> /root/.ssh/authorized_keys
         echo "SSH keys injected"
@@ -265,6 +267,7 @@ Vagrant.configure("2") do |config|
     SHELL
     server.vm.provision "shell", path: "provision_scripts/docker_setup_script.sh", binary: false
     server.vm.provision "shell", path: "provision_scripts/database_setup_script.sh", binary: false, args: CFG[:db_image]
+    server.vm.provision "shell", path: "provision_scripts/fail2ban_setup_script.sh", binary: false
     server.vm.provision "shell", name: "inject_ssh_keys", inline: <<-SHELL
       echo "#{team_public_keys}" >> /root/.ssh/authorized_keys
       echo "SSH keys injected"
@@ -311,6 +314,15 @@ Vagrant.configure("2") do |config|
         machine.communicate.execute("echo 'export APP_SERVER_IP=\"#{manager_ip}\"' | sudo tee /etc/profile.d/env.sh")
         puts "Successfully injected Manager IP into env.sh"
 
+        grafana_admin_user = ENV['GF_SECURITY_ADMIN_USER']
+        grafana_admin_pw = ENV['GF_SECURITY_ADMIN_PASSWORD']
+        puts "Found grafana user: #{grafana_admin_user}"
+        puts "Found grafana password: #{grafana_admin_pw}"
+
+        machine.communicate.execute("echo 'export GF_SECURITY_ADMIN_USER=\"#{grafana_admin_user}\"' | sudo tee -a /etc/profile.d/env.sh")
+        machine.communicate.execute("echo 'export GF_SECURITY_ADMIN_PASSWORD=\"#{grafana_admin_pw}\"' | sudo tee -a /etc/profile.d/env.sh")
+        puts "Successfully injected Grafana User credentials into env.sh"
+
         assign_reserved_ip(machine, CFG[:monitoring_res_ip], ENV['DIGITAL_OCEAN_TOKEN'])
       end
     end
@@ -340,8 +352,9 @@ Vagrant.configure("2") do |config|
       fi
     SHELL
 
-    server.vm.provision "shell", path: "provision_scripts/docker_setup_script.sh",       binary: false
-    server.vm.provision "shell", path: "provision_scripts/monitoring_setup_script.sh",    binary: false
+    server.vm.provision "shell", path: "provision_scripts/docker_setup_script.sh", binary: false
+    server.vm.provision "shell", path: "provision_scripts/monitoring_setup_script.sh",binary: false
+    server.vm.provision "shell", path: "provision_scripts/fail2ban_setup_script.sh", binary: false
     server.vm.provision "shell", name: "inject_ssh_keys", inline: <<-SHELL
       echo "#{team_public_keys}" >> /root/.ssh/authorized_keys
       echo "SSH keys injected"
