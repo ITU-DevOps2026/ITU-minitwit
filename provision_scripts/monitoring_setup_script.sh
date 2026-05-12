@@ -11,6 +11,8 @@ echo "Detected Private IP: $PRIVATE_IP"
 
 # Make .env file that Docker Compose will be using
 echo "MONITOR_AND_LOGGING_PRIVATE_IP=$PRIVATE_IP" > /deploy/.env
+echo "GF_SECURITY_ADMIN_USER=$GF_SECURITY_ADMIN_USER" > /deploy/.env
+echo "MONITOR_AND_LOGGING_PRIVATE_IP=$GF_SECURITY_ADMIN_PASSWORD" > /deploy/.env
 
 # CONFIGURE FIREWALL
 sudo ufw default deny incoming
