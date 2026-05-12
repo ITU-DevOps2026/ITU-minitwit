@@ -34,13 +34,50 @@ jobs:
             --severity HIGH,CRITICAL \
             --exit-code 1
 
-      - name: Build Docker image
+      - name: Scan custom Dockerfiles
         run: |
-          docker build -t minitwit:latest .
+          for file in Dockerfile-*; do
+            echo "Scanning config $file"
+            trivy config "$file" \
+              --severity HIGH,CRITICAL \
+              --exit-code 1
+          done
 
-      - name: Scan Docker image
+      - name: Build and scan all Docker images
         run: |
-          trivy image minitwit:latest \
-            --severity HIGH,CRITICAL \
-            --exit-code 1 \
-            --no-progress
+          shopt -s nullglob
+
+          # Root Dockerfile-* files
+          for file in Dockerfile-*; do
+            echo "Found root file $file"
+
+            name=$(echo "$file" | sed 's/Dockerfile-//')
+            image="minitwit-$name"
+
+            echo "Building $file → $image"
+            docker build -f "$file" -t "$image:latest" .
+
+            echo "Scanning $image"
+            trivy image "$image:latest" \
+              --severity HIGH,CRITICAL \
+              --exit-code 1 \
+              --no-progress
+          done
+
+          # Subfolder Dockerfiles
+          for file in */Dockerfile; do
+            echo "Found nested file $file"
+
+            dir=$(dirname "$file")
+            name=$(basename "$dir")
+            image="minitwit-$name"
+
+            echo "Building $file → $image"
+            docker build -f "$file" -t "$image:latest" "$dir"
+
+            echo "Scanning $image"
+            trivy image "$image:latest" \
+              --severity HIGH,CRITICAL \
+              --exit-code 1 \
+              --no-progress
+          done
