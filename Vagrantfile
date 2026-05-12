@@ -317,12 +317,7 @@ Vagrant.configure("2") do |config|
         machine.communicate.execute("echo 'export APP_SERVER_IP=\"#{manager_ip}\"' | sudo tee /etc/profile.d/env.sh")
         puts "Successfully injected Manager IP into env.sh"
 
-        #Set up Scrape targets for prometheus
-        scrape_target = CFG[:scrape_target]
-        machine.communicate.execute("sed -i 's/SCRAPE_TARGET/#{scrape_target}/g' /monitoring/prometheus/prometheus.yml")
-        puts "Successfully replaced the SCRAPE_TARGET with the correct target"
-
-
+        #Set up grafana standard user and password
         grafana_admin_user = ENV['GF_SECURITY_ADMIN_USER']
         grafana_admin_pw = ENV['GF_SECURITY_ADMIN_PASSWORD']
         puts "Found grafana user: #{grafana_admin_user}"
@@ -371,6 +366,11 @@ Vagrant.configure("2") do |config|
 
     server.trigger.after :up do |t|
       t.ruby do |env, machine|
+        #Set up Scrape targets for prometheus
+        scrape_target = CFG[:scrape_target]
+        machine.communicate.execute("sed -i 's/SCRAPE_TARGET/#{scrape_target}/g' ../monitoring/prometheus/prometheus.yml")
+        puts "Successfully replaced the SCRAPE_TARGET with the correct target"
+
         machine.communicate.execute("./deploy.sh")
       end
     end
