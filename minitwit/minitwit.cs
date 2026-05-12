@@ -61,6 +61,7 @@ try
   // Configure the HTTP request pipeline.
   if (!app.Environment.IsDevelopment())
   {
+    app.UseStatusCodePages();
     app.UseExceptionHandler("/Error");
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
@@ -104,6 +105,11 @@ try
   app.MapControllers();
 
   app.MapHealthChecks("/healthz");
+
+  app.MapFallback(context => {
+    context.Response.StatusCode = 404;
+    return Task.CompletedTask;
+  });
 
   await app.RunAsync();
 }

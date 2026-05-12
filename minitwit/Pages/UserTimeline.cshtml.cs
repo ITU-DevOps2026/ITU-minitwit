@@ -12,13 +12,20 @@ public class UserTimelineModel(MiniTwit minitwit) : PageModel
   public bool Followed { get; set; }
   public async Task<IActionResult> OnGet(string username)
   {
-    string? logged_in_username = HttpContext.Session.GetString("Logged_In_Username");
-
-    Messages = await minitwit.Get_user_timeline(username);
-    if(logged_in_username != null)
+    try
     {
-      Followed = await minitwit.Is_following(logged_in_username, username);
+      string? logged_in_username = HttpContext.Session.GetString("Logged_In_Username");
+
+      Messages = await minitwit.Get_user_timeline(username);
+      if(logged_in_username != null)
+      {
+        Followed = await minitwit.Is_following(logged_in_username, username);
+      }
+      return Page();
     }
-    return Page();
+    catch (Exception ex) when (ex.Message.Contains("User doesn't exist"))
+    {
+        return NotFound("404: User not found");
+    }
   }
 }
