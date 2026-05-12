@@ -64,4 +64,6 @@ USER appuser
 
 EXPOSE 5035
 
+HEALTHCHECK CMD curl --fail http://localhost:5035 || exit 1
+
 ENTRYPOINT ["dotnet", "minitwit.dll"]
