@@ -14,3 +14,6 @@ COPY --from=build /source/tests/bin/Release/net10.0/ .
 
 ENTRYPOINT ["dotnet", "test", "tests.dll", "--no-build"]
 
+# Create non-root user and swap
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+USER appuser

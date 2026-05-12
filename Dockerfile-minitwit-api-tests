@@ -10,3 +10,7 @@ WORKDIR /minitwit-api-tests
 RUN pip install -r requirements.txt
 
 ENTRYPOINT ["pytest", "-s", "minitwit_sim_api_test.py"]
+
+# Create non-root user and swap
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+USER appuser
