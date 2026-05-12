@@ -45,6 +45,7 @@ CFG = if IS_PROD
     db_res_ip:          ENV['PROD_DB_RES_IP'],
     monitoring_res_ip:  ENV['PROD_MONITORING_RES_IP'],
     db_image:           "mathildegk/minitwit-mysql-prod",
+    scrape_target:      'monitor.bigtwit.app',
     # File paths for inter-droplet IP coordination (kept separate per env)
     manager_ip_file:    "./provision_scripts/prod_manager_IP",
     db_ip_file:         "./provision_scripts/prod_db_IP",
@@ -64,6 +65,8 @@ else
     db_res_ip:          ENV['TEST_DB_RES_IP'],
     monitoring_res_ip:  ENV['TEST_MONITORING_RES_IP'],
     db_image:           "mathildegk/minitwit-mysql-test",
+    scrape_target:      'monitor-test.bigtwit.app',
+    # File paths for inter-droplet IP coordination (kept separate per env)
     manager_ip_file:    "./provision_scripts/test_manager_IP",
     db_ip_file:         "./provision_scripts/test_db_IP",
     monitoring_priv_ip_file: "./provision_scripts/test_monitoring_private_IP",
@@ -73,7 +76,7 @@ else
 end
 
 # SSH keys saved in the team on Digital Ocean — fetched once, shared by all droplets
-token = ENV["TEST_DIGITAL_OCEAN_TOKEN"]
+token = ENV["DIGITAL_OCEAN_TOKEN"]
 response = `curl -s -H "Authorization: Bearer #{token}" https://api.digitalocean.com/v2/account/keys?per_page=200`
 keys_data = JSON.parse(response)
 team_public_keys = keys_data["ssh_keys"]
@@ -81,7 +84,7 @@ team_public_keys = keys_data["ssh_keys"]
   .join("\n")
 
 # Tags — create once per run (DigitalOcean ignores duplicates)
-client = DropletKit::Client.new(access_token: ENV['TEST_DIGITAL_OCEAN_TOKEN'])
+client = DropletKit::Client.new(access_token: ENV['DIGITAL_OCEAN_TOKEN'])
 client.tags.create(DropletKit::Tag.new(name: CFG[:swarm_tag]))
 client.tags.create(DropletKit::Tag.new(name: CFG[:db_tag]))
 
@@ -139,7 +142,7 @@ Vagrant.configure("2") do |config|
 
   config.vm.provider :digital_ocean do |provider|
     provider.ssh_key_name = ENV["SSH_KEY_NAME"]
-    provider.token        = ENV["TEST_DIGITAL_OCEAN_TOKEN"]
+    provider.token        = ENV["DIGITAL_OCEAN_TOKEN"]
     provider.image        = 'ubuntu-22-04-x64'
     provider.region       = 'fra1'
     provider.size         = 's-1vcpu-1gb'
@@ -163,7 +166,7 @@ Vagrant.configure("2") do |config|
           File.write(CFG[:manager_ip_file], ip)
           puts "Successfully saved Manager IP: #{ip}"
 
-          assign_reserved_ip(machine, CFG[:manager_res_ip], ENV['TEST_DIGITAL_OCEAN_TOKEN'])
+          assign_reserved_ip(machine, CFG[:manager_res_ip], ENV['DIGITAL_OCEAN_TOKEN'])
         end
       end
 
@@ -286,7 +289,7 @@ Vagrant.configure("2") do |config|
         machine.communicate.execute("echo 'export APP_SERVER_IP=\"#{manager_ip}\"' | sudo tee -a /etc/profile.d/db_env.sh")
         puts "Successfully injected Manager IP into db_env.sh"
 
-        assign_reserved_ip(machine, CFG[:db_res_ip], ENV['TEST_DIGITAL_OCEAN_TOKEN'])
+        assign_reserved_ip(machine, CFG[:db_res_ip], ENV['DIGITAL_OCEAN_TOKEN'])
       end
     end
   end
@@ -314,6 +317,12 @@ Vagrant.configure("2") do |config|
         machine.communicate.execute("echo 'export APP_SERVER_IP=\"#{manager_ip}\"' | sudo tee /etc/profile.d/env.sh")
         puts "Successfully injected Manager IP into env.sh"
 
+        #Set up Scrape targets for prometheus
+        scrape_target = CFG[:scrape_target]
+        machine.communicate.execute("sed -i 's/SCRAPE_TARGET/#{scrape_target}/g' /monitoring/prometheus/prometheus.yml")
+        puts "Successfully replaced the SCRAPE_TARGET with the correct target"
+
+
         grafana_admin_user = ENV['GF_SECURITY_ADMIN_USER']
         grafana_admin_pw = ENV['GF_SECURITY_ADMIN_PASSWORD']
         puts "Found grafana user: #{grafana_admin_user}"
@@ -323,7 +332,7 @@ Vagrant.configure("2") do |config|
         machine.communicate.execute("echo 'export GF_SECURITY_ADMIN_PASSWORD=\"#{grafana_admin_pw}\"' | sudo tee -a /etc/profile.d/env.sh")
         puts "Successfully injected Grafana User credentials into env.sh"
 
-        assign_reserved_ip(machine, CFG[:monitoring_res_ip], ENV['TEST_DIGITAL_OCEAN_TOKEN'])
+        assign_reserved_ip(machine, CFG[:monitoring_res_ip], ENV['DIGITAL_OCEAN_TOKEN'])
       end
     end
 
