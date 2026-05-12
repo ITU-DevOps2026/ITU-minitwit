@@ -9,6 +9,14 @@ sudo ufw allow 5035/tcp
 sudo ufw allow 7946/tcp
 sudo ufw allow 7946/udp
 
+# Change configurations in the sshd_config file to limit ssh retries, the graceperiod of a non authorized connection
+# and disabling password authentication to reduce brute force attacks
+echo "Setting a higher security baseline for SSH"
+sudo sed -i 's/#PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
+sudo sed -i 's/#LoginGraceTime 2m/LoginGraceTime 30/' /etc/ssh/sshd_config
+sudo sed -i 's/#MaxAuthTries 6/MaxAuthTries 3/' /etc/ssh/sshd_config
+sudo sed -i 's/#MaxSessions 10/MaxSessions 5/' /etc/ssh/sshd_config
+
 
 # Only allow our monitoring's private IP to access the metrics port
 echo "About to enter if statement for port 9091"

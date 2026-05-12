@@ -18,6 +18,7 @@ services:
       - "3000:3000"
     networks:
       - main
+    restart: unless-stopped
     volumes:
       - grafana-storage:/var/lib/grafana
       # Save the dasboards to the container, so it can build them.
