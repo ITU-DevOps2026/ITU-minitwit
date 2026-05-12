@@ -52,7 +52,15 @@ COPY --from=build /app .
 # Switch to a non-privileged user (defined in the base image) that the app will run under.
 # See https://docs.docker.com/go/dockerfile-user-best-practices/
 # and https://github.com/dotnet/dotnet-docker/discussions/4764
-USER $APP_UID
+# Create a non-root user
+RUN addgroup --system appgroup && adduser --system --ingroup appgroup appuser
+
+# Ensure app directory is owned by the new user
+RUN chown -R appuser:appgroup /app
+
+# Switch to non-root user
+USER appuser
+
 
 EXPOSE 5035
 
