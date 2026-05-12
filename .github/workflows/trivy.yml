@@ -38,7 +38,8 @@ jobs:
         run: |
           for file in Dockerfile-*; do
             echo "Scanning config $file"
-            trivy config "$file" \
+            trivy config . \
+              --file-patterns "$file" \
               --severity HIGH,CRITICAL \
               --exit-code 1
           done
