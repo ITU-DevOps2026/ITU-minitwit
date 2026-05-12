@@ -35,8 +35,7 @@ jobs:
             trivy config . \
               --file-patterns "dockerfile:Dockerfile-*" \
               --severity HIGH,CRITICAL \
-              --exit-code 1 \
-              --ignorefile .trivyignore
+              --exit-code 1
           done
 
       - name: Build and scan all Docker images
