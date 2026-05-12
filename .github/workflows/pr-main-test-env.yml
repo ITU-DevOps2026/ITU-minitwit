@@ -33,7 +33,7 @@ jobs:
 
       # Run Dockle scan
       - name: Run Dockle
-        uses: goodwithtech/dockle-action@v0.2.10
+        uses: goodwithtech/dockle-action@v0.4.15
         with:
           image: minitwitimage:pr
           exit-code: '1'
