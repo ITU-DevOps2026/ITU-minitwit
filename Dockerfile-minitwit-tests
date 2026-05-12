@@ -1,4 +1,3 @@
-
 FROM --platform=$BUILDPLATFORM dhi.io/dotnet:10-sdk AS build
 
 COPY . /source
@@ -12,10 +11,9 @@ WORKDIR /app
 # Copy the built binaries from the build stage
 COPY --from=build /source/tests/bin/Release/net10.0/ .
 
+# Switch to a non-privileged user (defined in the base image) that the app will run under.
+# See https://docs.docker.com/go/dockerfile-user-best-practices/
+# and https://github.com/dotnet/dotnet-docker/discussions/4764
+USER $APP_UID
+
 ENTRYPOINT ["dotnet", "test", "tests.dll", "--no-build"]
-
-
-# Create non-root user and swap
-RUN groupadd -r appgroup && useradd -r -g appgroup appuser
-RUN chown -R appuser:appgroup /app
-USER appuser
