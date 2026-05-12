@@ -193,6 +193,7 @@ Vagrant.configure("2") do |config|
       manager.vm.provision "shell", path: "provision_scripts/docker_setup_script.sh", binary: false
       manager.vm.provision "shell", path: "provision_scripts/manager_setup_script.sh", binary: false
       manager.vm.provision "shell", path: "provision_scripts/configure_firewall_manager.sh", binary: false
+      manager.vm.provision "shell", path: "provision_scripts/fail2ban_setup_script.sh", binary: false
       manager.vm.provision "shell", name: "inject_ssh_keys", inline: <<-SHELL
         echo "#{team_public_keys}" >> /root/.ssh/authorized_keys
         echo "SSH keys injected"
@@ -230,6 +231,7 @@ Vagrant.configure("2") do |config|
 
       worker.vm.provision "shell", path: "provision_scripts/docker_setup_script.sh", binary: false
       worker.vm.provision "shell", path: "provision_scripts/configure_firewall_worker.sh", binary: false
+      worker.vm.provision "shell", path: "provision_scripts/fail2ban_setup_script.sh", binary: false
       worker.vm.provision "shell", name: "inject_ssh_keys", inline: <<-SHELL
         echo "#{team_public_keys}" >> /root/.ssh/authorized_keys
         echo "SSH keys injected"
@@ -265,6 +267,7 @@ Vagrant.configure("2") do |config|
     SHELL
     server.vm.provision "shell", path: "provision_scripts/docker_setup_script.sh", binary: false
     server.vm.provision "shell", path: "provision_scripts/database_setup_script.sh", binary: false, args: CFG[:db_image]
+    server.vm.provision "shell", path: "provision_scripts/fail2ban_setup_script.sh", binary: false
     server.vm.provision "shell", name: "inject_ssh_keys", inline: <<-SHELL
       echo "#{team_public_keys}" >> /root/.ssh/authorized_keys
       echo "SSH keys injected"
@@ -340,8 +343,9 @@ Vagrant.configure("2") do |config|
       fi
     SHELL
 
-    server.vm.provision "shell", path: "provision_scripts/docker_setup_script.sh",       binary: false
-    server.vm.provision "shell", path: "provision_scripts/monitoring_setup_script.sh",    binary: false
+    server.vm.provision "shell", path: "provision_scripts/docker_setup_script.sh", binary: false
+    server.vm.provision "shell", path: "provision_scripts/monitoring_setup_script.sh",binary: false
+    server.vm.provision "shell", path: "provision_scripts/fail2ban_setup_script.sh", binary: false
     server.vm.provision "shell", name: "inject_ssh_keys", inline: <<-SHELL
       echo "#{team_public_keys}" >> /root/.ssh/authorized_keys
       echo "SSH keys injected"
