@@ -31,7 +31,7 @@ sudo cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local
 
 sed -i 's/bantime  = 10m/bantime  = 24h /' /etc/fail2ban/jail.local
 sed -i 's/findtime  = 10m/findtime  = 24h /' /etc/fail2ban/jail.local
-sed -i 's/maxretry  = 5/maxretry  = 2 /' /etc/fail2ban/jail.local
+sed -i 's/maxretry = 5/maxretry  = 2 /' /etc/fail2ban/jail.local
 
 sudo systemctl enable fail2ban
 sudo systemctl start fail2ban
