@@ -43,7 +43,7 @@ jobs:
 
       # Run Dockle scan  push
       - name: Run Dockle
-        uses: goodwithtech/dockle-action@v0.4.15
+        uses: goodwithtech/dockle-action@e30e6af832aad6ea7dca2a248d31a85eab6dbd68
         with:
           image: minitwitimage:scan
           exit-code: '1'
