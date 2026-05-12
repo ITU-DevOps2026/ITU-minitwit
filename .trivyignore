@@ -1,2 +1,2 @@
 # MySQL official image handles user internally
-DS-0002: Dockerfile-mysql
+DS-0002: ./Dockerfile-mysql
