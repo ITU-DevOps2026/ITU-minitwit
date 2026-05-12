@@ -311,6 +311,10 @@ Vagrant.configure("2") do |config|
         machine.communicate.execute("echo 'export APP_SERVER_IP=\"#{manager_ip}\"' | sudo tee /etc/profile.d/env.sh")
         puts "Successfully injected Manager IP into env.sh"
 
+        machine.communicate.execute("echo 'export GF_SECURITY_ADMIN_USER=\"#{GF_SECURITY_ADMIN_USER}\"' | sudo tee /etc/profile.d/env.sh")
+        machine.communicate.execute("echo 'export GF_SECURITY_ADMIN_PASSWORD=\"#{GF_SECURITY_ADMIN_PASSWORD}\"' | sudo tee /etc/profile.d/env.sh")
+        puts "Successfully injected Grafana User credentials into env.sh"
+
         assign_reserved_ip(machine, CFG[:monitoring_res_ip], ENV['DIGITAL_OCEAN_TOKEN'])
       end
     end
