@@ -53,14 +53,12 @@ COPY --from=build /app .
 # See https://docs.docker.com/go/dockerfile-user-best-practices/
 # and https://github.com/dotnet/dotnet-docker/discussions/4764
 # Create a non-root user
-RUN addgroup --system appgroup && adduser --system --ingroup appgroup appuser
+RUN groupadd -r appgroup && useradd -r -g appgroup appuser
 
-# Ensure app directory is owned by the new user
-RUN chown -R appuser:appgroup /app
+# Fix permissions
+RUN mkdir -p /app/data && chown -R appuser:appgroup /app
 
-# Switch to non-root user
 USER appuser
-
 
 EXPOSE 5035
 
