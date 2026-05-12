@@ -1,4 +1,4 @@
-PDF_OUT = build/report.pdf
+PDF_OUT = build/MSc_group_k.pdf
 SOURCES = metadata.yaml $(sort $(wildcard sections/*.md))
 
 all:
