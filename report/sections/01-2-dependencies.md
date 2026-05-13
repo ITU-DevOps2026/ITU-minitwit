@@ -1,4 +1,5 @@
 ## Dependencies
+Technologies:
 
 | Dependency type | Technology     | Purpose       |
 | :----------- |:-------------- | :-------------|
@@ -34,7 +35,8 @@
 | Security | Let's Encrypt | Automated SSL/TLS certificate provisioning |
 | Scripting | bash | Shell scripts for automated tasks |
 
-.NET Code depdencies: 
+.NET depencies: 
+
 | Dependency type | Package     | Purpose       |
 | :----------- |:-------------- | :-------------|
 | Code Analysis | .NET Analyzers | Analysing .NET code |
