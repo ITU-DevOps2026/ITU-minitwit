@@ -35,21 +35,28 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y trivy
 
-      
       - name: Scan Dockerfiles
         run: |
+          CONFIG_FAIL=0
+
           trivy config . \
             --file-patterns "dockerfile:Dockerfile*" \
             --skip-files Dockerfile-mysql \
             --severity HIGH,CRITICAL \
-            --exit-code 1
+            --exit-code 1 || CONFIG_FAIL=1
 
+          echo "CONFIG_FAIL=$CONFIG_FAIL" >> $GITHUB_ENV
+
+      
       - name: Build and scan all Docker images
         run: |
           shopt -s nullglob
 
-          SKIP_ROOT="Dockerfile-minitwit-ui-tests Dockerfile-minitwit-tests Dockerfile-minitwit-ui-tests"
-          # Root Dockerfile-* files
+          IMAGE_FAIL=0
+
+          SKIP_ROOT="Dockerfile-minitwit-tests Dockerfile-minitwit-ui-tests"
+
+          # Root Dockerfiles
           for file in Dockerfile-*; do 
             if echo "$SKIP_ROOT" | grep -qw "$file"; then
               echo "⏭ Skipping root file $file"
@@ -68,7 +75,7 @@ jobs:
             trivy image "$image:latest" \
               --severity HIGH,CRITICAL \
               --exit-code 1 \
-              --no-progress
+              --no-progress || IMAGE_FAIL=1
           done
 
           # Subfolder Dockerfiles
@@ -86,5 +93,19 @@ jobs:
             trivy image "$image:latest" \
               --severity HIGH,CRITICAL \
               --exit-code 1 \
-              --no-progress
+              --no-progress || IMAGE_FAIL=1
           done
+
+          echo "IMAGE_FAIL=$IMAGE_FAIL" >> $GITHUB_ENV
+
+      - name: Final security gate
+        run: |
+          echo "Config scan result: $CONFIG_FAIL"
+          echo "Image scan result: $IMAGE_FAIL"
+
+          if [ "$CONFIG_FAIL" -eq 1 ] || [ "$IMAGE_FAIL" -eq 1 ]; then
+            echo "❌ Security issues detected"
+            exit 1
+          else
+            echo "✅ All security checks passed"
+          fi
