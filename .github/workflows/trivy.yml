@@ -41,7 +41,6 @@ jobs:
 
           trivy config . \
             --file-patterns "dockerfile:Dockerfile*" \
-            --skip-files Dockerfile-mysql \
             --severity HIGH,CRITICAL \
             --exit-code 1 || CONFIG_FAIL=1
 
@@ -54,15 +53,8 @@ jobs:
 
           IMAGE_FAIL=0
 
-          SKIP_ROOT="Dockerfile-mysql Dockerfile-minitwit-tests Dockerfile-minitwit-ui-tests"
-
           # Root Dockerfiles
           for file in Dockerfile-*; do 
-            if echo "$SKIP_ROOT" | grep -qw "$file"; then
-              echo "⏭ Skipping root file $file"
-              continue
-            fi
-
             echo "Found root file $file"
 
             name=$(echo "$file" | sed 's/Dockerfile-//')
