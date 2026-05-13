@@ -48,8 +48,14 @@ jobs:
         run: |
           shopt -s nullglob
 
+          SKIP_ROOT="Dockerfile-minitwit-ui-tests Dockerfile-minitwit-tests Dockerfile-minitwit-ui-tests"
           # Root Dockerfile-* files
-          for file in Dockerfile-*; do
+          for file in Dockerfile-*; do 
+            if echo "$SKIP_ROOT" | grep -qw "$file"; then
+              echo "⏭ Skipping root file $file"
+              continue
+            fi
+
             echo "Found root file $file"
 
             name=$(echo "$file" | sed 's/Dockerfile-//')
