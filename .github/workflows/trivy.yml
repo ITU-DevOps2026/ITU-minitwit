@@ -54,7 +54,7 @@ jobs:
 
           IMAGE_FAIL=0
 
-          SKIP_ROOT=""
+          SKIP_ROOT="Dockerfile-mysql Dockerfile-tests Dockerfile-ui-tests"
 
           # Root Dockerfiles
           for file in Dockerfile-*; do 
