@@ -45,6 +45,7 @@ CFG = if IS_PROD
     db_res_ip:          ENV['PROD_DB_RES_IP'],
     monitoring_res_ip:  ENV['PROD_MONITORING_RES_IP'],
     db_image:           "mathildegk/minitwit-mysql-prod",
+    scrape_target:      'monitor.bigtwit.app',
     # File paths for inter-droplet IP coordination (kept separate per env)
     manager_ip_file:    "./provision_scripts/prod_manager_IP",
     db_ip_file:         "./provision_scripts/prod_db_IP",
@@ -64,6 +65,8 @@ else
     db_res_ip:          ENV['TEST_DB_RES_IP'],
     monitoring_res_ip:  ENV['TEST_MONITORING_RES_IP'],
     db_image:           "mathildegk/minitwit-mysql-test",
+    scrape_target:      'monitor-test.bigtwit.app',
+    # File paths for inter-droplet IP coordination (kept separate per env)
     manager_ip_file:    "./provision_scripts/test_manager_IP",
     db_ip_file:         "./provision_scripts/test_db_IP",
     monitoring_priv_ip_file: "./provision_scripts/test_monitoring_private_IP",
@@ -314,6 +317,7 @@ Vagrant.configure("2") do |config|
         machine.communicate.execute("echo 'export APP_SERVER_IP=\"#{manager_ip}\"' | sudo tee /etc/profile.d/env.sh")
         puts "Successfully injected Manager IP into env.sh"
 
+        #Set up grafana standard user and password
         grafana_admin_user = ENV['GF_SECURITY_ADMIN_USER']
         grafana_admin_pw = ENV['GF_SECURITY_ADMIN_PASSWORD']
         puts "Found grafana user: #{grafana_admin_user}"
@@ -362,6 +366,11 @@ Vagrant.configure("2") do |config|
 
     server.trigger.after :up do |t|
       t.ruby do |env, machine|
+        #Set up Scrape targets for prometheus
+        scrape_target = CFG[:scrape_target]
+        machine.communicate.execute("sed -i 's/SCRAPE_TARGET/#{scrape_target}/g' ../monitoring/prometheus/prometheus.yml")
+        puts "Successfully replaced the SCRAPE_TARGET with the correct target"
+
         machine.communicate.execute("./deploy.sh")
       end
     end
