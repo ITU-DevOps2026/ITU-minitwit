@@ -1,0 +1,70 @@
+name: Build Report
+
+on:
+  pull_request:
+    branches: 
+      - main
+    paths:
+      - 'report/**'
+  push:
+    branches:
+      - main
+    paths:
+      - 'report/**'
+  workflow_dispatch:
+
+jobs:
+  build-report:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd #v6.0.2
+        with:
+          ref: ${{github.head_ref}}
+          fetch-depth: 0
+    
+      - name: Set up Pandoc
+        uses: r-lib/actions/setup-pandoc@a51a8012b0aab7c32ef9d19bf54da93f3254335e #v2
+        with:
+          pandoc-version: 'latest'
+          
+      - name: Set up TinyTeX
+        uses: r-lib/actions/setup-tinytex@a51a8012b0aab7c32ef9d19bf54da93f3254335e #v2
+        
+      - name: Run Makefile
+        working-directory: ./report
+        run: |
+          mkdir -p build
+          make all
+
+      - name: Upload PDF Artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a #v7.0.1
+        with:
+          name: MSc-Group-K-Report
+          path: report/build/MSc_group_k.pdf
+      
+      - name: Commit and Push Report on pr
+        if: github.event_name == 'pull_request'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -f report/build/MSc_group_k.pdf
+          git commit -m "cli: update report [skip ci]" || echo "no changes to commit"
+          git push origin HEAD:$HEAD_REF
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+          HEAD_REF: ${{github.head_ref}}
+      
+      - name: Commit and Push Report on push to main
+        if: github.event_name == 'push'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -f report/build/MSc_group_k.pdf
+          git commit -m "cli: update report [skip ci]" || echo "no changes to commit"
+          git push origin HEAD:main
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+
+          

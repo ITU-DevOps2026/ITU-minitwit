@@ -1,0 +1,19 @@
+---
+title: | 
+  DevOps, Software Evolution and Software Maintenance, MSc
+
+  ![](./images/front.png){ width=50% }
+subtitle: "Group K - Pat Myaz"
+author:
+  '\protect\parbox{\textwidth}{\protect\centering
+  Carmen Alberte Nielsen | alcn@itu.dk \\
+  Casper Storm Frøding | csfr@itu.dk \\
+  Mads Christian Nørklit Jensen | macj@itu.dk \\
+  Mathilde Julie Gonzalez-Knudsen | mgon@itu.dk \\
+  Max Brix Koch | mbko@itu.dk}'
+date: "18-05-2026"
+toc: true
+numbersections: true
+geometry: margin=2.5cm
+include-before: \newpage
+---
