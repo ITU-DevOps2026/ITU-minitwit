@@ -9,9 +9,12 @@ On this metrics endpoint we use `app.UseHttpMetrics();` , that out of the box, w
 
 As can be seen in the diagram, Traefik load balances between each container, which creates this fluctuating graph, that can be seen in the dashboard under here, due to Prometheus not knowing exactly what container it has scraped, and can therefore not make an average. 
 
+*REMEMBER TO ADD TO WRITE A SECTION THAT COVERS WHAT WE SHOULD HAVE DONE WITH PROMETHEUS!!!*
+*We are missing what to do to fix it in Docker swarm* 
+
+*Remember to write about how changing to the swarm destroyed our old way of monitoring*
+
 ### Dashboard
 To see the dashboard, go to [46.101.69.11:3000](46.101.69.11:3000) , where the dashboard + logs can be viewed. The credentials is specified in the post made by Helge.
 
 *WRITE MORE ABOUT THE DASHBOARD!!!*
-
-*REMEMBER TO ADD TO WRITE A SECTION IN THE REFLECTIONS THAT COVERS WHAT WE SHOULD HAVE DONE WITH PROMETHEUS!!!*
