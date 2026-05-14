@@ -30,7 +30,7 @@ public class AddMessageModel(MiniTwit minitwit) : PageModel
         }
         else
         {
-            TempData["Flash"] = "Your message was recorded";
+            TempData["Flash"] = "Your message posting failed! Try again!";
         }
         return RedirectToPage("Index");
     }
