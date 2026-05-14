@@ -71,6 +71,13 @@ jobs:
           chmod 600 ~/.ssh/do_ssh_key
         env:
           SSH_KEY: ${{ secrets.SSH_KEY }}
+      
+      - name: Copy config files to Droplet
+        run: |
+          scp -r -i ~/.ssh/do_ssh_key -o StrictHostKeyChecking=no ./remote_files/test_env/* $SSH_USER@$SSH_HOST:/minitwit/
+        env: 
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
 
       - name: Deploy to server
         # Configure the ~./bash_profile and deploy.sh file on the Vagrantfile
