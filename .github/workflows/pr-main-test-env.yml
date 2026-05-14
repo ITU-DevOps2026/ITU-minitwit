@@ -65,14 +65,14 @@ jobs:
         env:
           SSH_KEY: ${{ secrets.SSH_KEY }}
       
-      - name: Copy configuration files to Droplet
+      - name: Copy config files to Droplet
         run: |
           scp -r -i ~/.ssh/do_ssh_key -o StrictHostKeyChecking=no ./remote_files/test_env/* $SSH_USER_TEST_ENV@$SSH_HOST_TEST_ENV:/minitwit/
         env: 
           SSH_USER_TEST_ENV: ${{ secrets.SSH_USER_TEST_ENV }}
           SSH_HOST_TEST_ENV: ${{ secrets.SSH_HOST_TEST_ENV }}
 
-      - name: Deploy to server
+      - name: Deploy to test-server
         run: >
           ssh $SSH_USER_TEST_ENV@$SSH_HOST_TEST_ENV
           -i ~/.ssh/do_ssh_key -o StrictHostKeyChecking=no
