@@ -1,6 +1,6 @@
 <mxfile host="65bd71144e">
     <diagram id="Y7SPTiWSrkEOOO3Nxyx5" name="Page-1">
-        <mxGraphModel dx="1633" dy="616" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+        <mxGraphModel dx="1723" dy="668" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
@@ -104,10 +104,10 @@
                     <mxGeometry x="37.5" y="110" width="170" height="30" as="geometry"/>
                 </mxCell>
                 <mxCell id="38" value="&lt;font style=&quot;font-size: 12px;&quot;&gt;on PR to non-main branch&lt;/font&gt;" style="html=1;shape=mxgraph.infographic.ribbonSimple;notch1=20;notch2=0;align=center;verticalAlign=middle;fontSize=14;fontStyle=0;fillColor=#FFFFFF;flipH=0;spacingRight=0;spacingLeft=14;whiteSpace=wrap;" vertex="1" parent="1">
-                    <mxGeometry x="-70" y="160" width="140" height="40" as="geometry"/>
+                    <mxGeometry x="-40" y="160" width="140" height="40" as="geometry"/>
                 </mxCell>
                 <mxCell id="40" value="&lt;font style=&quot;font-size: 12px;&quot;&gt;on workflow call from another workflow&amp;nbsp;&lt;/font&gt;" style="html=1;shape=mxgraph.infographic.ribbonSimple;notch1=20;notch2=0;align=center;verticalAlign=middle;fontSize=14;fontStyle=0;fillColor=#FFFFFF;flipH=0;spacingRight=0;spacingLeft=14;whiteSpace=wrap;" vertex="1" parent="1">
-                    <mxGeometry x="-70" y="290" width="140" height="40" as="geometry"/>
+                    <mxGeometry x="-40" y="290" width="140" height="40" as="geometry"/>
                 </mxCell>
             </root>
         </mxGraphModel>
