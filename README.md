@@ -2,37 +2,108 @@
 **Group**: *Pat Myaz*  \
 **Members:**  *Carmen Alberte Nielsen, Casper Storm Frøding, Mads Christian Nørklit Jensen, Max Brix Koch, Mathilde Julie Gonzalez-Knudsen*
 
-## Git commit message template
-To tell Git to use gitmessage as commit template file, run the following command in your terminal while being in the root directory of your Git repository:
-```bash
-git config --local commit.template .gitmessage
+## Description
+This repository contains our group's MiniTwit project, developed in accordance to the specifications of the *Dev-Ops Course (Master at ITU, KSDSESM1KU 2026 Spring)*.
+
+Our MiniTwit project is a simplified Twitter/X 'esque' application, emulating the most basic functionality of creating users, posting tweets and following/unfollowing other users. The application is hosted on Digital Ocean, with a pipeline, containing workflows, that is run through GitHub Actions. The application is publically available (for now), but is not truly meant for actual users, but rather to simulate an application, which is being used by simulated users, in production, where we build a pipeline around it to handle Continous Integration and Deployment. In summary the project is for the group members, teachers and examinators of the course.
+
+## Prerequisites
+Clone the repository and navigate to the root of it
+```
+git clone https://github.com/ITU-DevOps2026/ITU-minitwit.git
+cd ITU-minitwit
 ```
 
-## Releases
-### Making a release draft using tags
-On the main branch first create a tag with the intended version number:
-```bash
-git tag vx.x.x
+### Locally
+- The program can be run locally with Docker, with installation steps for it being found here for [Docker Engine](https://docs.docker.com/engine/install/) and here for [Docker Desktop](https://docs.docker.com/desktop/).
+### In the cloud
+You need to ensure that the following Docker images have been built and pushed to Docker Hub: 
+- mathildegk/minitwitimage (This is the production application, it is automatically updated when we push new changes to main)
+- mathildegk/minitwit-dev (This is the development/test application, it is automatically updated when a new PR is created)
+- mathildegk/minitwit-mysql-prod (This is the production database, simply a MySQL image with an initialized database containing the necessary tables, but no data)
+- mathildegk/minitwit-mysql-test (This is the development/test database, simply a MySQL image with an initialized database containing the necessary tables, but no data)
+
+See guide in [Docker readme](/README.Docker.md) on how to build an push images to Docker Hub. 
+- To spin up the project in the cloud (this project uses Digital Ocean), Vagrant is required. Installation of Vagrant is available [here](https://developer.hashicorp.com/vagrant/install). The Vagrantfile also use the Digital Ocean plugin which can be installed with the following command:
 ```
-Where you replace each x with a number from 0-9.
-After creating the tag, you push the tag which triggers the workflow and creates a draft release:
-```bash
-git push origin <tag>
+vagrant plugin install vagrant-digitalocean
 ```
-### Semantic versioning
-Versioning numbers are determined by following the SemVer versioning scheme, see: <https://semver.org/> for full documentation
 
-## MiniTwit C# Application 
-### How to run in Container
-Running the application with Docker sets up a production-like environment on your machine, where you will have a container running with a MySQL database server and another container with the application, which can then connect to the MySQL database. This setup is similar to what is happening on our droplets on Digital Ocean.
+## Configuration requirements to run the project
+Running the project requires configuration of certain environment variables. We recommend a .env file in the root of the project containing the following:
+```
+ # Global secrets
+# Digital Ocean credentials
+DIGITAL_OCEAN_TOKEN=<Insert your Digital Ocean Token>
+SSH_KEY_NAME=<Insert name of your SSH Key>
+# Docker Hub (Also global) 
+DOCKER_USERNAME=mathildegk 
 
-See [Docker readme](/README.Docker.md) for instructions on how to run using Docker.
+# Production environment secrets
+prod_db_connection=Server=<db_IP>;Port=3306;Database=minitwit;Uid=root;Pwd=<PROD_DB_PASSWORD>;SslMode=None;AllowPublicKeyRetrieval=True;
+PROD_DB_PASSWORD=<Your_secure_Database_password>
+PROD_DB_RES_IP=<Reserved IP for your droplet which contains your production database>
+PROD_MONITORING_RES_IP=<Reserved IP for your droplet which contains your monitoring and logging view>
+PROD_MANAGER_RES_IP=<Reserved IP for your droplet which contains your Manager container in the Docker Swarm>
 
-### Requirements to run locally
-- dotnet 10.0
-- A terminal capable of running sh if you want to run the control.sh script
+# Test environment secrets
+test_db_connection=Server=<db_IP>;Port=3306;Database=minitwit;Uid=root;Pwd=<TEST_DB_PASSWORD>;SslMode=None;AllowPublicKeyRetrieval=True;
+TEST_DB_PASSWORD=Your_secure_Database_password
+TEST_DB_RES_IP=<Reserved IP for your droplet which contains your test database>
+TEST_MONITORING_RES_IP=<Reserved IP for your droplet which contains your test monitoring and logging view>
+TEST_MANAGER_RES_IP=<Reserved IP for your droplet which contains your test Manager container in the Docker Swarm>
 
-### How to build minitwit C# application
+# Monitoring and logging secrets
+GF_SECURITY_ADMIN_USER=<Desired username for your Grafana user>
+GF_SECURITY_ADMIN_PASSWORD=<Desired password for your Grafana user>
+```
+
+You will need to [create a Digital Ocean token](https://docs.digitalocean.com/reference/api/create-personal-access-token/) and [add your ssh key to your Digital Ocean team](https://docs.digitalocean.com/platform/teams/how-to/upload-ssh-keys/).
+
+## Running the project
+### Locally
+To ensure the Docker Hardened Images can be pulled if they are not already on your system, start by running.
+```
+docker login dhi.io
+```
+In the root of the project run the following docker command:
+```
+docker compose up
+```
+You can also add the `-d` flag to run the application in detached mode, meaning that the containers are run in the background
+
+| Service | URL |
+|---|---|
+| Frontend | http://localhost:5035 |
+| Backend API | http://localhost:8080 |
+| Prometheus | http://localhost:9090 |
+| Elasticsearch | http://localhost:9200 | 
+| Grafana | http://localhost:3000 |
+
+### In the cloud
+In the root of of the project run the following vagrant command:
+```
+vagrant up
+```
+In your terminal you will be prompted to specify which environment you want to spin up, enter either prod or test. 
+
+| Service | URL |
+|---|---|
+| Frontend | https://bigtwit.app |
+| Backend API | https://bigtwit.app/api |
+| Prometheus | Secured behind firewall, is available through Grafana|
+| Elasticsearch | Secured behind firewall, is available through Grafana | 
+| Grafana | http://46.101.69.11:3000 |
+
+### Running tests
+Tests can be run using the following commands:
+```
+docker compose run --rm tests
+docker compose run --rm apitests
+docker compose run --rm uitests
+```
+
+### Running static analysis
 Navigate to the `/minitwit` directory and run the following command in the terminal:
 ```bash
 dotnet build
@@ -44,279 +115,106 @@ If you want to build the whole application run the following commands in the ter
 dotnet clean
 dotnet build
 ```
-
-#### How to have Roslynator automatically fix linting warnings and errors
 Roslynator can automatically fix some warnings and errors by running the following command in `/minitwit` directory:
 ```bash
 dotnet roslynator fix MiniTwit.csproj
 ```
 There are some warnings that cannot be fixed automatically, these will need to be handled manually. 
 
-### How to run minitwit C# application
-Navigate to the `/minitwit` folder and run the following command in the terminal:
+## CI/CD Pipeline - Add when we have described it in the report?
+### Required Github Action secrets
+- DIGITAL_OCEAN_TOKEN - A personal access token that has acces to the Digital Ocean team
+- DOCKER_USERNAME - Docker username, of user that has r/w access to the images used
+- DOCKER_PASSWORD - Docker password corresponding the the user
+- SONAR_TOKEN - Token generated by SonarCloud to allow it access to read the repo
+- SSH_HOST - Reserved ip of the production manager droplet
+- SSH_HOST_TEST_ENV - Reserved ip of the test manager droplet
+- SSH_KEY - An SSH key that is allowed ssh access into the droplets
+- SSH_USER - The user the workflows use to ssh into the droplets in prod
+- SSH_USER_TEST_ENV - The user the workflows use to ssh into the droplets in test
+
+#x
+
+### Releases
+#### Making a release draft using tags
+On the main branch first create a tag with the intended version number:
 ```bash
-dotnet run
+git tag vx.x.x
 ```
-This will start the minitwit application. You can access it by opening a web browser and going to `http://localhost:5035`. 
-You should see the minitwit homepage where you can see the public timeline, with options to sign up and sign in.
-
-OBS: You need to make sure that you **don't** have an environment variable called DbPath set up on your machine, as this variable points to the path for a MySQL database. The application specifically looks for this variable to determine which database to connect to, and when using `dotnet run`, the application should connect to the Sqlite database file, since there will be no running instance of a MySQL database server. 
-
-### How to run C# tests against C# minitwit
-In one terminal, run the minitwit application by navigating to the `minitwit` folder and running the following command:
+Where you replace each x with a number from 0-9.
+After creating the tag, you push the tag which triggers the workflow and creates a draft release:
 ```bash
-dotnet run
+git push origin <tag>
 ```
-Then in another terminal, run the test suite by navigating to the `/tests` folder and running the following command:
+#### Semantic versioning
+Versioning numbers are determined by following the SemVer versioning scheme, see: <https://semver.org/> for full documentation
+
+## Monitoring
+### Metrics
+
+### Dashboards
+
+### Logs
+
+## Tech Stack
+
+| Layer     | Technology |
+| :---------| :----------|
+| Backend | C#, .NET 10|
+| Frontend | Razor Pages, HTML, CSS-Bootstrap, Javascript |
+| Database | MySQL 8.0.45 |
+| Reverse Proxy | Traefik |
+| TLS | Lets encrypt |
+| Orchestration & Containerization | Docker Swarm |
+| CI/CD | GitHub Actions |
+| Observability | Prometheus, Grafana, Elasticsearch, Serilog |
+| Code Quality & Security | SonarCloud, Codacy, .NET analyzers, Roslynator, Dockle, CodeQL, Trivy |
+| Infrastructure | Digital Ocean, Vagrant |
+
+## Project Structure
+
+
+## Team Configurations and conventions
+### Git commit message template
+To tell Git to use gitmessage as commit template file, run the following command in your terminal while being in the root directory of the repository:
 ```bash
-dotnet test
+git config --local commit.template .gitmessage
 ```
-You should see all tests passing successfully! 🥇
+### Branches and Issues
+Create issues to describe desired features, known bugs to fix, refactorings, etc. These should use the Template issue, which specifies the title of the issue to be: [Type of issue, i.e Refactor, Bug, etc] - Title of issue as well as adding a /Timespent Xh Ym to each issue.
 
-(Do note that the tests modifies the database, so you have to remove the changes between each run, otherwise they will fail)
+Branches should be linked to the corresponding issue, and should follow the same convention, i.e [Type of work, i.e Refactor, Bug, etc] - Specific name of what you are working on. Ex: Refactor-vagrantfile 
 
-## Running the control.sh script in the C# application
-The script can be run with different arguments from the root folder of the repository.
+### Reviews and checks
+When a branch is ready to be merged into main, create a pull request to main. This triggers several workflows, which should all pass for the branch to be eligible for a merge. Furthermore a branch should be reviewed and approved by atleast one team member, who has not worked on the branch, before it is merged.
 
-### Init
-```sh
-./control.sh init
-```
-With init the script will check if there is a database in the same root as the script, if there is it exits, if not it runs dotnet run init, which will trigger the Init_db() function, using the schema.sql file to drop any user, follower, and message table and then create them.
+## License
+MIT License
 
-### Startprod
-```sh
-./control.sh startprod
-```
-With startprod as the argument the script executes the following line 
+Copyright (c) 2026 - Carmen Alberte Nielsen, Casper Storm Frøding, Mads Christian Nørklit Jensen, Mathilde Julie Gonzalez-Knudsen, Max Brix Koch.
 
-```sh
-nohup dotnet run -c Release --urls "http://0.0.0.0:5035" > /tmp/out.log 2>&1 &
-```
-- nohup means no hang up, and it ensures the program keeps running even if we exit the terminal or the user has logged out (not application wise).
-- \> /tmp/out.log redirects output such as Console.Writeline into the specified file.
-- 2>&1 redirects standard errors, such as crashes and exceptions to the same file. 
-- the final & symbol puts all of it in the background so our terminal is ready for use again immediately. 
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-### Start
-```sh
-./control.sh start
-```
-With start as the argument the following line is executed
-```sh
-nohup dotnet run > /tmp/out.log 2>&1 &
-```
-All arguments are explained in the Startprod section
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-### Stop
-```sh
-./control.sh stop
-```
-With stop as the argument the following line is executed
-```sh
-pkill -f minitwit
-```
-- pkill with the -f flag terminates any process that has the string minitwit in it.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 
-### Inspectdb
-```sh
-./control.sh inspectdb
-```
-With inspectdb as the argument the following line is executed
-```sh
-./flag_tool -i | less
-```
-- This executes the flag_tool.c.
-- The -i argument stands for inspect or interactive and tells the tool to dump a list of all users or messages from the database.
-- | pipes the left argument into the right argument.
-- less captures the output and lets us scroll up and down with arrow keys, search for text by typing starting with /, and lets us quit by pressing q. 
+## Acknowledgements
+- Helge Pfeiffer
+- Mircea Lungu
+- Ahmet Talha Akgül
+- Babette Bækgaard
+- Patrick Wittendorff Abarzua Neira
 
-### Flag
-```sh
-./control.sh flag
-```
-With flag as the argument the following line is executed
-```sh
-    shift   
-    ./flag_tool "$@"
-```
-- Shift ensures that the script ignores the first word (flag) and captures everything from the second position onwards.
-- So if we call ./control.sh flag 500 501 the script runs ./flag_tool 500 501.
-- If the flag_tool is called with several arguments it executes and update query, where it looks for the message id, and sets flagged=1 for that message id (there is a column in the database for messages which is called flag).
-
-
-## Monitoring and Dashboards
-Minitwit has monitoring implemented, so we can log things like responsetime, and amount of tweets. This data can be found on the `/metrics` endpoint from the minitwit url: [http://209.38.114.224:5035/metrics](http://209.38.114.224:5035/metrics) .
-
-If you want to see specific data, you can use prometheus to query this endpoint. The prometheus page can be found on the minitwit url, on port `9090`, i.e. [http://209.38.114.224:9090](http://209.38.114.224:9090) .
-
-### The 2 dashboards
-We have integrated Grafana, to use Prometheus to pull data from Minitwit and show 2 dashboards. One dashboard for a more developerr view, with information on reponse time status and more, and another one with more of a business perspective showing how many users and tweets we are gaining, and what the average response time is for a user.
-
-* The developer focused dashboard can be [found on this link!](http://209.38.114.224:3000/public-dashboards/80d599614bec4f2d978930fddc345520?refresh=10s&from=now-3h&to=now&timezone=browser)
-* The business focused dashboard can be [found on this link!](http://209.38.114.224:3000/public-dashboards/c42f9a112ff24e4eb48e1ddd2a9b34a3?from=now-5m&to=now&timezone=browser&refresh=10s)
-
-## Minitwit on Digital Ocean via Vagrant
-### Requirements
-* A terminal
-* vagrant installation
-
-### Creating the droplets
-#### Step 0
-You need to ensure that the following Docker images have been built and pushed to Docker Hub: 
-- mathildegk/minitwitimage (This is the production application, it is automatically updated when we push new changes to main)
-- mathildegk/minitwit-dev (This is the development/test application, it is automatically updated when a new PR is created)
-- mathildegk/minitwit-mysql-prod (This is the production database, simply a MySQL image with an initialized database containing the necessary tables, but no data)
-- mathildegk/minitwit-mysql-test (This is the development/test database, simply a MySQL image with an initialized database containing the necessary tables, but no data)
-
-See guide in [Docker readme](/README.Docker.md) on how to build an push images to Docker Hub. 
-
-The reason why we need these images, is because our Vagrantfiles set up our droplets with Docker installed, so that the droplets can simply pull the necessary images from Docker Hub and run them using Docker compose. This way we can avoid installing fx Dotnet and MySQL directly on the droplets. 
-
-#### Step 1
-* Install the API package
-```cmd
-vagrant plugin install droplet_kit
-```
-
-#### Step 2
-Create a .env file in the root of the project, so in the root of ITU-minitwit. Make sure that this file is ignored by the .gitignore file, as it should not be in the versioning, because it will contain secrets.
-
-Your .env file should contain the following (We will describe how to get the different variables in later steps):
-```dotenv
-# Global secrets
-# Digital Ocean credentials
-DIGITAL_OCEAN_TOKEN=<your digital ocean token>
-
-SSH_KEY_NAME=<Name of your ssh key>
-
-# Docker Hub (Also global)
-DOCKER_USERNAME=mathildegk
-
-# Production environment secrets
-db_connection=Server=<Private IP of droplet containing prodcution mysql database>;Port=3306;Database=minitwit;Uid=root;Pwd=<Secure Database Password (same as what you set as DB_PASSWORD)>;SslMode=None;AllowPublicKeyRetrieval=True;
-
-DB_PASSWORD=<Secure Database Password>
-
-APP_SERVER_PRIVATE_IP=<Private IP of droplet containing production MiniTwit application>
-
-MONITOR_AND_LOGGING_PRIVATE_IP=<Private IP of droplet containing monitoring and logging>
-
-# Test environment secrets
-test_db_connection=Server=<Private IP of droplet containing test mysql database>;Port=3306;Database=minitwit;Uid=root;Pwd=<Secure Database Password (same as what you set as TEST_DB_PASSWORD)>;SslMode=None;AllowPublicKeyRetrieval=True;
-
-TEST_DB_PASSWORD=<Secure Test Database Password>
-
-TEST_APP_SERVER_PRIVATE_IP=<Private IP of droplet containing test MiniTwit application>
-```
-
-#### Step 3
-* Generate a Digital Ocean Token!
-* This is done in Digital ocean, under **API**, under **Tokens/keys**, and look for **Personal Access Token**. 
-* Here you should generate a new Personal Access Token, by clicking the **Generate new Token** button. Give it a name that will identify you, and set the expiration date. Ensure to set it to **Full read/access rights**
-* REMEMBER to copy the token generated and store it somewhere safe. This will be the only time you can see it.
-* Now you need to set this in your .env file as the DIGITAL_OCEAN_TOKEN
-
-### Step 4
-* Input your SSH key name!
-* Log in to your Digital Ocean Dashboard.
-* On the left sidebar, click Settings (near the bottom).
-* Click the Security tab.
-* Look for the SSH Keys section.
-* You will see a list of keys. Look at the Name column (e.g., "Carmens key", or "mathildes key", etc..). This is what you use for SSH_KEY_NAME in your .env file.
-
-### Step 5
-The Vagrantfiles that set up the databases for the production and test application require two more variables to be set in the .env file. You need `DB_PASSWORD` (a strong password that will be used to secure the database - it will be part of the application's connection string and has to be used whenever you want to access the database), and you need `APP_SERVER_PRIVATE_IP` (the IP of the application that the firewall should allow to connect to the database). 
-
-The same applies to `TEST_DB_PASSWORD` and `TEST_APP_SERVER_PRIVATE_IP` these are simply to keep the testing environment and production environment seperated.
-
-### Step 6
-The Vagrantfiles that set up the application on both the production and test environments also require two more environment variables; the `DOCKER_USERNAME` (which should be set to `mathildegk`, as this is the username that our Docker images are saved at on Docker Hub, and the docker-compose file on the droplet needs to know this in order to pull the right images), and the `db_connection` (which is the connection string for the database that you want the application to connect to, likely either the minitwit-test-env-mysql or the minitwit-prod-env-mysql).
-
-You need to set the IP and port so that it matches the droplet running the database.
-
-### Step 7 
-The application and our monitoring and logging, also need to have the environment variable `MONITOR_AND_LOGGING_PRIVATE_IP` set. The application needs it to open up its port where we put our metrics, so prometheus can scrape it. The application also needs it, so it knows where to push the logs. The monitoring and logging droplet needs it, so it can bind prometheus and elasticsearch to a specific address instead of publicizing  it. 
-
-### OBS: Dependencies
-As you see in step 5 and 6, there are some "circular" dependencies between the application droplets and the database droplets. The database needs to have the IP address of the application, which you don't know if your application droplet isn't running yet, and likewise the application needs to have the connection string for the database, which you don't know if your database droplet isn't running yet. 
-
-An approach to solving this is mentioned below in **Setting up the droplets!**, but is something that mainly should apply to the testing application and testing database, as there currently is no intention of redeploying the production application or production database.
-
-One approach to solve this dependency could be to start the database droplet first without specifying the application's IP address. By default, the Vagrantfile for the database sets up a firewall that denies all incoming requests, and then only if the APP_SERVER_IP variable is set, the firewall will allow requests from this IP. So if you omit setting this variable, you can get the droplet up and running (with a very strict firewall), and you can then get the connection string that you need in order to start the application droplet. As soon as the application droplet is running and you can get the application's IP address, you can then manually connect to the database droplet and run `sudo ufw allow from "<IP address>" to any port 3306` in order to "open up" the firewall so that it allows the application to access the database. 
-
-### Setting up the droplets!
-Both the production and testing environment, are set up using the same Vagrantfile, found in the root of the project, so you need to be in the ITU-minitwit folder to run your commands. Below is a list of commands and an explanation of which part of the environment it spins up. Be aware that the production application and database should not be needlessy messed with, as they are what is being used in the simulator. As mentioned earlier, the intention is for application and database to be up at all times (or as close to it as possible).
-#### Setup of production MiniTwit application
-First, make sure the database you want the application to connect to is up and running and
-the variable `db_connection` in your .env file is updated with the correct private ip for this database.
-
-Then, the current MiniTwit application which is in production, can be spun up by running this command:
-```Bash
-vagrant up minitwit-3
-```
-This creates a droplet with the necessities to run the containers for MiniTwit. The containers are not run as part of this process, and you will have to ssh into the droplet and run the deploy.sh script, by writing the following command in the folder it is located in (which should be the starting point for the terminal).
-```Bash
-./deploy.sh
-```
-#### Setup of production database 
-If you already have the droplet for the production application up and running, you should first make sure to update your .env file with the private ip for this accordingly. If not, read the section above named "OBS: Dependencies".
-
-Then, to create the droplet containing the production database, run the following command:
-```Bash
-vagrant up minitwit-prod-env-mysql
-```
-
-#### Setup of test MiniTwit application
-First, make sure the test database you want the application to connect to is up and running and
-the variable `test_db_connection` in your .env file is updated with the correct private ip for this database.
-
-Then, the current MiniTwit test application, can be spun up by running this command:
-```Bash
-vagrant up minitwit-test-env
-```
-This creates a droplet with the necessities to run the containers for MiniTwit. The containers are not run as part of this process, and you will have to ssh into the droplet and run the deploy.sh script, by writing the following command in the folder it is located in (which should be the starting point for the terminal).
-```Bash
-./deploy.sh
-```
-
-#### Setup of test database
-If you already have the droplet for the test application up and running, you should first make sure to update your .env file with the private ip for this accordingly. If not, read the section above named "OBS: Dependencies".
-
-Then, to create the droplet containing the test database, run the following command:
-```Bash
-vagrant up minitwit-test-env-mysql
-```
-
-#### Connecting the database and the application through vagrant commands:
-As mentioned before, here is an approach to solve the circular dependencies and connect the database and application. Note that this approach assumes you want to spin up a fresh application and database:
-
-First run the following command to spin up both droplets:
-```Bash
-vagrant up minitwit-test-env-mysql minitwit-test-env
-```
-When both droplets have been created, update your .env file with the corresponding private IP's they have been assigned, then run the following command:
-```Bash
-vagrant provision minitwit-test-env-mysql minitwit-test-env
-```
-This runs the sections of the vagrant file for the machines, marked with server.vm.provision, which in this case updates things, such as the variables containing the Private IP's. When this command has finished, you should be able to ssh into the droplet containing the application, and running
-```Bash
-./deploy.sh
-```
-and you should now have a working MiniTwit application, which you access on the public ip of the droplet containing the application and adding :5035 at the end of it.
-
-#### Setup of monitoring and logging
-Assumption here is that there already exists a running application.
-
-First make sure the variables in your .env file are up to date. Then run:
-```Bash
-vagrant up minitwit-monitoring-and-logging
-```
-When the droplet have been created, update your .env file, the `MONITOR_AND_LOGGING_PRIVATE_IP`, with the corresponding private IP it was assigned, then run the following command:
-```Bash
-vagrant provision minitwit-3 minitwit-monitoring-and-logging
-```
-This runs the sections of the vagrant file for the machines, marked with server.vm.provision, which in this case updates things, such as the variables containing the Private IP's. When this command has finished, you should be able to ssh into the droplet containing monitoring and logging, and running
-```Bash
-./deploy.sh
-```

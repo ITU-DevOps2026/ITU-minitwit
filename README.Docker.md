@@ -3,34 +3,9 @@ Docker was implemented in this project by following this guide from the "Using D
 
 We use Docker Hardened Images as they are secure and continously maintained by Docker <https://docs.docker.com/dhi/features/>
 
-We specifically use these to DHI:
+We specifically use these two Docker Hardened Images:
 - ASP.NET.CORE: <https://hub.docker.com/hardened-images/catalog/dhi/aspnetcore?tagDefinitionId=aspnetcore%2Fdebian-13%2F10>
 - dotnet 10 SDK: <https://hub.docker.com/hardened-images/catalog/dhi/dotnet?tagDefinitionId=dotnet%2Fdebian-13%2F10-sdk>
-
-### Building and running your application
-To ensure the Docker Hardened Images can be pulled if they are not already on your system, start by running.
-`docker login dhi.io`.
-
-Build the compose file with this command: `docker compose build`
-
-When you're ready, start your application by running the following command from the root of the C# minitwit project:
-`docker compose up minitwit`. You can also add the `-d` flag to run the application in detached mode, meaning that the containers are run in the background. 
-
-This will start a container with the MySQL database, which will be seeded with some test data, and then the application will start running in another container. 
-
-The application will be available at http://localhost:5035.
-
-To stop the application simply press Ctrl+C in your terminal, and run `docker compose down -v` to down the application. 
-
-### Running the tests 
-Tests can be run using the following commands:
-
-`docker compose run --rm tests`
-
-`docker compose run --rm apitests`
-
-`docker compose run --rm uitests`
-
 
 ### Deploying your application to the cloud
 
