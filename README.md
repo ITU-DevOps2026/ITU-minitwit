@@ -172,18 +172,57 @@ Versioning numbers are determined by following the SemVer versioning scheme, see
 | Infrastructure | Digital Ocean, Vagrant |
 
 ## Project Structure
+| Path      | Description |
+| :---------| :----------|
+| [.github/workflows](.github/workflows) | Workflows for CI/CD, Static analysis tools, security scanners, tests and report building|
+| [.github/ISSUE_TEMPLATE](.github/ISSUE_TEMPLATE) | Template used when creating issues |
+| [.log_book](./log_book/) | Contains log books in markdown |
+| [.logging/elasticsearch](./logging/elasticsearch/) | Dockerfile for Elasticsearch |
+| [.minitwit/Api](./minitwit/Api/) | Attributes, Controllers and Models for API |
+| [.minitwit/Migrations](./minitwit/Migrations/) | Migrations used by EFcore |
+| [.minitwit/Model](./minitwit/Model/) | Models for Minitwit used by EFcore |
+| [.minitwit/Pages](./minitwit/Pages/) | cshtml and cshtml.cs files for Razor Pages |
+| [.minitwit/Properties](./minitwit/Properties/) | Launchsettings |
+| [.minitwit/wwwroot](./minitwit/wwwroot/) | css, javascript and bootstrap files for frontend |
+| [.minitwit/appsettings.json](./minitwit/appsettings.json) | Configuration file for minitwit |
+| [.minitwit/dotnet-tools.json](./minitwit/dotnet-tools.json) | Specification of dotnet tools |
+| [.minitwit/minitwit.cs](./minitwit/minitwit.cs) | Main entrypoint for Minitwit |
+| [.monitoring/grafana](./monitoring/grafana/) | Dockerfile, datasource and dashboards configuration for Grafana |
+| [.monitoring/prometheus](./monitoring/prometheus/) | Dockerfile and configuration for Prometheus |
+| [.provision_scripts](./provision_scripts/) | Scripts handling provisioning of droplets. Vagrantfile uses these |
+| [.remote_files](./remote_files/) | Compose files and deploy scripts that is put onto droplets |
+| [.report](./report/) | Files pertaining the report for the project |
+| [.tests](./tests/) | Files pertaining tests |
+| [.dockerignore](.dockerignore) | Things Docker should ignore |
+| [.dockleignore](.dockleignore) | Issues Dockle should ignore |
+| [.editorconfig](.editorconfig) | Configuration of dotnet analyzer |
+| [.gitmessage](.gitmessage) | Template used in commit messages |
+| [.mailmap](.mailmap) | Maps users that committed to the repo together |
+| [.compose.yaml](/compose.yaml) | Compose file for local deployment, also used in workflows |
+| [.Dockerfile-minitwit](/Dockerfile-minitwit) | Dockerfile for minitwit application |
+| [.Dockerfile-minitwit-api-tests](/Dockerfile-minitwit-api-tests) | Dockerfile for api tests |
+| [.Dockerfile-minitwit-tests](/Dockerfile-minitwit-tests) | Dockerfile for dotnet tests (Unit and Integration)  |
+| [.Dockerfile-minitwit-ui-tests](/Dockerfile-minitwit-ui-tests) | Dockerfile for ui-tests (UI and End-to-End)  |
+| [.Dockerfile-mysql](/Dockerfile-mysql) | Image for MySQL db |
+| [.init_db.sql](/init_db.sql) | Schema used to initialize db |
+| [.minitwit_db_seed.sql](/minitwit_db_seed.sql) | File to seed database when run locally  |
+| [.README.Docker.md](/README.Docker.md) | Extra information pertaining to Docker |
+| [.README.md](/README.md) | Description of repository  |
+| [.Vagrantfile](/Vagrantfile) | IaC - Creates and configures 5 droplets |
+
+
 
 
 ## Team Configurations and conventions
 ### Git commit message template
 To tell Git to use gitmessage as commit template file, run the following command in your terminal while being in the root directory of the repository:
-```bash
+```bash 
 git config --local commit.template .gitmessage
 ```
 ### Branches and Issues
 Create issues to describe desired features, known bugs to fix, refactorings, etc. These should use the Template issue, which specifies the title of the issue to be: [Type of issue, i.e Refactor, Bug, etc] - Title of issue as well as adding a /Timespent Xh Ym to each issue.
 
-Branches should be linked to the corresponding issue, and should follow the same convention, i.e [Type of work, i.e Refactor, Bug, etc] - Specific name of what you are working on. Ex: Refactor-vagrantfile 
+Branches should be linked to the corresponding issue, and should follow the same convention, i.e [Type of work, i.e Refactor, Bug, etc] - Specific name of what you are working on. Ex: Refactor-vagrantfile (we used / but this can give issues in bash)
 
 ### Reviews and checks
 When a branch is ready to be merged into main, create a pull request to main. This triggers several workflows, which should all pass for the branch to be eligible for a merge. Furthermore a branch should be reviewed and approved by atleast one team member, who has not worked on the branch, before it is merged.
