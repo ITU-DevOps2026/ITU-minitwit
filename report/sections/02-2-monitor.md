@@ -40,11 +40,11 @@ We made 2 different dashboards, one made with a developer focus (Infrastructure 
 
 Below are some images of the dashboard and descriptions of the information it provides the developers:
 
-![Minitwit Infrastructure Health dashboard - Service health and HTTP Success Rate](./images/dashboard_infrastructure_1.png){width=70%}
+![Minitwit Infrastructure Health dashboard - Service health and HTTP Success Rate](./images/Dashboard_infrastructure_1.png){width=70%}
 
-![Minitwit Infrastructure Health dashboard - Requests per second and Total HTTP requests received](./images/dashboard_infrastructure_2.png){width=80%}
+![Minitwit Infrastructure Health dashboard - Requests per second and Total HTTP requests received](./images/Dashboard_infrastructure_2.png){width=80%}
 
-![Minitwit Infrastructure Health dashboard - Response time (P95 latency)](./images/dashboard_infrastructure_3.png){width=60%}
+![Minitwit Infrastructure Health dashboard - Response time (P95 latency)](./images/Dashboard_infrastructure_3.png){width=60%}
 
 - Immediate Root Cause Analysis: If the Status is UP but the Error Rate is spiking, developers know the app is running but the code or database is failing.
 
