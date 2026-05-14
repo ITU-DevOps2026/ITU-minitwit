@@ -1,6 +1,6 @@
 <mxfile host="65bd71144e">
     <diagram id="nh7aRRzzqceyr6ENOQYw" name="Page-1">
-        <mxGraphModel dx="1361" dy="535" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+        <mxGraphModel dx="2382" dy="937" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
@@ -12,7 +12,7 @@
                         <mxPoint as="offset"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="2" value="&lt;span style=&quot;color: rgb(0, 0, 0);&quot;&gt;«&lt;/span&gt;Web interface&lt;span style=&quot;color: rgb(0, 0, 0);&quot;&gt;»&lt;/span&gt;&lt;br&gt;&lt;b&gt;:Razor Pages Frontend&lt;/b&gt;" style="html=1;dropTarget=0;whiteSpace=wrap;" vertex="1" parent="1">
+                <mxCell id="2" value="&lt;span style=&quot;color: rgb(0, 0, 0);&quot;&gt;«&lt;/span&gt;Web interface&lt;span style=&quot;color: rgb(0, 0, 0);&quot;&gt;»&lt;/span&gt;&lt;br&gt;&lt;b&gt;:Razor Frontend&lt;/b&gt;" style="html=1;dropTarget=0;whiteSpace=wrap;" vertex="1" parent="1">
                     <mxGeometry x="160" y="220" width="180" height="90" as="geometry"/>
                 </mxCell>
                 <mxCell id="3" value="" style="shape=module;jettyWidth=8;jettyHeight=4;" vertex="1" parent="2">
@@ -54,7 +54,7 @@
                         <mxPoint y="1" as="offset"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="6" value="&lt;b&gt;:Razor Backend&lt;/b&gt;" style="html=1;dropTarget=0;whiteSpace=wrap;" vertex="1" parent="1">
+                <mxCell id="6" value="&lt;b&gt;:Razor Page Model&lt;/b&gt;" style="html=1;dropTarget=0;whiteSpace=wrap;" vertex="1" parent="1">
                     <mxGeometry x="160" y="430" width="180" height="90" as="geometry"/>
                 </mxCell>
                 <mxCell id="7" value="" style="shape=module;jettyWidth=8;jettyHeight=4;" vertex="1" parent="6">
