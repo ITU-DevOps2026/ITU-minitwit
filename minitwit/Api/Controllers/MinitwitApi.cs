@@ -278,8 +278,15 @@ namespace Org.OpenAPITools.Controllers
                     return BadRequest(new { status = 400, error_msg = "You have to enter a message"});
                 }
 
-                await _mt.Add_Message(username, payload.Content);
-                return StatusCode(204);
+                // Use the bool return to handle errors
+                bool success = await _mt.Add_Message(username, payload.Content);
+
+                if (!success)
+                {
+                    return BadRequest(new { status = 400, error_msg = "Failed to add message. User may not exist or input invalid." });
+                }
+
+                return StatusCode(204); // Success
             }
             catch (Exception)
             {
