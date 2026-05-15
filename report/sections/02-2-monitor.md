@@ -1,4 +1,4 @@
-## Monitor
+## Monitoring
 
 Figure \ref{fig:Monitoring} is a sequence diagram showing the process of collecting, forwarding, and visualizing application metrics in the monitoring system.
 
