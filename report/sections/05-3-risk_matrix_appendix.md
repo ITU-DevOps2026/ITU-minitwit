@@ -11,7 +11,7 @@
 
 #### Threat Sources
 * Cookie manipulation.
-* Root-user on Docker images  HAR VI STADIG DETTE?!?!?
+* Root-user on Docker images
 * DDOS attacks on our webpage, due to no limit on amount of requests.
 * SQL injection on our web page.
 * SSH attack on our server.
@@ -36,7 +36,7 @@ Here we use the scenarios from above, via the index of them, and determine the l
 4. Low - same reasons as for number 3.
 5. High - these credentials are hardcoded in our source code, for the API, so an attacker would easily be able to see what the credentials are, and how they should be encoded.
 6. Medium - The session cookies are encrypted via HTTPS, and expires after 15 minutes, so an attacker should be quick to use it.
-7. Medium - As the credentials are the ones Helge has posted on the Teams group, several other students of this course have access to it, and we do not know if Helge, Mircea or another student is spreading these credentials around.
+7. High - As the credentials are the ones Helge has posted on the Teams group, several other students of this course have access to it, and we do not know if Helge, Mircea or another student is spreading these credentials around.
 
 
 #### Determine impact
@@ -44,17 +44,17 @@ Here we use the scenarios from above, via the index of them, and determine the l
 1. High - could expose user data, and credentials.
 2. High - could prevent users from acessing our site, lowering the customer satisfaction.
 3. High - An attacker would be able to change our program, stop it, or create a backdoor to our system.
-4. High - A hacker could steal our data and demand ransom, which would damage our users and our reputation.
+4. High - An attacker could steal our data and demand ransom, which would damage our users and our reputation.
 5. High - could prevent users from acessing our site, lowering the customer satisfaction.
 6. Medium - could impersonate other users and write things they do not want. However because all users have the same priveliges, it would not be more severe than this.
-7. Medium - still data about our metrics, however it is not as important data as our secrets or user data for example.
+7. Medium - An attacker could gain access to our log/monitoring data, however these are not as sensitive as e.g. our secrets or user data. They could also change or delete our dashboard views, but these can be restored. In addition to this, an attacker would be able to determine the design of the system, error codes, and latency of different requests, which is not something you want an adversary to know, as this can be the basis for a roadmap to attack our system.
 
 #### Risk Matrix to prioritize risk of scenarios
 
 | | Low likelihood | Medium likelihood | High likelihood |
 |------------------------------------|-----------|----------------|-----------|
-| High impact                        | **1.** SQL injection <br> **3.** SSH attack <br> **4.** ransom attack | -           | **2.** DDOS attack <br> **5.** guess credentials for API to DDOS      |
-| Medium impact                      | -       | **6.** cookie exploitation <br> **7.** Access to Grafana | -      |
+| High impact                        | __1.__ SQL injection \newline __3.__ SSH attack \newline __4.__ ransom attack | -           | __2.__ DDOS attack \newline __5.__ guess credentials for API to DDOS      |
+| Medium impact                      | -       | __6.__ cookie exploitation | __7.__ Access to Grafana |
 | Low impact                         | -       | -            | -    |
 
 
