@@ -1,12 +1,7 @@
 import os
 import json
 import base64
-import sqlite3
-import time
-import pytest
 import requests
-from pathlib import Path
-from contextlib import closing
 
 
 BASE_URL = os.environ.get('BaseUrl', 'http://127.0.0.1:5035/api')
