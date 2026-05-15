@@ -10,9 +10,9 @@ On this metrics endpoint we use `app.UseHttpMetrics();`, which writes things to 
 
 ![The source code for caching, in the metrics \label{fig:MetricsCaching}](./images/metrics_caching.png){width=60%}
 
-As can be seen in \ref{fig:MetricsCaching} and \ref{fig:Monitoring}, we have a hybrid of push/pull monitoring, as Minitwit pushes some internal data to a metrics endpoint, and Promtheus pulls from this endpoint.
+As can be seen in Figure \ref{fig:MetricsCaching} and Figure \ref{fig:Monitoring}, we have a hybrid of push/pull monitoring, as Minitwit pushes some internal data to a metrics endpoint, and Prometheus pulls from this endpoint.
 
-As can be seen in the diagram, Traefik load balances between each container, which creates this fluctuating graph, that can be seen in the dashboard under here, due to Prometheus not knowing exactly what container it has scraped, and can therefore not make an average.
+As can be seen in the Figure \ref{fig:Monitoring}, Traefik load balances between each container, which creates this fluctuating graph, that can be seen in Figure \ref{fig:Infra_dash_1} and Figure \ref{fig:Infra_dash_2} and Figure \ref{fig:Infra_dash_3} and Figure \ref{fig:Product_dash_3} under here, due to Prometheus not knowing exactly what container it has scraped, and can therefore not make an average.
 
 To mitigate this error, we should have moved our Prometheus container from its' own droplet to the Manager droplet, and then from here it would be able to scrape all the individual replicas, and find averages over these, via the Docker network, and communicate this to Grafana on the monitoring droplet. However, this would still be a problem due to the workers being on different droplets than the manager, therefore we would need a package that could discover the exact location of each replica, for example the ([prometheus-docker-sd package](https://github.com/stuckyhm/prometheus-docker-sd)).
 
@@ -30,7 +30,7 @@ In addition to this we have added a ressource alert, that monitors our test data
 
 ### Dashboards
 
-To see the dashboard, go to [46.101.69.11:3000](http://46.101.69.11:3000), where the dashboard and logs can be viewed. The credentials are specified in the post made by Helge.
+To see the dashboard shown in Figures \ref{fig:Infra_dash_1},\ref{fig:Infra_dash_2},\ref{fig:Infra_dash_3},\ref{fig:Product_dash_1},\ref{fig:Product_dash_2},\ref{fig:Product_dash_3}, go to [46.101.69.11:3000](http://46.101.69.11:3000), where the dashboard and logs can be viewed. The credentials are specified in the post made by Helge.
 
 We made 2 different dashboards, one made with a developer focus (Infrastructure Health), and one made with a Business stakeholder focus(Product Performance).
 
@@ -38,13 +38,13 @@ We made 2 different dashboards, one made with a developer focus (Infrastructure 
 
 \
 
-Below are some images of the dashboard and descriptions of the information it provides the developers:
+In Figure \ref{fig:Infra_dash_1},\ref{fig:Infra_dash_2},\ref{fig:Infra_dash_3}, are the images of the dashboard and descriptions of the information it provides for the developers:
 
-![Minitwit Infrastructure Health dashboard - Service health and HTTP Success Rate](./images/Dashboard_infrastructure_1.png){width=70%}
+![Minitwit Infrastructure Health dashboard - Service health and HTTP Success Rate \label{fig:Infra_dash_1}](./images/Dashboard_infrastructure_1.png){width=70%}
 
-![Minitwit Infrastructure Health dashboard - Requests per second and Total HTTP requests received](./images/Dashboard_infrastructure_2.png){width=80%}
+![Minitwit Infrastructure Health dashboard - Requests per second and Total HTTP requests received \label{fig:Infra_dash_2}](./images/Dashboard_infrastructure_2.png){width=80%}
 
-![Minitwit Infrastructure Health dashboard - Response time (P95 latency)](./images/Dashboard_infrastructure_3.png){width=60%}
+![Minitwit Infrastructure Health dashboard - Response time (P95 latency) \label{fig:Infra_dash_3}](./images/Dashboard_infrastructure_3.png){width=60%}
 
 - Immediate Root Cause Analysis: If the Status is UP but the Error Rate is spiking, developers know the app is running but the code or database is failing.
 
@@ -58,13 +58,13 @@ We have, in the source code, created a */healthz* endpoint, that shows when Mini
 
 \
 
-Below are some images of the dashboard and descriptions of the information it provides the business stakeholders:
+In Figure \ref{fig:Product_dash_1},\ref{fig:Product_dash_2},\ref{fig:Product_dash_3}, are images of the dashboard and descriptions of the information it provides the business stakeholders:
 
-![Minitwit Product Performance dashboard - Tweet overview](./images/dashboard_product_1.png){width=70%}
+![Minitwit Product Performance dashboard - Tweet overview \label{fig:Product_dash_1}](./images/dashboard_product_1.png){width=70%}
 
-![Minitwit Product Performance dashboard - User overview](./images/dashboard_product_2.png){width=70%}
+![Minitwit Product Performance dashboard - User overview \label{fig:Product_dash_2}](./images/dashboard_product_2.png){width=70%}
 
-![Minitwit Product Performance dashboard - Duration of HTTP Requests (Latency)](./images/dashboard_product_3.png){width=60%}
+![Minitwit Product Performance dashboard - Duration of HTTP Requests (Latency) \label{fig:Product_dash_3}](./images/dashboard_product_3.png){width=60%}
 
 - KPI Tracking: "Total Tweets" and "amount of users" are direct Key Performance Indicators. In a real application, if registrations drop to zero, the Marketing or Product team needs to know immediately.
 
