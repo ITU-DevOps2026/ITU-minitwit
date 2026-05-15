@@ -20,3 +20,5 @@ Trivy is run in its own workflow, which scans for misconfigurations in all Docke
 CodeQL runs in its own workflow, which scans the codebase by running a set of queries to find common vulnerabilities in the code base. 
 Both workflows runs when a pull request to main is created, on push to main, and each week on Monday. 
 Running both workflows on a schedule, rather than just on PR and push is relevant, since new vulnerabilities can be discovered any time, and therefore code that was thought to be secure when the code was pushed, may be discovered to be insecure. The weekly workflow helps ensure that we become aware of newly discovered vulnerabilities.
+
+In addition to the things discussed in this chapter, we also did a Security Assesment of our current system, to determine where we should put our effort, in terms of security, if we had more time to do this project. This can be found in the appendix, in the section [Risk Assesment](#risk-assesment) .
