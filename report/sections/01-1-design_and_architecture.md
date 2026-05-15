@@ -6,9 +6,9 @@
 
 ### Sequence diagram of our system
 
-In Figure \ref{fig:Sequence_diagram_user}, you can see how our system handles a post message request from a user, via the renderd razor page. 
+In Figure \ref{fig:Sequence_diagram_user}, we show how our system handles a post message request from a user, via the rendered Razor page. 
 
-In Figure \ref{fig:Sequence_diagram_api}, you can see how our system handles a post message request, via the server. 
+In Figure \ref{fig:Sequence_diagram_api}, we show how our system handles a post message request, via the API. 
 
 ![Sequence Diagram of a user posting a message \label{fig:Sequence_diagram_user}](./images/interactions_user.png)
 
