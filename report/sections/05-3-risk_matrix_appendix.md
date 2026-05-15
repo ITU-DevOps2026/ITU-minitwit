@@ -35,7 +35,7 @@ Here we use the scenarios from above, via the index of them, and determine the l
 3. Low - an attacker would need a compromised private key or exploit an unknown SSH vulnerability, both of which are much harder.
 4. Low - same reasons as for number 3.
 5. High -  these credentials are from the refactoring hardcoded in our source code, for the API, so an attacker would easily be able to see what the credentials are, and how they should be encoded.
-6. Medium - The session cookies are encrypted via HTTPS, and expires after 15 minutes. In addition to this they expire after 15 minutes, so an attacker should be quick to use it.
+6. Medium - The session cookies are encrypted via HTTPS, and expires after 15 minutes, so an attacker should be quick to use it.
 7. Medium - As the credentials are the ones Helge has posted on the Teams group, several other students of this course has access to it, and we do not know if Helge or Mirchea or another student is spreading these credentials around.
 
 
