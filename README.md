@@ -133,8 +133,6 @@ There are some warnings that cannot be fixed automatically, these will need to b
 - SSH_USER - The user the workflows use to ssh into the droplets in prod
 - SSH_USER_TEST_ENV - The user the workflows use to ssh into the droplets in test
 
-#x
-
 ### Releases
 #### Making a release draft using tags
 On the main branch first create a tag with the intended version number:
@@ -210,9 +208,6 @@ Versioning numbers are determined by following the SemVer versioning scheme, see
 | [.README.md](/README.md) | Description of repository  |
 | [.Vagrantfile](/Vagrantfile) | IaC - Creates and configures 5 droplets |
 
-
-
-
 ## Team Configurations and conventions
 ### Git commit message template
 To tell Git to use gitmessage as commit template file, run the following command in your terminal while being in the root directory of the repository:
@@ -256,4 +251,3 @@ SOFTWARE.
 - Ahmet Talha Akgül
 - Babette Bækgaard
 - Patrick Wittendorff Abarzua Neira
-
