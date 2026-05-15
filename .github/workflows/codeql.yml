@@ -30,7 +30,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd #v6.0.2
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@5fe9434cd24fe243e33e7f3305f8a5b519b70280 #4.31.1
+        uses: github/codeql-action/init@9e0d7b8d25671d64c341c19c0152d693099fb5ba
         with:
           languages: ${{ matrix.language }}
 
@@ -46,4 +46,4 @@ jobs:
         run: dotnet build minitwit/minitwit.csproj --no-restore
 
       - name: Run CodeQL analysis
-        uses: github/codeql-action/analyze@ddd0dc746acf3d29bcc9e39b7cb66c124920e5ff #v3.35.4
+        uses: github/codeql-action/analyze@9e0d7b8d25671d64c341c19c0152d693099fb5ba
