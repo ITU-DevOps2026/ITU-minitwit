@@ -70,12 +70,14 @@ try
   // Add Prometheus metrics
   app.UseHttpMetrics();
 
-  // Before collecting metrics, we want to update the total amount of tweets and users, so we get the latest values when scraping
+  // Before collecting metrics, we want to update the total amount of tweets and users, 
+  // so we get the latest values when scraping
   DateTime _lastUpdate = DateTime.MinValue;
   Metrics.DefaultRegistry.AddBeforeCollectCallback(async (cancel) =>
   {
     if ((DateTime.Now - _lastUpdate).TotalSeconds < 30) return; // Skip if too recent
-    using (var scope = app.Services.CreateScope()) //The DbContext is a scoped service, so we need to create a scope to get it
+    //The DbContext is a scoped service, so we need to create a scope to get it
+    using (var scope = app.Services.CreateScope()) 
     {
       var context = scope.ServiceProvider.GetRequiredService<MinitwitContext>();
 
