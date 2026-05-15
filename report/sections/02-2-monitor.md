@@ -68,6 +68,6 @@ Below are some images of the dashboard and descriptions of the information it pr
 
 - KPI Tracking: "Total Tweets" and "amount of users" are direct Key Performance Indicators. In a real application, if registrations drop to zero, the Marketing or Product team needs to know immediately.
 
-- Engagement Trends: The 24-hour tweet increase shows the pulse of the community. A sudden drop might indicate a trend issue or a subtle bug that doesn't trigger an error but prevents posting. Also, amount of users registerered in the last hour, indicates if a campaign or other trend has worked or not, and if we therefore can see an increase or a drop.
+- Engagement Trends: The 24-hour tweet increase shows the pulse of the community. A sudden drop might indicate a trend issue or a subtle bug that doesn't trigger an error but prevents posting. The amount of users registerered in the last hour, can be used to analyze if a campaign or trend has had impact or not.
 
 - User Satisfaction: Slow apps lead to lost users, so we include an overview of the latency of HTTP requests to keep the business aligned with the need for technical optimization.
