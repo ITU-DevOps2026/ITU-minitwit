@@ -148,11 +148,12 @@ git push origin <tag>
 Versioning numbers are determined by following the SemVer versioning scheme, see: <https://semver.org/> for full documentation
 
 ## Monitoring
-### Metrics
-
+Dashboards and logs are available on http://46.101.69.11:3000 
 ### Dashboards
-
-### Logs
+| Dashboard     | Description |
+| :---------| :----------|
+| Minitwit Infrastructure Health | Service Health, Request rate, HTTP Succes rate, Latency |
+| Minitwit Product Performance | Total tweets, Daily engagement, Total users, New users per last hour, Latency |
 
 ## Tech Stack
 
