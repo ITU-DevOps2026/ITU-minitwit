@@ -41,7 +41,7 @@ Here we use the scenarios from above, via the index of them, and determine the l
 
 #### Determine impact
 
-1. High - could expose user data, and credentials
+1. High - could expose user data, and credentials.
 2. High - could prevent users from acessing our site, lowering the customer satisfaction
 3. High - An attacker would be able to change our program, stop it, or create a backdoor to our system.
 4. High - A hacker could steal our data and demand ransom, which would damage our users and our reputation
