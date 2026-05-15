@@ -2,7 +2,7 @@
 
 Security in our system is enforced on several layers. 
 
-In the infrastructure we have a firewall for our database through DigitalOcean, which follows a default-deny principle, meaning we need to manually state which inbound traffic is allowed. We have inbound rules for SSH on port 22, and for our droplets with the minitwit-swam tag on DigitalOcean, we allow inbound traffic for MySQL on port 3306.
+We've configured a DigitalOcean firewall for our database, following a default-deny principle, i.e all inbound traffic is blocked, unless manually stated otherwise. Inbound traffic is allowed for SSH on port 22, and droplets with the minitwit-swarm tag on DO is allowed for MySQL on port 3306
 
 All of our droplets have UFW setup, which also follows a default-deny principle, for incoming traffic, and during our setup of the droplets the configuration script allows only inbound traffic on the ports that are needed.
 
