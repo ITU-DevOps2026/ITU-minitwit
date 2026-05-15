@@ -70,12 +70,14 @@ try
   // Add Prometheus metrics
   app.UseHttpMetrics();
 
-  // Before collecting metrics, we want to update the total amount of tweets and users, so we get the latest values when scraping
+  // Before collecting metrics, we want to update the total amount of tweets and users, 
+  // so we get the latest values when scraping
   DateTime _lastUpdate = DateTime.MinValue;
   Metrics.DefaultRegistry.AddBeforeCollectCallback(async (cancel) =>
   {
     if ((DateTime.Now - _lastUpdate).TotalSeconds < 30) return; // Skip if too recent
-    using (var scope = app.Services.CreateScope()) //The DbContext is a scoped service, so we need to create a scope to get it
+    //The DbContext is a scoped service, so we need to create a scope to get it
+    using (var scope = app.Services.CreateScope()) 
     {
       var context = scope.ServiceProvider.GetRequiredService<MinitwitContext>();
 
@@ -317,13 +319,19 @@ namespace minitwit
       return user_id == 0 ? null : user_id;
     }
 
-    public async Task Add_Message(string username, string text)
+    public async Task<bool> Add_Message(string username, string text)
     {
       int? u_ID = await Get_user_id(username);
 
-      if (u_ID != null) //Checking that the user exists
+      if (u_ID == null)
       {
-        int time = (int)DateTimeOffset.UtcNow.ToUnixTimeSeconds(); //Gets current time
+          Log.Warning("Attempted to post message by unknown user {username}", username);
+          return false;
+      }
+
+      int time = (int)DateTimeOffset.UtcNow.ToUnixTimeSeconds(); //Gets current time
+
+      try{
         minitwitContext.Messages.Add(new Message
         {
           AuthorId = (int)u_ID,
@@ -334,6 +342,12 @@ namespace minitwit
         await minitwitContext.SaveChangesAsync();
 
         Log.Information("User {username} posted a tweet, with length: {TextLength}", username, text.Length);
+        return true;
+      }
+      catch (Exception ex)
+      {
+        Log.Error(ex, "failed to add message for user {username}", username);
+        return false;
       }
     }
 
