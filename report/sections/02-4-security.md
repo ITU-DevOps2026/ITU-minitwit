@@ -13,7 +13,7 @@ On the application level, we enforce security through frameworks implemented in 
 Database access is handled through Entity Framework, which uses parameterized queries to help prevent SQL injection attacks. 
 Razor Pages automatically encodes all HTML, which protects against cross site scripting (XSS) from malicious users.
 For users of the minitwit application passwords are encrypted using PBKDF2 with salting, which ensures that passwords are securely stored, and safe from brute force attacks.
-Our code base also has .NET analyzers, which will pick up on some security diagnostics, and our .editorconfig file ensures that any security issues discovered through analysers will be marked as errors, meaning the application will fail to build, if a security issue is present.
+Our code base has .NET analyzers, which picks up on security diagnostics, and our .editorconfig file ensures that any security issues discovered through analysers will be marked as errors, meaning the application will fail to build, if a security issue is present.
 
 Within our CI/CD pipeline we have have two security tools, Trivy for Dockerfiles and images, and CodeQL for static analysis of the codebase. 
 Trivy is run in its own workflow, which scans for misconfigurations in all Dockerfiles present in the repository, even those that aren't used on droplets. It then builds the images and scans for vulnerabilities in those. If any misconfigurations or vulnerabilities are found, it will fail the workflow.
