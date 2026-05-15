@@ -7,7 +7,7 @@ We've configured a DigitalOcean firewall for our database, following a default-d
 Our droplets all have UFW set up, also following a default-deny principle for incoming traffic. During setup of the droplets, the configuration scripts opens specific ports for inbound traffic. The configuration scripts also updates the default ssh settings, limiting retries, reducing the graceperiod and disabling password authentication.
 
 
-For transport security, we use Let's Encrypt to provision SSL/TLS certificates, ensuring that communication between clients and the application is encrypted over HTTPS. And we further ensure that attempts to access the site through HTTP is redirected to a secure HTTPS connection. 
+For transport security, we use Let's Encrypt to provision SSL/TLS certificates, ensuring that communication between clients and the application is encrypted over HTTPS. Furthermore we ensure that attempts to access the site through HTTP is redirected to a secure HTTPS connection. 
 
 On the application level, we enforce security through frameworks implemented in the codebase. 
 Database access is handled through Entity Framework, which uses parameterized queries to help prevent SQL injection attacks. 
