@@ -71,6 +71,5 @@ Python dependencies:
 | :-----------       |:--------------| :-------------                                       |
 | Testing Framework  | pytest        | Running and managing automated tests                 |
 | Browser Automation | selenium      | Automating browser interactions for testing          |
-| Web Framework      | Flask         | Making HTTP requests to APIs and services            |
 | HTTP Client        | requests      | Lightweight web framework for building APIs/services |
 | Database Driver    | PyMySQL       | Connecting to and interacting with MySQL databases   |
