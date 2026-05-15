@@ -1,0 +1,121 @@
+<mxfile host="65bd71144e">
+    <diagram id="vnFEySV2oP9aBA1XcuZy" name="Page-1">
+        <mxGraphModel dx="376" dy="779" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1400" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="4" value="Vagrant up" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="350" y="30" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="5" value="Environment selection&lt;div&gt;DEPLOY_ENV = prod | test&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="330" y="120" width="160" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="6" value="Fetch team SSH keys&lt;div&gt;DigitalOcean API&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="350" y="200" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="7" value="Create DigitalOcean tags&lt;div&gt;swarm-tag + db-tag&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="350" y="290" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="8" value="" style="line;strokeWidth=2;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="110" y="360" width="690" height="10" as="geometry"/>
+                </mxCell>
+                <mxCell id="9" value="Droplet boots up" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="140" y="400" width="150" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="26" value="Droplets boots up" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="330" y="400" width="150" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="27" value="Droplet boots up" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="520" y="400" width="150" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="28" value="Droplet boots up" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="680" y="400" width="150" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="29" value="Assign swarm-tag" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="140" y="480" width="150" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="30" value="Copy local files to remote" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="140" y="550" width="150" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="31" value="Fetch &amp;amp; write private IP to file" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="140" y="620" width="150" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="32" value="Assign reserved IP" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="140" y="700" width="150" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="33" value="Wait for DB &amp;amp; Monitor IP files" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="140" y="780" width="150" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="34" value="Inject IP&#39;s, Docker username &amp;amp; DB connection string&lt;div&gt;~/.bash_profile&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="140" y="860" width="150" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="35" value="Run provisioning scripts&lt;div&gt;&lt;font style=&quot;font-size: 11px;&quot;&gt;docker_setup, manager_setup, firewall, fail2ban&lt;/font&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="140" y="930" width="150" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="36" value="Inject team SSH keys&lt;div&gt;/root/.ssh/authorized_keys&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="140" y="1000" width="150" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="37" value="Run provisioning scripts&lt;div&gt;docker, firewall, fail2ban&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="330" y="560" width="150" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="38" value="" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="680" y="640" width="150" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="39" value="Docker swarm join" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="325" y="780" width="150" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="40" value="Fetch and write private IP to file" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="520" y="560" width="150" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="41" value="Wait for Manager IP file" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="520" y="640" width="150" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="42" value="Assign db-tag" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="520" y="480" width="150" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="43" value="Fetch and write private &amp;amp; public IP to files" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="680" y="560" width="150" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="44" value="" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="690" y="820" width="150" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="45" value="Wait for Manager IP &amp;amp; Join token files" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="325" y="700" width="150" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="46" value="./deploy.sh" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="140" y="1280" width="150" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="47" value="Write join token to file" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="140" y="1210" width="150" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="48" value="Generate join token" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="140" y="1140" width="150" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="49" value="Docker swarm init" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="140" y="1070" width="150" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="50" value="Assign swarm-tag" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="330" y="480" width="150" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="53" value="Inject team SSH keys&lt;div&gt;/root/.ssh/authorized_keys&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="330" y="630" width="150" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="55" value="Inject Manager IP&lt;div&gt;/etc/profile.d/db_env.sh&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="520" y="740" width="150" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="56" value="Assign reserved IP" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="520" y="820" width="150" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="57" value="Run provisioning scripts&lt;div&gt;docker, fail2ban, db_setup + firewall&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="520" y="900" width="150" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="58" value="Inject team SSH keys&lt;div&gt;/root/.ssh/authorized_keys&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="520" y="980" width="150" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="60" value="Copy local files to remote" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="680" y="480" width="150" height="60" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>
