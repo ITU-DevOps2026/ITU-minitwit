@@ -1,16 +1,16 @@
 ## Monitor
 
-Under here is a sequence diagram of the process of collecting, forwarding, and visualizing application metrics in the monitoring system.
+Figure \ref{fig:Monitoring} is a sequence diagram showing the process of collecting, forwarding, and visualizing application metrics in the monitoring system.
 
-![A sequence diagram of how monitoring works for Minitwit](./images/monitoring_n_replicas.png)
+![A sequence diagram of how monitoring works for Minitwit \label{fig:Monitoring}](./images/monitoring_n_replicas.png)
 
 To ensure we do not leak information on our metrics of Minitwit, we have set a username and password on Grafana, that is automatically set on creation. In addition to this, only the Monitor's droplet IP adress is whitelisted to scrape [https://monitor.bigtwit.app/](https://monitor.bigtwit.app/), done via Traefik, so no other attacker would be able to access this information.
 
 On this metrics endpoint we use `app.UseHttpMetrics();`, which writes things to the endpoint such as total amount of HTTP requests recieved, the duration of these requests, and more HTTP specific metrics. In addition to this, we added 2 "gauges" to the metrics, that showed the amount of tweets and users the app has. This data is cached, so if another metrics request is received in less than 30 seconds, we re-use the old data for tweets, and followers. This is done to not overwork the database, with requests to count the whole amount of tweets and users.
 
-![The source code for caching, in the metrics](./images/metrics_caching.png){width=60%}
+![The source code for caching, in the metrics \label{fig:MetricsCaching}](./images/metrics_caching.png){width=60%}
 
-As can be seen from this code and the Sequence diagram, we have a hybrid of push/pull monitoring, as Minitwit pushes some internal data to a metrics endpoint, and Promtheus pulls from this endpoint.
+As can be seen in \ref{fig:MetricsCaching} and \ref{fig:Monitoring}, we have a hybrid of push/pull monitoring, as Minitwit pushes some internal data to a metrics endpoint, and Promtheus pulls from this endpoint.
 
 As can be seen in the diagram, Traefik load balances between each container, which creates this fluctuating graph, that can be seen in the dashboard under here, due to Prometheus not knowing exactly what container it has scraped, and can therefore not make an average.
 
