@@ -12,8 +12,6 @@ In Figure \ref{fig:Sequence_diagram_api}, we show how our system handles a post 
 
 ![Sequence Diagram of a user posting a message \label{fig:Sequence_diagram_user}](./images/interactions_user.png)
 
-\newline
-
 ![Sequence Diagram of an API posting a message \label{fig:Sequence_diagram_api}](./images/interactions_api.png)
 
 \newline
