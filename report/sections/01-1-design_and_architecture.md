@@ -1,6 +1,17 @@
 ## Design and Architecture
 
-![Component and Connectors View \label{fig:C&C}](./images/component_and_connector_diagram_horizontal.png)
+### Module view
+
+![Package diagram of the minitwit application \label(fig:minitwit_package)](./images/minitwit_package_diagram.png){width=80%}
+
+![Package diagram of the Model package in the minitwit application \label{fig:model_package}](./images/Model_package_diagram.png){width=80%}
+
+### Component and Connectors (C&C) view
+
+![C&C diagram of the minitwit application \label{fig:C&C}](./images/component_and_connector_diagram_horizontal.png)
+
+
+### Allocation view
 
 ![Allocation View](./images/allocation_view.png)
 
