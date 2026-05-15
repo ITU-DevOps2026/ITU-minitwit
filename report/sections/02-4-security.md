@@ -4,7 +4,8 @@ Security in our system is enforced on several layers.
 
 We've configured a DigitalOcean firewall for our database, following a default-deny principle, i.e all inbound traffic is blocked, unless manually stated otherwise. Inbound traffic is allowed for SSH on port 22, and droplets with the minitwit-swarm tag on DO is allowed for MySQL on port 3306
 
-All of our droplets have UFW setup, which also follows a default-deny principle, for incoming traffic, and during our setup of the droplets the configuration script allows only inbound traffic on the ports that are needed.
+Our droplets all have UFW set up, also following a default-deny principle for incoming traffic. During setup of the droplets, the configuration scripts opens specific ports for inbound traffic. The configuration scripts also updates the default ssh settings, limiting retries, reducing the graceperiod and disabling password authentication.
+
 
 For transport security, we use Let's Encrypt to provision SSL/TLS certificates, ensuring that communication between clients and the application is encrypted over HTTPS. And we further ensure that attempts to access the site through HTTP is redirected to a secure HTTPS connection. 
 
