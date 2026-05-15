@@ -14,7 +14,7 @@ Technologies:
 | Container Base Image      | mysql:8.0                 | MySQL base image for docker container                 |
 | Container Base Image      | grafana/grafana:12.1      | Grafana base image for docker containers              |
 | Container Base Image      | prom/prometheus:v3.5.1    | Prometheus base image for docker containers           |
-| Container Base Image      | docker.elastic.co/elasticsearch/elasticsearch:7.17.10 | ElasticSearch base image for docker containers |
+| Container Base Image      | docker.elastic.co/elasticsearch/ elasticsearch:7.17.10 | ElasticSearch base image for docker containers |
 | Container Base Image      | curlimages/curl           | Curl base image for docker containers used for healthchecks |
 | Provisioning Tool         | Vagrant                   | Infrastructure-as-Code for VM provisioning            |
 | Provisioning Tool         | DropletKit                | Integration between Vagrant and DigitalOcean API      |
