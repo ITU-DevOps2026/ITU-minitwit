@@ -29,8 +29,12 @@ CodeQL scans all our C# files and analyzes them for security vulnerabilities. Cu
 
 ### Trivy
 
-TrivyScanner scans our Dockerfiles for vulnerabilities. Figure \ref{fig:current_state_trivy} shows the report summary for the latest scan. Currently we have one issue that we haven't found a fix for yet, which is caused by our MySQL dockerfile being run with root instead of a non-root user. From our initial research, it seems like this might not be easily possible with the MySQL 8.0 base image that we have chosen, so we have not managed to fix this issue yet. 
+TrivyScanner scans our Dockerfiles for misconfigurations. Figure \ref{fig:current_state_trivy_misconfig} shows the report summary for misconfigurations in the latest scan. Currently we have one misconfiguration that we haven't found a fix for yet, which is caused by our MySQL dockerfile being run with root instead of a non-root user. From our initial research, it seems like this might not be easily possible with the MySQL 8.0 base image that we have chosen, so we have not managed to fix this issue yet. 
 
-![Report from TrivyScanner on Dockerfile vulnerabilities \label{fig:current_state_trivy}](./images/current_state_trivy.png){width=60%}
+![Report from TrivyScanner on Dockerfile misconfigurations \label{fig:current_state_trivy_misconfig}](./images/current_state_trivy.png){width=60%}
 
-If we had more time, we would have assigned someone the task of going through all the issues from SonarQube Cloud, Codacy and Trivy when setting up the tools in order to get the initial number of issues lowered. However, we have tried to fix issues continously if they got reported during our CI pipeline for a pull request. 
+After scanning for misconfigurations TrivyScanner builds the Docker images and scans each image for vulnerabilities. Currently two of our images have vulnerabilities, minitwit-test and minitwit-mysql. Figure \ref{fig:current_state_trivy_test_vuln} shows the report of the vulnerabilities in the minitwit-test Docker image. Appendix [5.2](#appendix-for-trivyscanner-summary-of-minitwit-mysql-image-vulnerabilities) contains summary of vulnerabilities found in the minitwit-mysql image. The issues in the minitwit-mysql stem from the MySQL 8.0 base image as well, but are not necessarily relevant for our system in it's current state, as the image on our production database can only be accessed by our minitwit service, which runs neither python or golang, which are the packages the vulnerabilities affect.
+
+![Report from TrivyScanner on Docker image minitwit-tests \label{fig:current_state_trivy_test_vuln}](./images/trivy_minitwit_test_vuln.png){width=100%}
+
+If we had more time, we would have assigned someone the task of going through all the issues from SonarQube Cloud, Codacy and Trivy when setting up the tools in order to get the initial number of issues lowered. However, we have tried to fix issues continuously if they got reported during our CI pipeline for a pull request. 
