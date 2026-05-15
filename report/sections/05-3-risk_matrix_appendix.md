@@ -31,10 +31,10 @@ Here we use the scenarios from above, via the index of them, and determine the l
 
 #### Determine likelihood
 1. Low - because we use EF-Core, which automatically parameterizes queries and escapes all input strings. As long as all database access goes through EF-Core and not raw SQL queries to the database, the probability of a successful SQL injection is very low.
-2. HIGH - We have not set any rate limiting on our page, so all people would be able to pretty easily create a bot that would DDOS attack us.
+2. High - We have not set any rate limiting on our page, so all people would be able to pretty easily create a bot that would DDOS attack us.
 3. Low - an attacker would need a compromised private key or exploit an unknown SSH vulnerability, both of which are much harder.
 4. Low - same reasons as for numberr 3.
-5. HIGH -  these credentials are from the refactoring hardcoded in our source code, for the API, so an attacker would easily be able to see what the credentials are, and how they should be encoded.
+5. High -  these credentials are from the refactoring hardcoded in our source code, for the API, so an attacker would easily be able to see what the credentials are, and how they should be encoded.
 6. Medium - The session cookies are encrypted via HTTPS, and expires after 15 minutes. In addition to this they expire after 15 minutes, so an attacker should be quick to use it.
 7. Medium - As the credentials are the ones Helge has posted on the Teams group, several other students of this course has access to it, and we do not know if Helge or Mirchea or another student is spreading these credentials around.
 
@@ -44,7 +44,7 @@ Here we use the scenarios from above, via the index of them, and determine the l
 1. High - could expose user data, and credentials
 2. High - could prevent users from acessing our site, lowering the customer satisfaction
 3. High - An attacker would be able to change our program, stop it, or create a backdoor to our system.
-4. HIGH - A hacker could steal our data and demand ransom, which would damage our users and our reputation
+4. High - A hacker could steal our data and demand ransom, which would damage our users and our reputation
 5. High - could prevent users from acessing our site, lowering the customer satisfaction
 6. Medium - could impersonate other users and write things they do not want. However because all users have the same priveliges, it would not be more severe than this.
 7. Medium - still data about our metrics, however it is not as important data as our secrets or user data for example
