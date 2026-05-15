@@ -4,4 +4,4 @@ Logs from MiniTwit uses a Push-based model, where Serilog directly pushes logs t
 ### What our current logging implementation is missing
 Since our infrastructure is running in docker containers, we should also have set up a log-shipper, such as Filebeat, to collect docker container logs and ship them to Elasticsearch. 
 
-Furthermore, our acutal logging statements in MiniTwit.cs are also quite sparse, with some functions not actually logging anything. Whilst not everything needs to be logged, this should be a more deliberate choice than it is currently
+Furthermore, our actual logging statements in MiniTwit.cs are also quite sparse, with some functions not actually logging anything. Whilst not everything needs to be logged, this should be a more deliberate choice than it is currently.
