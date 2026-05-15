@@ -52,7 +52,7 @@ Below are some images of the dashboard and descriptions of the information it pr
 
 - Performance Regressions: By monitoring Latency(P95) and HTTP Success rate, developers can see if a recent code deployment made the app slower, even if it didn't _break_ it.
 
-We have, in the source code, created a */healthz* endpoint, that shows when Minitwit is up and running, however this is only used for spinning up the system locally with docker compose. Our dashboard's health check is currently based on whether or not Prometheus was able to scrape the target. If we had more time, we would have used the */healthz* endpoint instead, which would give a more relevant answer, which is seperated from Prometheus.
+We have, in the source code, created a */healthz* endpoint, that shows when Minitwit is up and running, however this is only used for spinning up the system locally with docker compose. Our dashboard's health check is currently based on whether or not Prometheus was able to scrape the target, this should instead be based on the */healthz* endpoint to seperate it from Prometheus. 
 
 #### Minitwit Product Performance Dashboard
 
