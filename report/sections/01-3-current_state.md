@@ -15,7 +15,7 @@ Figure \ref{fig:current_state_sonarqube} shows a summary of the issues in our co
 
 Figue \ref{fig:current_state_codacy} shows the quality evolution of our codebase according to Codacy. We currently have the following types of issues: 
 
-- **Security**, XX issues: Relates to our python tests; lack of timeouts on requests and hardcoded passwords (not really an issue, since they are test passwords)
+- **Security**, XX issues: Relates to our python tests; lack of timeouts on requests
 
 - **Error prone**, XX issues: Relates to missing implementations of partial methods, unused variables and string operations
 
